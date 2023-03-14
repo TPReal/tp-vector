@@ -1,5 +1,5 @@
-export {Axis, otherAxis} from './axis.ts';
 export * as assets from './assets.ts';
+export {Axis, otherAxis} from './axis.ts';
 export {darkness} from './colors.ts';
 export {ALL_BLACK, ConstColorsDistributor, CyclicColorsDistributor, MapColorsDistributor} from './colors_distributor.ts';
 export type {ColorsDistributor, InitialColorsAssignment} from './colors_distributor.ts';
@@ -30,6 +30,7 @@ export {Path} from './path.ts';
 export {DefaultPiece, Piece, gather} from './pieces.ts';
 export type {BasicPiece} from './pieces.ts';
 export type {Point} from './point.ts';
+export {Project} from './project.ts';
 export {Sheet} from './sheet.ts';
 export type {LaserSVGParams, PartialLaserSVGParams, PartialRunsSelector, RunsSelector} from './sheet.ts';
 export {getPNGDataURI} from './svg_converter.ts';
