@@ -2,6 +2,22 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Lint",
+      "type": "shell",
+      "command": [
+        "deno",
+        "lint"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+      },
+      "problemMatcher": ["$deno"],
+    },
+    {
       "label": "Type-check",
       "type": "shell",
       "command": [

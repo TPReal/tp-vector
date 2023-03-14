@@ -24,7 +24,6 @@ export {Path} from './path.ts';
 export {Piece, gather} from './pieces.ts';
 export type {BasicPiece} from './pieces.ts';
 export type {Point} from './point.ts';
-export {Project} from './project.ts';
 export {Sheet, getSVGRunsController} from './sheet.ts';
 export {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 export {PathForText, createText} from './text.ts';
