@@ -10,7 +10,6 @@
       ],
       "presentation": {
         "echo": true,
-        "reveal": "silent",
         "focus": false,
         "panel": "dedicated",
         "showReuseMessage": false,
@@ -28,7 +27,6 @@
       ],
       "presentation": {
         "echo": true,
-        "reveal": "silent",
         "focus": false,
         "panel": "dedicated",
         "showReuseMessage": false,
