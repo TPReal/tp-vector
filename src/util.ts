@@ -1,4 +1,4 @@
-import {Point, isPoint} from "./point.ts";
+import {Point, isPoint} from './point.ts';
 
 export type OrArray<T> = T | T[];
 export type OrArrayRest<T> = OrArray<T>[];

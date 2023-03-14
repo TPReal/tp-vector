@@ -24,6 +24,7 @@
         "deno",
         "check"
         "src/**/*.ts",
+        "test/**/*.ts",
       ],
       "presentation": {
         "echo": true,

@@ -1,7 +1,7 @@
-import {AttributesDefTool} from "./def_tool.ts";
-import {Attributes, AttributesBuilder} from "./elements.ts";
-import {Font} from "./fonts.ts";
-import {Defs, Piece} from "./pieces.ts";
+import {AttributesDefTool} from './def_tool.ts';
+import {Attributes, AttributesBuilder} from './elements.ts';
+import {Font} from './fonts.ts';
+import {Defs, Piece} from './pieces.ts';
 
 interface PathForTextArgs {
   path: Piece;

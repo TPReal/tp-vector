@@ -1,4 +1,4 @@
-import {almostEqual} from "./util.ts";
+import {almostEqual} from './util.ts';
 
 export interface ViewBox {
   readonly minX: number;

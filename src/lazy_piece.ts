@@ -1,7 +1,7 @@
-import {NO_LAYER, OptionalLayerName} from "./layers.ts";
-import {BasicPiece, Piece, PiecePartArg, RestPieceCreateArgs} from "./pieces.ts";
-import {Tf} from "./transform.ts";
-import {OrArray, OrArrayRest} from "./util.ts";
+import {NO_LAYER, OptionalLayerName} from './layers.ts';
+import {BasicPiece, Piece, PiecePartArg, RestPieceCreateArgs} from './pieces.ts';
+import {Tf} from './transform.ts';
+import {OrArray, OrArrayRest} from './util.ts';
 
 type LazyPieceArg = OrArray<PiecePartArg | undefined> | (() => OrArray<PiecePartArg | undefined>);
 

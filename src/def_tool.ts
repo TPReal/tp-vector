@@ -1,5 +1,5 @@
-import {Attributes, AttributesBuilder} from "./elements.ts";
-import {Defs} from "./pieces.ts";
+import {Attributes, AttributesBuilder} from './elements.ts';
+import {Defs} from './pieces.ts';
 import {OrArray, flatten} from './util.ts';
 
 class IdHelper {

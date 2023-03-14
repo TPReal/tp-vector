@@ -1,8 +1,8 @@
-import {Attributes} from "./elements.ts";
-import {Piece, PiecePartArg} from "./pieces.ts";
-import {Point} from "./point.ts";
-import {Transform} from "./transform.ts";
-import {OrArray, hasOwnProperty} from "./util.ts";
+import {Attributes} from './elements.ts';
+import {Piece, PiecePartArg} from './pieces.ts';
+import {Point} from './point.ts';
+import {Transform} from './transform.ts';
+import {OrArray, hasOwnProperty} from './util.ts';
 
 interface AttributesAndId {
   attributes?: Attributes;

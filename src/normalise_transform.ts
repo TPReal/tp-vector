@@ -1,8 +1,8 @@
 import {AlignmentNumber, AxisBoxAlignment, AxisBoxAlignmentValues, AxisOriginAlignment, Fitting, PartialBoxAlignment, alignmentToNumber, boxAlignmentFromPartial, originAlignmentFromPartial} from './alignment.ts';
 import {Axis} from './axis.ts';
-import {Tf, Transform} from "./transform.ts";
+import {Tf, Transform} from './transform.ts';
 import {hasOwnProperty} from './util.ts';
-import {DefiniteDimSpec, DimSpec, IncompleteDimSpec, PartialViewBox, ViewBox, inferDimSpec, partialViewBoxToXY} from "./view_box.ts";
+import {DefiniteDimSpec, DimSpec, IncompleteDimSpec, PartialViewBox, ViewBox, inferDimSpec, partialViewBoxToXY} from './view_box.ts';
 
 type StringArgs = "default" | "center";
 

@@ -1,4 +1,4 @@
-import {BasicPiece, OrArray, Piece, Sheet, createInlineParams, createText, figures, gather, layouts} from "../index.ts";
+import {BasicPiece, OrArray, Piece, Sheet, createInlineParams, createText, figures, gather, layouts} from '../index.ts';
 
 const p = createInlineParams({
   max: 0.5,
