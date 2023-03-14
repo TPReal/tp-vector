@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+    ],
+  },
+  "lint": {
+    "files": {
+      "include": [
+        "src/",
+        "test/",
+      ],
+      "exclude": [],
+    },
+    "rules": {
+      "tags": ["recommended"],
+      "include": [],
+      "exclude": [
+        "ban-types",
+        "no-empty-interface",
+        "no-inner-declarations",
+        "no-namespace",
+        "no-this-alias",
+      ],
+    },
+  },
+}

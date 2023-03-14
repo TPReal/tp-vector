@@ -1,2 +1,3 @@
-# tp-vector
-Library for generating SVG files for laser cutters.
+# TPVector
+
+Library for generating vector geometry and graphics for laser cutters.

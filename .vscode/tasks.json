@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Type-check",
+      "type": "shell",
+      "command": [
+        "deno",
+        "check"
+        "src/**/*.ts",
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+      },
+      "group": {
+        "kind": "build",
+      },
+      "problemMatcher": ["$deno"],
+    },
+  ],
+}

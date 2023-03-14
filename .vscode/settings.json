@@ -1,0 +1,14 @@
+{
+  "deno.enable": true,
+
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "typescript.preferences.quoteStyle": "double",
+  "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.extension.sortImports.maxNamedImportsInSingleLine": 1000,
+  "typescript.extension.sortImports.sortMethod": "path",
+}
