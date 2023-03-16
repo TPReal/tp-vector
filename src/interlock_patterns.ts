@@ -3,6 +3,10 @@ export interface PatternItem {
   readonly length: number;
 }
 
+/**
+ * Pattern of tabs and/or slots used to connect two layers of cut material,
+ * to create 3-dimensional structures.
+ */
 export class InterlockPattern {
 
   protected constructor(readonly items: readonly PatternItem[]) {
@@ -20,6 +24,12 @@ export class InterlockPattern {
     return this.items.at(-1);
   }
 
+  /**
+   * Adds a section to the pattern. If the section has the same active param as the last one,
+   * they are merged. Zero-length sections are ignored. Negative length is an error.
+   *
+   * The active param is an abstract value, with meaning given by the using class.
+   */
   add(active: boolean, length: number) {
     if (length < 0)
       throw new Error(`Expected non-negative length, got: ${length}`);
@@ -43,6 +53,7 @@ export class InterlockPattern {
     return new InterlockPattern([...this.items].reverse());
   }
 
+  /** Change active sections to non-active and vice versa. */
   invert() {
     return new InterlockPattern(
       this.items.map(({active, length}) => ({active: !active, length})));
@@ -56,15 +67,22 @@ export class InterlockPattern {
 
 }
 
+const EMPTY_PATTERN = InterlockPattern.create();
+
+/** A pattern of tabs at the edge of material. */
 export class TabsPattern {
 
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = InterlockPattern.create()) {
+  static create(pattern = EMPTY_PATTERN) {
     return new TabsPattern(pattern);
   }
 
+  /**
+   * Creates a TabsPattern with the specified number and size of tabs distributed evenly
+   * over the specified length.
+   */
   static distributed({
     length,
     numTabs,
@@ -96,12 +114,12 @@ export class TabsPattern {
     let first = true;
     while (numTabs--) {
       if (!(first && startWithTab))
-        pattern = pattern.skip(skipLen);
+        pattern = pattern.base(skipLen);
       first = false;
       pattern = pattern.tab(tabLen);
     }
     if (!endWithTab)
-      pattern = pattern.skip(skipLen);
+      pattern = pattern.base(skipLen);
     return pattern;
   }
 
@@ -109,15 +127,15 @@ export class TabsPattern {
     return EMPTY_TABS_PATTERN.tab(tabLength);
   }
 
-  static skip(skipLength: number) {
-    return EMPTY_TABS_PATTERN.skip(skipLength);
+  static base(skipLength: number) {
+    return EMPTY_TABS_PATTERN.base(skipLength);
   }
 
   tab(tabLength: number) {
     return TabsPattern.create(this.pattern.add(true, tabLength));
   }
 
-  skip(skipLength: number) {
+  base(skipLength: number) {
     return TabsPattern.create(this.pattern.add(false, skipLength));
   }
 
@@ -129,10 +147,12 @@ export class TabsPattern {
     return TabsPattern.create(this.pattern.reverse());
   }
 
+  /** Returns a TabsPattern defining tabs that can be connected with these tabs at some angle. */
   matchingTabs() {
     return TabsPattern.create(this.pattern.invert());
   }
 
+  /** Returns a SlotsPattern defining slots that these tabs can be inserted into. */
   matchingSlots() {
     return SlotsPattern.create(this.pattern);
   }
@@ -143,21 +163,35 @@ export class TabsPattern {
 
 }
 
+/** A pattern of slots (holes), going through the material. */
 export class SlotsPattern {
 
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = InterlockPattern.create()) {
+  static create(pattern = EMPTY_PATTERN) {
     return new SlotsPattern(pattern);
   }
 
+  /** Creates a slide slot, going from the edge of the material, inside it. */
   static slide(length: number) {
     return SlotsPattern.slot(length).skip(1e-9 * length);
   }
 
+  /**
+   * Creates a pair of matching slide slots, each taking half of the specified length.
+   * The first pattern starts with a lot, the second start with a skip.
+   */
   static slidePair(length: number): [SlotsPattern, SlotsPattern];
+  /**
+   * Creates a pair of matching slide slots, each taking the specified length.
+   * The first pattern starts with a lot, the second start with a skip.
+   */
   static slidePair(slot1Length: number, slot2Length: number): [SlotsPattern, SlotsPattern];
+  /**
+   * Creates a pair of matching slide slots, taking together the specified length.
+   * The first pattern starts with a lot, the second start with a skip.
+   */
   static slidePair(args: {
     length: number,
     slotLengthsRatio?: number,
@@ -185,13 +219,17 @@ export class SlotsPattern {
         len2 = length - len1;
       }
     }
-    const pat1 = InterlockPattern.create().add(true, len1).add(false, len2);
+    const pat1 = EMPTY_PATTERN.add(true, len1).add(false, len2);
     return [
       SlotsPattern.create(pat1),
       SlotsPattern.create(pat1.invert()),
     ];
   }
 
+  /**
+   * Creates a SlotsPattern with the specified number and size of slots distributed evenly
+   * over the specified length.
+   */
   static distributed({
     length,
     numSlots,
@@ -241,6 +279,7 @@ export class SlotsPattern {
     return SlotsPattern.create(this.pattern.reverse());
   }
 
+  /** Returns a TabsPattern defining tabs that can be inserted into these slots. */
   matchingTabs() {
     return TabsPattern.create(this.pattern);
   }

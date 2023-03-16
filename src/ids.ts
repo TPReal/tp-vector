@@ -12,18 +12,7 @@ export function generateId(base = "id") {
   let nextId = 1;
   let id: string;
   do
-    id = `__${base}_${nextId++}`; while (allIds.has(id));
+    id = `__${base}_${nextId++}`;
+  while (allIds.has(id));
   return registerId(id);
-}
-
-export function registerOrGenerateId(possiblyId: unknown, base?: string) {
-  if (possiblyId === undefined) {
-    return generateId(base);
-  }
-  if (typeof possiblyId === "string") {
-    return registerId(possiblyId);
-  }
-  throw new Error(
-    `Expected string or undefined as possible id, got ${JSON.stringify(possiblyId)}`,
-  );
 }

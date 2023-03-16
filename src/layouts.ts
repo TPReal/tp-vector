@@ -11,13 +11,17 @@ interface CountData {
   count: number;
 }
 
-function parseCount(count: Count): CountData {
-  const {from = 0, to, step = 1} = typeof count === "number" ? {to: count - 1} : count;
-  return {from, step, count: Math.floor((to - from) / step + 1e-9) + 1};
+function countDataFromCount(count: Count): CountData {
+  if (typeof count === "number")
+    return {from: 0, step: 1, count};
+  const {from = 0, to, step = 1} = count;
+  return {from, step, count: Math.max(Math.floor((to - from) / step + 1e-9) + 1, 0)};
 }
 
 function* getMultiIndices(count: OrArray<Count>) {
-  const countArr = flatten(count).map(parseCount);
+  const countArr = flatten(count).map(countDataFromCount);
+  if (countArr.some(({count}) => !count))
+    return;
   const ns = countArr.map(() => 0);
   for (; ;) {
     yield ns.map((n, i) => {
@@ -33,6 +37,11 @@ function* getMultiIndices(count: OrArray<Count>) {
   }
 }
 
+/**
+ * Iterates over the (possibly multidimensional) count, calls `pieceFunc` in each interation and
+ * gathers the results. The results of the calls are not moved or rotated, only grouped together,
+ * so it's `pieceFunc`'s responsibility to arrange the pieces as needed.
+ */
 export function layout({count, pieceFunc}: {
   count: OrArray<Count>,
   pieceFunc: (...i: number[]) => BasicPiece | undefined,
@@ -46,20 +55,21 @@ export function layout({count, pieceFunc}: {
   return gather(parts);
 }
 
+/** Arranges the copies of the Piece in a `rows` by `columns` grid. */
 export function gridRepeat({
   piece,
+  rows = 1,
+  columns = 1,
   gap = 1,
   gapX = gap,
   gapY = gap,
-  rows = 1,
-  columns = 1,
 }: {
   piece: Piece,
+  rows?: Count,
+  columns?: Count,
   gap?: number,
   gapX?: number,
   gapY?: number,
-  rows?: Count,
-  columns?: Count,
 }) {
   const {width, height} = piece.getBoundingBox();
   const parts = [];
@@ -68,13 +78,22 @@ export function gridRepeat({
   return gather(parts);
 }
 
-export function stack(pieces: Piece[]): Piece;
-export function stack(params: {
+/**
+ * Arranges the pieces in a column, with the default gap.
+ * The pieces are translated only along the Y axis, their position on the X axis is left unchanged.
+ */
+export function column(pieces: Piece[]): Piece;
+/**
+ * Arranges the pieces in a column, or row if the X axis is specified.
+ * The pieces are translated only along the specified axis, their position on the other axis
+ * is left unchanged.
+ */
+export function column(params: {
   pieces: Piece[],
   gap?: number,
   axis?: Axis,
 }): Piece;
-export function stack(piecesOrParams: Piece[] | {
+export function column(piecesOrParams: Piece[] | {
   pieces: Piece[],
   gap?: number,
   axis?: Axis,
@@ -97,7 +116,15 @@ export function stack(piecesOrParams: Piece[] | {
   return gather(parts);
 }
 
+/**
+ * Arranges the pieces in a row, with the default gap.
+ * The pieces are translated only along the X axis, their position on the Y axis is left unchanged.
+ */
 export function row(pieces: Piece[]): Piece;
+/**
+ * Arranges the pieces in a row.
+ * The pieces are translated only along the X axis, their position on the Y axis is left unchanged.
+ */
 export function row(params: {
   pieces: Piece[],
   gap?: number,
@@ -107,9 +134,14 @@ export function row(piecesOrParams: Piece[] | {
   gap?: number,
 }) {
   const params = Array.isArray(piecesOrParams) ? {pieces: piecesOrParams} : piecesOrParams;
-  return stack({...params, axis: Axis.X});
+  return column({...params, axis: Axis.X});
 }
 
+/**
+ * Packs the specifed pieces roughly into a collection of boxes. The pieces are not reordered or
+ * or rotated, they are collected into rows and placed, row by row, into the boxes, switching
+ * to the next box when the next row doesn't fit.
+ */
 export function fitInBoxes({
   pieces,
   boxes,
@@ -131,10 +163,10 @@ export function fitInBoxes({
     repeatBoxes === true ? rects.length :
       repeatBoxes === "last" ? 1 : repeatBoxes;
   if (numRepeatBoxes > rects.length)
-    throw new Error(`Should repeat last ${numRepeatBoxes} boxes, but only ${rects.length} specified.`);
+    throw new Error(`Should repeat the last ${numRepeatBoxes} boxes, ` +
+      `but only ${rects.length} specified.`);
   const rectsToRepeat = numRepeatBoxes ? rects.slice(-numRepeatBoxes) : [];
   const fullMargin = viewBoxMarginFromPartial(margin);
-  // TODO: Optimise and add support for reordering and rotating.
   let piecesIndex = 0;
   function getRow(width: number) {
     const row = [];

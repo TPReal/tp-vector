@@ -1,13 +1,15 @@
 import {ALL_BLACK, ColorsDistributor, CyclicColorsDistributor} from './colors_distributor.ts';
 import {Attributes} from './elements.ts';
 import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, globalOptions} from './global_options.ts';
-import {OptionalLayerName} from './layers.ts';
+import {NO_LAYER, OptionalLayerName} from './layers.ts';
 import {Point} from './point.ts';
 
+/** The context for which an SVG is generated. */
 export type Medium = "preview" | "laser";
 export const MEDIA: Medium[] = ["preview", "laser"];
 
 export type PartialMediaStyleAttributes = Partial<Record<Medium, Attributes>>;
+/** Global attributes applied to SVG created for the given medium. */
 export type MediaStyleAttributes = Readonly<Record<Medium, Attributes>>;
 export function styleAttributesFromPartial({
   styleAttributes = {},
@@ -22,21 +24,36 @@ export function styleAttributesFromPartial({
   return result as MediaStyleAttributes;
 }
 
+/** The side of the material. */
 export type Side = "front" | "back";
 
 export interface PartialCommonRunOptions {
   id?: string;
   layers?: OptionalLayerName[];
   styleAttributes?: PartialMediaStyleAttributes;
+  /**
+   * Side of the material on which the run should be executed. Note that for `"back"`, the contents
+   * of the layer needs to be mirrored in the X axis, as if viewed from the front side of a
+   * transparent material.
+   */
   side?: Side;
   includeCornersMarker?: boolean;
   posCorrectionMillimeters?: PosCorrectionMillimeters;
 }
+/** Options of a laser run. Some laser cutter software call this "layer". */
 export interface CommonRunOptions {
+  readonly type: "cut" | "print";
   readonly id: string;
+  /** The layers which belong to this run. A layer can belong to multiple runs. */
   readonly layers: readonly OptionalLayerName[];
   readonly styleAttributes: MediaStyleAttributes;
+  /** Side of the material on which this run should be executed. */
   readonly side: Side;
+  /**
+   * Whether corners marker should be included in this run.
+   * Corners marker is a set of objects placed in the corners, that are not sent to the laser,
+   * but are included to prevent the laser software from ignoring the margins of a vector file.
+   */
   readonly includeCornersMarker: boolean;
   readonly posCorrectionMillimeters?: PosCorrectionMillimeters;
 }
@@ -86,11 +103,14 @@ export interface PartialCutOptions extends PartialCommonRunOptions {
 export interface CutOptions extends CommonRunOptions {
   readonly type: "cut";
 }
+/**
+ * Creates CutOptions. If layers are not specified, layer equal to the id is used. If id is
+ * not specified, it is set to `"cut"` and two layers are included: `"cut"` and `NO_LAYER`.
+ */
 export function cutOptionsFromPartial(
   {
-    type,
     id,
-    layers = id === undefined ? [type, undefined] : [id],
+    layers = id === undefined ? ["cut", NO_LAYER] : [id],
     styleAttributes,
     side = "front",
     includeCornersMarker = false,
@@ -99,8 +119,8 @@ export function cutOptionsFromPartial(
   sheetOptions: SheetOptions,
 ): CutOptions {
   return {
-    type,
-    id: id ?? type,
+    type: "cut",
+    id: id ?? "cut",
     layers,
     styleAttributes: styleAttributesFromPartial({
       styleAttributes,
@@ -121,10 +141,13 @@ export interface PartialPrintOptions extends PartialCommonRunOptions {
 export interface PrintOptions extends CommonRunOptions {
   readonly type: "print";
 }
+/**
+ * Creates PrintOptions. If layers are not specified, layer equal to the id is used, or `"print"`
+ * if id is not specified.
+ */
 export function printOptionsFromPartial(
   {
-    type,
-    id = type,
+    id = "print",
     layers = [id],
     styleAttributes,
     side = "front",
@@ -134,7 +157,7 @@ export function printOptionsFromPartial(
   sheetOptions: SheetOptions,
 ): PrintOptions {
   return {
-    type,
+    type: "print",
     id,
     layers,
     styleAttributes: styleAttributesFromPartial({
@@ -178,14 +201,14 @@ export interface PartialCornersMarkerOptions {
 export interface CornersMarkerOptions extends Required<Readonly<PartialCornersMarkerOptions>> {
 }
 export function cornersMarkerOptionsFromPartial({
-  enable = true,
   type = globalOptions().cornersMarkerType,
+  enable = !!type,
   id = "corners_marker",
   styleAttributes = {},
 }: PartialCornersMarkerOptions = {}): CornersMarkerOptions {
   return {
     enable,
-    type,
+    type: type || "circles",
     id,
     styleAttributes: styleAttributesFromPartial({
       styleAttributes,
@@ -202,6 +225,11 @@ export interface PartialReversingFrameOptions {
   id?: string;
   styleAttributes?: PartialMediaStyleAttributes;
 }
+/**
+ * Properties of the reversing frame. The reversing frame is a special cut layer consisting of
+ * a single rectangle bounding the whole object. It allows cutting the whole work out of
+ * the materia and reversing it in place.
+ */
 export interface ReversingFrameOptions extends Required<Readonly<PartialReversingFrameOptions>> {
 }
 export function reversingFrameOptionsFromPartial({
@@ -234,7 +262,7 @@ export function sheetResolutionFromPartial(
   const {
     pixelsPerInch = DEFAULT_PIXELS_PER_INCH,
     pixelsPerMillimeter = pixelsPerInch / 25.4,
-    pixelsPerUnit = pixelsPerMillimeter * (millimetersPerUnit || 1),
+    pixelsPerUnit = pixelsPerMillimeter * (millimetersPerUnit ?? 1),
   } = partial;
   return {
     pixelsPerUnit,
@@ -273,6 +301,7 @@ export function previewColorsFromPartial({
 }
 
 export interface PartialLaserRunsOptions {
+  /** ColorsDistributor assigning colors to runs for the laser medium. */
   colorCodes?: ColorsDistributor;
   handles?: RunHandlesPosition;
 }
@@ -310,7 +339,6 @@ export interface SheetOptions {
   readonly resolution: SheetResolution;
   readonly previewColors: PreviewColors;
   readonly laserRunsOptions: LaserRunsOptions;
-  readonly printPosCorrection: Point;
 }
 export function sheetOptionsFromPartial({
   name,
@@ -321,7 +349,6 @@ export function sheetOptionsFromPartial({
   resolution,
   previewColors,
   laserRunsOptions,
-  printPosCorrection = [0, 0],
 }: PartialSheetOptions): SheetOptions {
   return {
     name,
@@ -332,6 +359,5 @@ export function sheetOptionsFromPartial({
     resolution: sheetResolutionFromPartial(resolution, millimetersPerUnit),
     previewColors: previewColorsFromPartial(previewColors),
     laserRunsOptions: laserRunsOptionsFromPartial(laserRunsOptions),
-    printPosCorrection,
   };
 }

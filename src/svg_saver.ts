@@ -15,6 +15,7 @@ function download({name, url, onClickFunc}: {
   link.remove();
 }
 
+/** Triggers saving of the SVG as a file with the specified name. */
 export function saveSVG({name, svg}: {
   name: string,
   svg: SVGSVGElement,
@@ -23,6 +24,7 @@ export function saveSVG({name, svg}: {
   download({name, url, onClickFunc: cleanUpFunc});
 }
 
+/** Triggers saving of the SVG as a PNG file with the specified name. */
 export function saveSVGAsPNG({
   name,
   svg,

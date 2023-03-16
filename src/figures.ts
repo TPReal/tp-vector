@@ -1,8 +1,8 @@
-import { globalOptions } from './global_options.ts';
-import { Piece } from './pieces.ts';
-import { Point, pointsToString } from './point.ts';
-import { flattenPoints, OrArrayRest } from './util.ts';
-import { PartialViewBox, viewBoxFromPartial } from './view_box.ts';
+import {globalOptions} from './global_options.ts';
+import {Piece} from './pieces.ts';
+import {Point, pointsToString} from './point.ts';
+import {flattenPoints, OrArrayRest} from './util.ts';
+import {PartialViewBox, viewBoxFromPartial} from './view_box.ts';
 
 export function circle({
   center = [0, 0],
@@ -61,7 +61,7 @@ export function line(...args: [Point] | [Point, Point]) {
     tagName: "line",
     attributes: {x1: from[0], y1: from[1], x2: to[0], y2: to[1]},
   });
-  return globalOptions().quirks?.has("lineTransformBug") ?
+  return globalOptions().quirks?.has("lineTransform") ?
     line.wrapInG() : line;
 }
 

@@ -8,12 +8,6 @@
         "deno",
         "lint"
       ],
-      "presentation": {
-        "echo": true,
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": false,
-      },
       "problemMatcher": ["$deno"],
     },
     {
@@ -25,12 +19,6 @@
         "src/**/*.ts",
         "test/**/*.ts",
       ],
-      "presentation": {
-        "echo": true,
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": false,
-      },
       "group": {
         "kind": "build",
       },

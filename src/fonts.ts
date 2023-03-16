@@ -84,6 +84,7 @@ export class Font extends AttributesDefTool {
     });
   }
 
+  // TODO: Use assets instead.
   static fromEncoded({name, type, base64Data}: {
     name: string,
     type: FontType,
@@ -109,6 +110,7 @@ export class Font extends AttributesDefTool {
     });
   }
 
+  /** Creates a font from a font file URL. Waits for the font to be loaded. */
   static async fromURL({name, url, fontAttributes}: {
     name: string,
     url: string,
@@ -152,10 +154,15 @@ export class Font extends AttributesDefTool {
     return Font.fromStyleSync({name, styleContent, fontAttributes});
   }
 
+  /** Returns a font assumed to be available on the system. */
   static system(name: string, fontAttributes?: FontAttributes) {
     return new Font(name, fontAttributes, Piece.EMPTY);
   }
 
+  /**
+   * Creates a font from [Google Fonts](https://fonts.google.com/).
+   * Waits for the font to be loaded.
+   */
   static async googleFonts(name: string, fontAttributes?: FontAttributes) {
     const keys = [];
     const vals = [];

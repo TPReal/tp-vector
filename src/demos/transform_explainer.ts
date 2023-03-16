@@ -1,5 +1,5 @@
 import {PartialCutOptions, Sheet, Tf, Transform, gather} from '../index.ts';
-import {getAxis, getDemoObject, getDemoSection} from './helpers.ts';
+import {getAxis, getDemoObject, getDemoSection} from './explainer_helper.ts';
 
 const TRANSFORMS = [
   "",
@@ -37,7 +37,7 @@ function parseTf(tfString: string): Transform {
   return tfString ? new Function("Tf", `return Tf.${tfString}`)(Tf) as Transform : Tf;
 }
 
-export function getDemo() {
+export function getExplainer() {
   const demoObject = getDemoObject({width: 3, height: 2});
   return getDemoSection(Sheet.create({
     options: {name: "tf_demo"},
