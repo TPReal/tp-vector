@@ -1,7 +1,6 @@
-import {lazyPiece} from './lazy_piece.ts';
 import {Path} from './path.ts';
-import {Piece, PieceFunc} from './pieces.ts';
-import {Point, isPoint} from './point.ts';
+import {DefaultPiece, Piece, PieceFunc} from './pieces.ts';
+import {Point} from './point.ts';
 import {Tf} from './transform.ts';
 import {assert} from './util.ts';
 
@@ -16,30 +15,33 @@ function sinCos(angleDeg: number) {
   return [Math.sin(angleRad), Math.cos(angleRad)];
 }
 
-export type TurtlePoint = Point | Turtle;
+/**
+ * Quadratic Bézier curve parameters - There are none to configure for the quadratic curve.
+ * @see Turtle.curveTo
+ */
+export type QuadraticCurveArgs = "quad";
 
-function pointFromTurtle(point: TurtlePoint): Point {
-  return isPoint(point) ? point : point.pos;
-}
+/**
+ * Speed, used to determine the control points of a cubic Bézier curve.
+ * @see Turtle.curveTo
+*/
+export type ControlPointSpeed = number | "auto";
 
-export type Speed = number | "auto";
+/**
+ * Parameters of a cubic Bézier curve.
+ * @see Turtle.curveTo
+ */
+export interface PartialCubicCurveArgsInterface {
+  /** The default for start and target speed, defaults to `"auto"`. */
+  speed?: ControlPointSpeed;
+  startSpeed?: ControlPointSpeed;
+  targetSpeed?: ControlPointSpeed;
+}
+/** Cubic Bézier curve parameters. The `"cubic"` value is equivalent to `"auto"` speed. */
+export type PartialCubicCurveArgs = "cubic" | PartialCubicCurveArgsInterface;
 
-export interface PartialCurveArgs {
-  speed?: Speed;
-  startSpeed?: Speed;
-  targetSpeed?: Speed;
-}
-interface CurveArgs {
-  startSpeed: Speed;
-  targetSpeed: Speed;
-}
-function curveArgsFromPartial({
-  speed = "auto",
-  startSpeed = speed,
-  targetSpeed = speed,
-}: PartialCurveArgs): CurveArgs {
-  return {startSpeed, targetSpeed};
-}
+/** Parameters of a quadratic or cubic Bézier curve. */
+export type PartialCurveArgs = QuadraticCurveArgs | PartialCubicCurveArgs;
 
 type Stack = readonly Partial<State>[];
 type StackKey = string | number | undefined;
@@ -51,10 +53,6 @@ function isStackKey(value: StackKey | {}): value is StackKey {
   return value === DEFAULT_STACK_KEY || typeof value === "string" || typeof value === "number";
 }
 
-function stackKeyToString(stackKey: StackKey) {
-  return stackKey === DEFAULT_STACK_KEY ? "default" : JSON.stringify(stackKey);
-}
-
 export interface TurtleFunc<Args extends unknown[] = []> {
   (turtle: Turtle, ...args: Args): Turtle;
 }
@@ -63,7 +61,7 @@ interface TurtleToPieceFunc<Args extends unknown[] = []> {
   (turtle: Turtle, ...args: Args): Piece;
 }
 
-export class Turtle extends lazyPiece<Turtle, [Point?]>() {
+export class Turtle extends DefaultPiece {
 
   protected constructor(
     private readonly path: Path,
@@ -73,11 +71,14 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     super(path);
   }
 
-  protected static createInternal(start: Point = [0, 0]) {
+  static create(start?: Point): Turtle;
+  static create(...args: unknown[]): never;
+  static create(start: Point = [0, 0]) {
     return new Turtle(Path.create(start), {pos: start, angleDeg: 0, down: true}, new Map());
   }
 
   get pos() {return this.state.pos;}
+  /** The angle in degrees, measured clockwise from the up direction. */
   get angleDeg() {return this.state.angleDeg;}
   get isPenDown() {return this.state.down;}
 
@@ -85,6 +86,7 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.path;
   }
 
+  /** A transform representing the Turtle's position and angle. */
   asTransform() {
     return Tf.rotateRight(this.angleDeg).translate(...this.pos);
   }
@@ -162,22 +164,27 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.append({stackKey, stack: [...this.stacks.get(stackKey) || [], state]});
   }
 
+  /** Adds the current state (position, angle and pen being up or down) to the specified stack. */
   push(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, this.state);
   }
 
+  /** Pushes only the current position to the specified stack. */
   pushPos(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {pos: this.pos});
   }
 
+  /** Pushes only the current angle to the specified stack. */
   pushAngle(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {angleDeg: this.angleDeg});
   }
 
+  /** Pushes only the current position and angle to the specified stack. */
   pushPosAndAngle(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {pos: this.pos, angleDeg: this.angleDeg});
   }
 
+  /** Pushes only the current pen state to the specified stack. */
   pushPen(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {down: this.isPenDown});
   }
@@ -195,13 +202,21 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.getStackSize(stackKey) === 0;
   }
 
+  /**
+   * Loads the state saved in the specified stack, without popping it.
+   * This does not modify the drawn path.
+   */
   peek(stackKey = DEFAULT_STACK_KEY) {
     const stack = this.stacks.get(stackKey);
     if (!stack || !stack.length)
-      throw new Error(`Stack ${stackKeyToString(stackKey)} is empty.`);
+      throw new Error(`Stack ${JSON.stringify(stackKey ?? "default")} is empty.`);
     return this.appendState(assert(stack.at(-1)));
   }
 
+  /**
+   * Pops the state saved in the specified stack and loads it.
+   * This does not modify the drawn path.
+   */
   pop(stackKey = DEFAULT_STACK_KEY) {
     return this.peek(stackKey).append({
       stackKey,
@@ -209,21 +224,36 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     });
   }
 
+  /**
+   * Executes the TurtleFunc and then restores the state from before the execution.
+   * This is similar to:
+   *
+   *     .push().then(func, args).pop()
+   */
   branch<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
     const state = this.state;
     return this.then(func, ...args).appendState(state);
   }
 
+  /** Copies the state (position, angle and pen state) from the specified Turtle. */
   copy(t: Turtle) {return this.appendState(t.state);}
+  /** Copies the position only from the specified Turtle. */
   copyPos(t: Turtle) {return this.appendState({pos: t.pos});}
+  /** Copies the angle only from the specified Turtle. */
   copyAngle(t: Turtle) {return this.appendState({angleDeg: t.angleDeg});}
+  /** Copies the position and angle only from the specified Turtle. */
   copyPosAndAngle(t: Turtle) {return this.appendState({pos: t.pos, angleDeg: t.angleDeg});}
+  /** Copies the pen state only from the specified Turtle. */
   copyPen(t: Turtle) {return this.appendState({down: t.isPenDown});}
 
+  /** Clears the path drawn by the Turtle, without changing its state. */
   dropPath() {
     return this.append({path: Path.create(this.pos)});
   }
 
+  /**
+   * Sets the pen down or up. Consequent move commands only draw the path if the pen is down.
+   */
   penDown(down = true) {
     return this.append({down});
   }
@@ -262,10 +292,20 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.forward(-length);
   }
 
+  /**
+   * Moves the Turtle directly to its right, without changing its angle. Same as:
+   *
+   *     .right().forward(length).left()
+   */
   strafeRight(length: number) {
     return this.goToRelative(0, length);
   }
 
+  /**
+   * Moves the Turtle directly to its left, without changing its angle. Same as:
+   *
+   *     .left().forward(length).right()
+   */
   strafeLeft(length: number) {
     return this.strafeRight(-length);
   }
@@ -278,17 +318,17 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     });
   }
 
-  goTo(target: TurtlePoint) {
-    const point = pointFromTurtle(target);
+  goTo(target: Point) {
     return this.appendDraw({
-      pathIfDown: this.path.lineTo(point),
-      pos: point,
+      pathIfDown: this.path.lineTo(target),
+      pos: target,
     });
   }
 
-  jumpTo(target: TurtlePoint) {
+  /** Moves to the specified position, without drawing a line. */
+  jumpTo(target: Point) {
     return this.appendJump({
-      pos: pointFromTurtle(target),
+      pos: target,
     });
   }
 
@@ -296,71 +336,101 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.append({angleDeg});
   }
 
+  /** Sets the angle to look directly up. */
   lookUp() {return this.setAngle(0);}
+  /** Sets the angle to look directly down. */
   lookDown() {return this.setAngle(180);}
+  /** Sets the angle to look directly right. */
   lookRight() {return this.setAngle(90);}
+  /** Sets the angle to look directly left. */
   lookLeft() {return this.setAngle(270);}
 
-  lookTowards(target: TurtlePoint) {
-    const point = pointFromTurtle(target);
-    return this.setAngle(
-      Math.atan2(point[0] - this.pos[0], this.pos[1] - point[1]) / Math.PI * 180);
-  }
-
+  /** Rotates the Turtle by the specified angle (90 by default). */
   right(angleDeg = 90) {
     return this.append({dAngleDeg: angleDeg});
   }
 
+  /** Rotates the Turtle by the specified angle (90 by default). */
   left(angleDeg = 90) {
     return this.right(-angleDeg);
   }
 
+  /** Rotates the angle by 180 degrees. */
   turnBack() {
     return this.right(180);
   }
 
-  curveTo(target: Turtle, curveArgs: PartialCurveArgs = {}) {
+  /**
+   * Draws a Bézier curve from the current position to the target turtle.
+   * If the parameter is `"quad"` (the default), a quadratic curve is drawn, with the control
+   * point in the auto position (see below).
+   * Otherwise, a cubic curve is drawn, with the following two control points:
+   *
+   *     this.forward(curveArgs.startSpeed).pos, target.back(curveArgs.targetSpeed).pos
+   *
+   * When the speed value is `"auto"`, the corresponding control point is at the auto position.
+   *
+   * The auto position is the intersection of the start and target Turtle vector directions.
+   * Note that this point might correspond to negative start and/or target speed.
+   * @see Turtle.curve
+   */
+  curveTo(target: Turtle, curveArgs: PartialCurveArgs = "quad") {
     const posAndAngle = {pos: target.pos, angleDeg: target.angleDeg};
     if (!this.isPenDown)
       return this.appendJump(posAndAngle);
     const start = this;
-    const {startSpeed, targetSpeed} = curveArgsFromPartial(curveArgs);
-    let autoPoint: Point | undefined;
+    const {startSpeed, targetSpeed} = curveArgs === "quad" ?
+      {
+        startSpeed: "auto" as const,
+        targetSpeed: undefined,
+      } : curveArgs === "cubic" ? {
+        startSpeed: "auto" as const,
+        targetSpeed: "auto" as const,
+      } : {
+        startSpeed: curveArgs.startSpeed ?? curveArgs.speed ?? "auto",
+        targetSpeed: curveArgs.targetSpeed ?? curveArgs.speed ?? "auto",
+      };
+    let autoPoint: [Point | undefined] | undefined;
     function toHomogeneous(turtle: Turtle) {
       const [sin, cos] = sinCos(turtle.angleDeg);
-      const {pos} = turtle.state;
-      return [cos, sin, -cos * pos[0] - sin * pos[1]];
+      return [cos, sin, -cos * turtle.pos[0] - sin * turtle.pos[1]];
     }
     function getAutoPoint() {
       if (!autoPoint) {
         const [a1, b1, c1] = toHomogeneous(start);
         const [a2, b2, c2] = toHomogeneous(target);
         const [a, b, c] = [b1 * c2 - b2 * c1, a2 * c1 - a1 * c2, a1 * b2 - a2 * b1];
-        autoPoint = Math.abs(c) < 1e-9 ? start.pos : [a / c, b / c];
+        autoPoint = [Math.abs(c) < 1e-9 ? undefined : [a / c, b / c]];
       }
-      return autoPoint;
+      return autoPoint[0];
     }
-    function getPoint(turtle: Turtle, speed: Speed, speedMult = 1): Point {
-      if (speed === "auto")
-        return getAutoPoint();
-      const {pos, angleDeg} = turtle.state;
-      const vel = speed * speedMult;
-      const [sin, cos] = sinCos(angleDeg);
-      return [pos[0] + vel * sin, pos[1] - vel * cos];
+    function getPoint(turtle: Turtle, speed: ControlPointSpeed, dir = 1): Point {
+      return speed === "auto" ? getAutoPoint() || turtle.pos :
+        turtle.forward(speed * dir).pos;
     }
     const point1 = getPoint(this, startSpeed);
-    const point2 = getPoint(target, targetSpeed, -1);
-    return this.appendDraw({
-      pathIfDown: this.path.bezier({point1, point2, target: target.pos}),
-      ...posAndAngle,
-    });
+    const pathIfDown = targetSpeed === undefined ?
+      this.path.quadratic({point1, target: target.pos}) :
+      this.path.cubic({
+        point1,
+        point2: getPoint(target, targetSpeed, -1),
+        target: target.pos,
+      });
+    return this.appendDraw({pathIfDown, ...posAndAngle});
   }
 
+  /**
+   * Draws a curve from the current position to the result of the TurtleFunc. Any drawing done
+   * by the func is discarded, only the final position is taken into account.
+   * @see Turtle.curveTo
+   */
   curve(func: TurtleFunc, curveArgs?: PartialCurveArgs) {
     return this.curveTo(this.then(func), curveArgs);
   }
 
+  /** Pops from the stack and then draws a curve to the current position. */
   curveFromPop(stackKey: StackKey, curveArgs?: PartialCurveArgs): Turtle;
+  /** Pops from the stack and then draws a curve to the current position. */
   curveFromPop(curveArgs?: PartialCurveArgs): Turtle;
   curveFromPop(
     stackKeyOrCurveArgs?: StackKey | PartialCurveArgs, curveArgs?: PartialCurveArgs) {
@@ -372,7 +442,9 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.pop(stackKey).curveTo(this, curveArgs);
   }
 
+  /** Peeks the stack and then draws a curve to the current position. */
   curveFromPeek(stackKey: StackKey, curveArgs?: PartialCurveArgs): Turtle;
+  /** Peeks the stack and then draws a curve to the current position. */
   curveFromPeek(curveArgs?: PartialCurveArgs): Turtle;
   curveFromPeek(
     stackKeyOrCurveArgs?: StackKey | PartialCurveArgs, curveArgs?: PartialCurveArgs) {
@@ -384,14 +456,25 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return this.peek(stackKey).curveTo(this, curveArgs);
   }
 
+  /**
+   * Draws a curve to the result of:
+   *
+   *     .forward(circleR).right(angleDeg).forward(circleR)
+   */
   smoothRight(angleDeg: number, circleR: number, curveArgs?: PartialCurveArgs) {
     return this.curve(t => t.forward(circleR).right(angleDeg).forward(circleR), curveArgs);
   }
 
+  /**
+   * Draws a curve to the result of:
+   *
+   *     .forward(circleR).left(angleDeg).forward(circleR)
+   */
   smoothLeft(angleDeg: number, circleR: number) {
     return this.smoothRight(-angleDeg, circleR);
   }
 
+  /** Makes a turn over the specified angle, with the specified radius. */
   arcRight(angleDeg: number, radius: number): Turtle {
     const [sin, cos] = sinCos(angleDeg);
     const relTarget = this.relPos(radius * sin, radius * (1 - cos));
@@ -415,6 +498,7 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return atTarget;
   }
 
+  /** Makes a turn over the specified angle, with the specified radius. */
   arcLeft(angleDeg: number, radius: number) {
     return this.arcRight(-angleDeg, -radius);
   }
@@ -424,12 +508,14 @@ export class Turtle extends lazyPiece<Turtle, [Point?]>() {
     return [forward * sin + strafeRight * cos, -forward * cos + strafeRight * sin];
   }
 
+  /** Closes the Turtle's path and returns the Path. */
   closePath() {
     return this.asPath().closePath();
   }
 
   toString() {
-    return `Turtle[${JSON.stringify(this.state)}, stack=${JSON.stringify(this.stacks)}, path=${this.path}]`;
+    return `Turtle[${JSON.stringify(this.state)}, stack=${JSON.stringify(this.stacks)}, ` +
+      `path=${this.path}]`;
   }
 
 }

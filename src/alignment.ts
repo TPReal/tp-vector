@@ -1,5 +1,12 @@
 import {Axis} from './axis.ts';
 
+/**
+ * Method of fitting an object into a rectangle.
+ *  - `"fit"`: scale proportionally so that the whole object fits inside the rectangle.
+ *  - `"fill"`: scale proportionally so that the whole rectangle is covered (but parts of
+ *    the object might go outside of it).
+ *  - `"stretch"`: fit the object exactly to the rectangle, scaling X and Y axes separately.
+ */
 export type Fitting = "fit" | "fill" | "stretch";
 
 interface AlignmentValues<Lower, Center, Upper> {
@@ -24,6 +31,7 @@ export interface OriginAlignment {
   readonly y?: AxisOriginAlignment<Axis.Y>;
 }
 export type RequiredOriginAlignment = Required<OriginAlignment>;
+/** Alignment of an object in relation to the origin. */
 export type PartialOriginAlignment = OriginAlignment | "default" | "center";
 
 export function originAlignmentFromPartial(alignment: PartialOriginAlignment = "default"):
@@ -53,6 +61,7 @@ export interface BoxAlignment {
   readonly y?: AxisBoxAlignment<Axis.Y>;
 }
 export type RequiredBoxAlignment = Required<BoxAlignment>;
+/** Alignment of an object in relation to a ViewBox. */
 export type PartialBoxAlignment = BoxAlignment | "default" | "center";
 
 export function boxAlignmentFromPartial(alignment: PartialBoxAlignment = "default"): BoxAlignment {

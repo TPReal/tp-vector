@@ -1,12 +1,25 @@
-import { hasOwnProperty } from './util.ts';
-
 type ValueSaver = (v: number) => number;
 export type InlineParams = Readonly<Record<string, number & ValueSaver>>;
 
+/**
+ * Creates an inline params object. It is a quick and dirty way of specifying
+ * numeric parameters on the fly. Each property of the object can act as
+ * a number, or as a function to set that number.
+ *
+ * Usage example:
+ *
+ *     const p = createInlineParams();
+ *     let t = Turtle.create()
+ *       .forward(p.side(5)).right().forward(p.side2(2 * p.side)).right()
+ *       .forward(p.side).right().forward(p.side2);
+ *
+ * This example sets `p.side` to 5 on the first use, and `p.side2` to 10. The values
+ * are then available for use.
+ */
 export function createInlineParams(init: Record<string, number> = {}): InlineParams {
   const storage = {...init};
   function set(key: string, value: number) {
-    if (hasOwnProperty(storage, key) && value !== storage[key])
+    if (Object.hasOwn(storage, key) && value !== storage[key])
       throw new Error(`Param ${key} already set to ${JSON.stringify(storage[key])}, ` +
         `cannot set to ${JSON.stringify(value)}`);
     storage[key] = value;
@@ -29,7 +42,7 @@ export function createInlineParams(init: Record<string, number> = {}): InlinePar
       const wrapper = (value: number) => set(key, value);
       // deno-lint-ignore no-explicit-any
       (wrapper as any)[Symbol.toPrimitive] = () => {
-        if (!hasOwnProperty(storage, key))
+        if (!Object.hasOwn(storage, key))
           throw new Error(`Param ${key} not set yet, set it by calling params.${key}(value)`);
         const value = storage[key];
         return value;
@@ -71,6 +84,20 @@ function mergeParams<P1 extends object, P2 extends object>(p1: P1, p2: P2): P1 &
   return result;
 }
 
+/**
+ * Creates a type-safe params object, with the ability to create params
+ * based on other params.
+ *
+ * Usage example:
+ *
+ *     const p = createParams({
+ *       side: 5,
+ *     })(p => ({
+ *       side2: 2* p.side,
+ *     });
+ *
+ * This sets `p.side` to 5 and `p.side2` to 10.
+ */
 export function createParams<P extends object>(params: P): ConstructedParams<P> {
   return Object.assign(
     <P2 extends object>(paramsFunc: (p: P) => P2) =>

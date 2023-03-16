@@ -3,9 +3,7 @@ import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {cloneElement, createElement, getElementsBoundingBox, setAttributes} from './elements.ts';
 import {globalOptions} from './global_options.ts';
-import {lazyPiece} from './lazy_piece.ts';
-
-// Image to data URI converter: https://www.base64-image.de/
+import {DefaultPiece} from './pieces.ts';
 
 export type ImageType = "png" | "jpeg" | "gif";
 
@@ -42,7 +40,7 @@ function mimeType(type: ImageType) {
   return `image/${type}`;
 }
 
-export class RasterImage extends lazyPiece<RasterImage>() {
+export class RasterImage extends DefaultPiece {
 
   protected constructor(
     private readonly image: SVGImageElement,
@@ -73,6 +71,7 @@ export class RasterImage extends lazyPiece<RasterImage>() {
     });
   }
 
+  // TODO: Use assets instead.
   static fromEncoded({type, base64Data}: {
     type: ImageType,
     base64Data: string,
@@ -80,6 +79,8 @@ export class RasterImage extends lazyPiece<RasterImage>() {
     return RasterImage.fromBase64({type, base64Data, scaling});
   }
 
+  // TODO: Make loading async and wait for the URL to load.
+  // TODO: Allow loading external URLs.
   static fromDataURI({dataURI, scaling}: {
     dataURI: string,
     scaling?: PartialImageScaling,
@@ -88,7 +89,6 @@ export class RasterImage extends lazyPiece<RasterImage>() {
       image: createElement({
         tagName: "image",
         attributes: {
-          "xlink:href": globalOptions().includeXlinkHref ? dataURI : undefined,
           href: dataURI,
         },
       }),
@@ -117,7 +117,7 @@ export class RasterImage extends lazyPiece<RasterImage>() {
 function applyImageScalingAttributes(image: SVGImageElement, scaling: ImageScaling) {
   if (scaling === "auto") {
     const {imageAutoSizeLogic} = globalOptions();
-    if (imageAutoSizeLogic.widthAndHeight === `"auto"`)
+    if (imageAutoSizeLogic.widthAndHeight === "auto")
       setAttributes(image, {width: "auto", height: "auto"});
     if (imageAutoSizeLogic.measure) {
       const box = getElementsBoundingBox([image]);

@@ -1,11 +1,11 @@
 import {AlignmentNumber, AxisBoxAlignment, AxisBoxAlignmentValues, AxisOriginAlignment, Fitting, PartialBoxAlignment, alignmentToNumber, boxAlignmentFromPartial, originAlignmentFromPartial} from './alignment.ts';
 import {Axis} from './axis.ts';
 import {Tf, Transform} from './transform.ts';
-import {hasOwnProperty} from './util.ts';
 import {DefiniteDimSpec, DimSpec, IncompleteDimSpec, PartialViewBox, ViewBox, inferDimSpec, partialViewBoxToXY} from './view_box.ts';
 
 type StringArgs = "default" | "center";
 
+/** Parameters for normalising an object in the target, with the given fitting and alignment. */
 interface BoxArgs {
   target: PartialViewBox;
   fitting?: Fitting;
@@ -37,6 +37,7 @@ type AxisHoldSpec<A extends Axis> = AxisScaleHoldSpec<A> | AxisLenHoldSpec<A>;
 type AxisAlignmentSpec<A extends Axis> =
   AxisOriginAlignment<A> | AxisBoxSpec<A> | AxisHoldSpec<A> | "unchanged";
 
+/** Parameters for normalising an object to constraints defined separately for the axes. */
 interface XYArgs {
   x?: AxisAlignmentSpec<Axis.X>;
   y?: AxisAlignmentSpec<Axis.Y>;
@@ -47,16 +48,20 @@ export type NormaliseArgs = StringArgs | BoxArgs | XYArgs;
 
 function isAxisHoldSpec(spec: AxisBoxSpec<Axis> | AxisHoldSpec<Axis>):
   spec is AxisHoldSpec<Axis> {
-  return hasOwnProperty(spec, "hold");
+  return Object.hasOwn(spec, "hold");
 }
 function isAxisScaleHoldSpec(spec: AxisHoldSpec<Axis>): spec is AxisScaleHoldSpec<Axis> {
-  return hasOwnProperty(spec, "scale");
+  return Object.hasOwn(spec, "scale");
 }
 
 function isBoxArgs(args: BoxArgs | XYArgs): args is BoxArgs {
-  return hasOwnProperty(args, "target");
+  return Object.hasOwn(args, "target");
 }
 
+/**
+ * Returns a transform that normalises the object with the specified bounding box according to
+ * the normalisation arguments.
+ */
 export function getNormaliseTransform(
   boundingBox: ViewBox,
   args: NormaliseArgs,

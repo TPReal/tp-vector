@@ -27,6 +27,11 @@ export class Transform extends AbstractTransformableTo<Transform> {
 
 }
 
+/**
+ * A convenience tool for creating transforms. Usage example:
+ *
+ *     Tf.rotate(20).translateX(10)
+ */
 export const Tf = Transform.IDENTITY;
 
 export function transformedToString(object: unknown, tf: Transform) {

@@ -1,6 +1,6 @@
 import {PartialCutOptions, PartialViewBox, Sheet, gather} from '../index.ts';
 import {NormaliseArgs} from '../normalise_transform.ts';
-import {getAxis, getDemoObject, getDemoSection} from './helpers.ts';
+import {getAxis, getDemoObject, getDemoSection} from './explainer_helper.ts';
 
 const centeredSq: PartialViewBox = {centered: true, side: 2};
 
@@ -50,7 +50,7 @@ const axes = gather(
   getAxis({min: viewBox.minY, max: viewBox.maxY}).rotateRight(),
 );
 
-export function getDemo() {
+export function getExplainer() {
   const demoObject = getDemoObject({width: 3, height: 2}).translate(2, 1);
   return getDemoSection(Sheet.create({
     options: {name: "tf_demo"},

@@ -5,6 +5,9 @@ import {OrArray, OrArrayRest} from './util.ts';
 
 type LazyPieceArg = OrArray<PiecePartArg | undefined> | (() => OrArray<PiecePartArg | undefined>);
 
+/**
+ * A BasicPiece that delegates its methods to a provided element or a function returning an element.
+ */
 class LazyWrapperPiece implements BasicPiece {
 
   protected constructor(private readonly getPiece: LazyPieceArg) {
@@ -44,6 +47,13 @@ export abstract class SimpleLazyPiece extends Piece {
 
 }
 
+/**
+ * Creates a superclass for a custom class that wants to extend Piece in a lazy way, i.e. so that
+ * the actual geometry is only created on demand. This is useful for builder-like classes if
+ * building the SVG geometry after each build step would be expensive.
+ *
+ * For example usage, see the Path class.
+ */
 export function lazyPiece<ThisClass, CreateArgs extends unknown[] = [never]>() {
   abstract class LazyPiece extends SimpleLazyPiece {
 

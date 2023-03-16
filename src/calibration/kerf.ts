@@ -29,7 +29,7 @@ function text(t: string) {
 function frame(params: Params) {
   const {tabs, slots} = interlock(params);
   const pat = TabsPattern.create()
-    .skip(p.holesMargin / 2).tab(p.tabLen).skip(p.holesMargin / 2);
+    .base(p.holesMargin / 2).tab(p.tabLen).base(p.holesMargin / 2);
   let t = Turtle.create();
   const labels = [];
   for (let i = 0; i < 4; i++) {
@@ -94,7 +94,7 @@ function prober(params: Params) {
   for (let i = 0; i < 4; i++)
     t = t.then(tabs, {
       pattern: TabsPattern.create()
-        .skip(p.holesMargin).tab(p.tabLen).skip(p.holesMargin),
+        .base(p.holesMargin).tab(p.tabLen).base(p.holesMargin),
       dir: "left",
     }).arcRight(90, p.outerCornersRadius);
   return gather(
@@ -113,6 +113,7 @@ export interface Params {
   thicknessMillimeters: number;
 }
 
+// TODO: All logic in the function.
 export function getSheet(params: Params) {
   return Sheet.create({
     options: {name: "kerf_calibrator", millimetersPerUnit: 1},
@@ -124,3 +125,5 @@ export function getSheet(params: Params) {
 }
 
 export const SHEET_3MILLIMETERS = getSheet({thicknessMillimeters: 3});
+
+// TODO: Clean up.

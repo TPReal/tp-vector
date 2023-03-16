@@ -1,19 +1,32 @@
+import {globalOptions} from "./global_options.ts";
 import {OrArray, flattenFilter} from './util.ts';
 import {ViewBox, extendViewBox, fitsInViewBox, viewBoxFromBBox, viewBoxFromPartial, viewBoxToString} from './view_box.ts';
 
-export type AttributeValue = string | number | boolean | undefined;
-export type Attributes = Readonly<Record<string, AttributeValue>>;
-
-export type AttributesBuilder = Record<string, AttributeValue>;
+export type AttributeValue = string | number | boolean;
+/**
+ * A mutable mapping specifying the attributes of an element, helpful for constructing the
+ * Attributes object.
+ * Hyphenated attribute names can be referenced by camelCase.
+ */
+export type AttributesBuilder = Partial<Record<string, AttributeValue | undefined>>;
+/**
+ * Definition of the attributes of an element. Undefined value means that the attribute should
+ * be cleared on the element.
+ * Hyphenated attribute names can be referenced by camelCase.
+ */
+export type Attributes = Readonly<AttributesBuilder>;
 
 export const SVG_NAMESPACE_URI = "http://www.w3.org/2000/svg";
 
-const NAMESPACES = new Map<string, string>([
+const NAMESPACES = new Map([
   ["xlink", "http://www.w3.org/1999/xlink"],
   ["xml", "http://www.w3.org/XML/1998/namespace"],
 ]);
 
-
+/**
+ * A list of all the hyphenated SVG attributes.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
+ */
 const HYPHENATED_ATTRIBUTES = ["accent-height", "alignment-baseline", "arabic-form", "baseline-shift", "cap-height", "clip-path", "clip-rule", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "dominant-baseline", "enable-background", "fill-opacity", "fill-rule", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-name", "glyph-orientation-horizontal", "glyph-orientation-vertical", "horiz-adv-x", "horiz-origin-x", "image-rendering", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "overline-position", "overline-thickness", "panose-1", "paint-order", "pointer-events", "rendering-intent", "shape-rendering", "stop-color", "stop-opacity", "strikethrough-position", "strikethrough-thickness", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-rendering", "transform-origin", "underline-position", "underline-thickness", "unicode-bidi", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "vector-effect", "vert-adv-y", "vert-origin-x", "vert-origin-y", "word-spacing", "writing-mode", "x-height"];
 const HYPHENATED_ATTRIBUTES_MAP = new Map();
 
@@ -28,6 +41,10 @@ for (const attr of HYPHENATED_ATTRIBUTES)
 
 export const COMMON_ATTRIBUTES: Attributes = {vectorEffect: "inherit"};
 
+/**
+ * Sets the specified attributes on the element. Values missing in the attributes are left alone,
+ * values set to undefined are cleared.
+ */
 export function setAttributes(element: SVGElement, attributes: Attributes) {
   for (const [attrib, value] of Object.entries(attributes)) {
     const attribute = HYPHENATED_ATTRIBUTES_MAP.get(attrib) || attrib;
@@ -45,6 +62,8 @@ export function setAttributes(element: SVGElement, attributes: Attributes) {
       else
         element.setAttribute(attribute, String(value));
     }
+    if (globalOptions().quirks?.has("requireXlinkHref") && attribute === "href")
+      setAttributes(element, {"xlink:href": value});
   }
 }
 
@@ -80,7 +99,7 @@ export function createSVG({
   millimetersPerUnit?: number,
   attributes?: Attributes,
   children?: SVGElement[],
-}) {
+}): SVGSVGElement {
   return createElement({
     tagName: "svg",
     attributes: {
@@ -132,19 +151,45 @@ export function uniqueElements<E extends SVGElement>(elements: E[]) {
   return result;
 }
 
+/** Parameters used when measuring the bounding box of elements. */
 const ELEMENTS_BOUNDING_BOX_PARAMS = {
+  /**
+   * The maximum number of times the elements are measured, with the view box of the SVG element
+   * adjusted after each measurement.
+   */
+  maxMeasures: 3,
   minSizeCoeff: 0.1,
-  maxMeasures: 10,
 };
 
+/**
+ * Cached measured bounding box of the last measured element, used to heuristically speed up
+ * consequent measures.
+ */
 let elementsBoundingBoxInitialViewBox = viewBoxFromPartial({centered: true, width: 10, height: 10});
 
+let svgForGetBoundingBox: SVGSVGElement | undefined;
+
+/**
+ * Calculates the bounding box of the specified elements. It does take into account the transform
+ * on these elements (but not on their parent elements), which is different from `getBBox()`.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getBBox
+ */
 export function getElementsBoundingBox(elements: SVGElement[]) {
   let viewBox = elementsBoundingBoxInitialViewBox;
-  const svg = createSVG({
-    viewBox,
-    children: elements,
-  });
+  let svg = svgForGetBoundingBox;
+  if (svg) {
+    while (svg.firstChild)
+      svg.lastChild?.remove();
+    for (const element of elements)
+      svg.appendChild(element);
+    svg.setAttribute("viewBox", viewBoxToString(viewBox));
+  } else {
+    svg = createSVG({
+      viewBox,
+      children: elements,
+    });
+    svgForGetBoundingBox = svg;
+  }
   document.body.appendChild(svg);
   try {
     let boundingBox = viewBoxFromBBox(svg);

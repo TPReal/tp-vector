@@ -1,6 +1,10 @@
 import {Point} from './point.ts';
 import {Transform} from './transform.ts';
 
+/**
+ * Basic methods for transformations.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform
+ */
 export interface SVGTransformsInterface<R> {
   translate(dx: number, dy?: number): R;
   scale(k: number): R;
@@ -11,6 +15,7 @@ export interface SVGTransformsInterface<R> {
   matrix(abcdef: [number, number, number, number, number, number]): R;
 }
 
+/** Convenience methods for transformations. */
 export interface TransformsInterface<R> extends SVGTransformsInterface<R> {
 
   translateX(dx: number): R;
@@ -69,12 +74,9 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
 
   scale(k: number, center?: Point): R;
   scale(kx: number, ky: number, center?: Point): R;
-  scale(kx: number, kyOrCenter?: number | Point, center?: Point) {
-    let ky = kx;
-    if (typeof kyOrCenter === "number")
-      ky = kyOrCenter;
-    else
-      center = kyOrCenter;
+  scale(...args: [number, Point?] | [number, number, Point?]) {
+    const [kx, ky, center] = typeof args[1] === "number" ?
+      args as [number, number, Point?] : [args[0], args[0], args[1]];
     if (center) {
       const [dx, dy] = center;
       return this.translate(-dx, -dy).scale(kx, ky).translate(dx, dy);
@@ -82,10 +84,10 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
     return this.tfData("scale", [kx, ky]);
   }
   scaleX(kx: number, centerX?: number) {
-    return this.scale(kx, 1, centerX && [centerX, 0] || undefined);
+    return this.scale(kx, 1, centerX ? [centerX, 0] : undefined);
   }
   scaleY(ky: number, centerY?: number) {
-    return this.scale(1, ky, centerY && [0, centerY] || undefined);
+    return this.scale(1, ky, centerY ? [0, centerY] : undefined);
   }
   flipX(centerX?: number) {return this.scaleX(-1, centerX);}
   flipY(centerY?: number) {return this.scaleY(-1, centerY);}
@@ -99,23 +101,17 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
 
   rotateRight(angleDeg: number, center?: Point): R;
   rotateRight(center?: Point): R;
-  rotateRight(angleDegOrCenter?: number | Point, center?: Point) {
-    let angleDeg = 90;
-    if (typeof angleDegOrCenter === "number")
-      angleDeg = angleDegOrCenter;
-    else
-      center = angleDegOrCenter;
+  rotateRight(...args: [number, Point?] | [Point?]) {
+    const [angleDeg, center] = typeof args[0] === "number" ?
+      args as [number, Point?] : [90, args[0]];
     return this.rotate(angleDeg, center);
   }
 
   rotateLeft(angleDeg: number, center?: Point): R;
   rotateLeft(center?: Point): R;
-  rotateLeft(angleDegOrCenter?: number | Point, center?: Point) {
-    let angleDeg = 90;
-    if (typeof angleDegOrCenter === "number")
-      angleDeg = angleDegOrCenter;
-    else
-      center = angleDegOrCenter;
+  rotateLeft(...args: [number, Point?] | [Point?]) {
+    const [angleDeg, center] = typeof args[0] === "number" ?
+      args as [number, Point?] : [90, args[0]];
     return this.rotate(-angleDeg, center);
   }
 
@@ -146,9 +142,13 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
 }
 
 function tfDataToSVGTransform(func: string, args: number[]) {
-  return `${func}(${args.join(",")})`;
+  const res = `${func}(${args.join(",")})`;
+  if (args.some(a => !Number.isFinite(+a)))
+    console.warn(`Infinite values in transform: ${res}`);
+  return res;
 }
 
+/** An object that can be transformed. */
 export abstract class AbstractTransformableTo<R extends TransformableTo<R>>
   extends AbstractTransforms<R> implements TransformableTo<R> {
 

@@ -98,6 +98,7 @@ export const SHEET_Y_AXIS = createSheet({
   pieces: vernierScaleY,
 });
 
+// TODO: All logic in the function.
 export const SHEET = createSheet({
   pieces: gather(
     vernierScaleX.moveUp(p.max * p.unitDist - p.scoreLength + p.max),
@@ -107,3 +108,5 @@ export const SHEET = createSheet({
 
 // To calibrate print position, set in global options:
 //   printPosCorrectionMillimeters: [dx, dy]
+
+// TODO: Clean up.

@@ -38,11 +38,12 @@ export class PathForText extends AttributesDefTool {
         align === "start" ? ["0%", "start"] :
           align === "center" ? ["50%", "middle"] :
             ["100%", "end"];
-    const pathDefTool = path.asDefTool(id).useByHref().addAttributes(tpAttributes);
+    const pathDefTool = path.asDefTool(id).useByHref();
     return new PathForText(
       pathDefTool,
-      pathDefTool.asAttributes(),
-      Piece.EMPTY.asDefTool().useByAttributes(tAttributes));
+      {...pathDefTool.asAttributes(), ...tpAttributes},
+      AttributesDefTool.create(Piece.EMPTY, tAttributes),
+    );
   }
 
   getTextDefTool() {
@@ -51,6 +52,7 @@ export class PathForText extends AttributesDefTool {
 
 }
 
+/** Creates a Piece containing a text SVG element. */
 export function createText(text: string, {
   font,
   size = 1,
