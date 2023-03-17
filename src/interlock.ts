@@ -246,9 +246,9 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
         signAbs(neighs[ri].kind === "boundary" ? 0 : r));
       const d = (dir === "right" ? 1 : -1) * (curr.newActive ? 1 : -1);
       t = t.forward(preLen - r1Val)
-        .then(arcTurn, r1Sign, r1Val, d)
+        .andThen(arcTurn, r1Sign, r1Val, d)
         .forward(thickness - r1Val - r2Val)
-        .then(arcTurn, r2Sign, r2Val, -d)
+        .andThen(arcTurn, r2Sign, r2Val, -d)
         .forward(postLen - r2Val);
     }
   }
@@ -287,9 +287,9 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
           const [prev, curr, next] = progression.slice(i, i + 3);
           if (curr.kind === "forward") {
             if (prev.kind === "boundary")
-              t = t.then(fwd, curr.active, curr.length / 2);
+              t = t.andThen(fwd, curr.active, curr.length / 2);
             if (next.kind === "boundary")
-              t = t.then(fwd, curr.active, curr.length / 2);
+              t = t.andThen(fwd, curr.active, curr.length / 2);
           } else if (curr.kind === "activeEdge") {
             const kerfCorrection = curr.useKerf ?
               kerf.oneSideInUnits * (curr.newActive ? 1 : -1) : 0;
@@ -299,17 +299,17 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
               throw new Error(`Kerf too big, negative edge`);
             const [rSign, rVal] = signAbs(-innerCornersRadius);
             if (curr.newActive)
-              t = t.then(fwd, false, preLen)
+              t = t.andThen(fwd, false, preLen)
                 .right(90 * d)
                 .forward(halfWid - rVal)
-                .then(arcTurn, rSign, rVal, -d)
+                .andThen(arcTurn, rSign, rVal, -d)
                 .forward(postLen - rVal);
             else
               t = t.forward(preLen - rVal)
-                .then(arcTurn, rSign, rVal, -d)
+                .andThen(arcTurn, rSign, rVal, -d)
                 .forward(halfWid - rVal)
                 .right(90 * d)
-                .then(fwd, false, postLen);
+                .andThen(fwd, false, postLen);
           }
         }
         return t;
@@ -349,9 +349,9 @@ export function turtleInterlock(options: PartialInterlockOptions) {
 }
 
 export function tabsPiece(args: TabsArgs) {
-  return Turtle.create().then(TURTLE_TABS_BASE_FUNC, args).asPath();
+  return Turtle.create().andThen(TURTLE_TABS_BASE_FUNC, args).asPath();
 }
 
 export function slotsPiece(args: SlotsArgs) {
-  return Turtle.create().then(TURTLE_SLOTS_BASE_FUNC, args).asPath();
+  return Turtle.create().andThen(TURTLE_SLOTS_BASE_FUNC, args).asPath();
 }

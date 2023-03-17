@@ -153,11 +153,11 @@ export class Turtle extends DefaultPiece {
     return result.append({angleDeg, down});
   }
 
-  then<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args): Turtle;
-  then<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args): Piece;
-  then<Args extends unknown[]>(func: TurtleToPieceFunc<Args>, ...args: Args): Piece;
-  then<Args extends unknown[]>(func: PieceFunc<Args> | TurtleFunc<Args>, ...args: Args) {
-    return super.then<Args>(func as PieceFunc<Args>, ...args);
+  andThen<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args): Turtle;
+  andThen<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args): Piece;
+  andThen<Args extends unknown[]>(func: TurtleToPieceFunc<Args>, ...args: Args): Piece;
+  andThen<Args extends unknown[]>(func: PieceFunc<Args> | TurtleFunc<Args>, ...args: Args) {
+    return super.andThen<Args>(func as PieceFunc<Args>, ...args);
   }
 
   private pushInternal(stackKey: StackKey, state: Partial<State>) {
@@ -228,11 +228,11 @@ export class Turtle extends DefaultPiece {
    * Executes the TurtleFunc and then restores the state from before the execution.
    * This is similar to:
    *
-   *     .push().then(func, args).pop()
+   *     .push().andThen(func, args).pop()
    */
   branch<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
     const state = this.state;
-    return this.then(func, ...args).appendState(state);
+    return this.andThen(func, ...args).appendState(state);
   }
 
   /** Copies the state (position, angle and pen state) from the specified Turtle. */
@@ -277,7 +277,7 @@ export class Turtle extends DefaultPiece {
       args = [func, ...args] as Args;
     }
     const prev = this.isPenDown;
-    return this.penDown(down).then(assert(func), ...args).penDown(prev);
+    return this.penDown(down).andThen(assert(func), ...args).penDown(prev);
   }
 
   withPenUp<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
@@ -425,7 +425,7 @@ export class Turtle extends DefaultPiece {
    * @see Turtle.curveTo
    */
   curve(func: TurtleFunc, curveArgs?: PartialCurveArgs) {
-    return this.curveTo(this.then(func), curveArgs);
+    return this.curveTo(this.andThen(func), curveArgs);
   }
 
   /** Pops from the stack and then draws a curve to the current position. */

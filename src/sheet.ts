@@ -279,8 +279,8 @@ export class Sheet {
       const runOptions = this.getRunOptions(id);
       let group;
       if (runOptions.type === "print" && printsAsImages)
-        group = RasterImage.fromDataURI({
-          dataURI: await getPNGDataURI(
+        group = (await RasterImage.fromURL({
+          url: await getPNGDataURI(
             await this.getRawSVG({
               medium,
               printsAsImages: false,
@@ -294,7 +294,8 @@ export class Sheet {
             width: this.viewBox.width,
             height: this.viewBox.height,
           },
-        }).translate(this.viewBox.minX, this.viewBox.minY)
+        }))
+          .translate(this.viewBox.minX, this.viewBox.minY)
           .asG({id: runOptions.id});
       else
         group = this.getRunPiece({runOptions, medium});
@@ -391,6 +392,10 @@ export class Sheet {
     return [...idsSet];
   }
 
+  /**
+   * Generates an `<svg>` element with the preview of this Sheet.
+   * If the runs selector is specified, the SVG will only contain the specified runs.
+   */
   async getPreviewSVG({
     runsSelector,
     saveOnClick = true,
@@ -434,6 +439,12 @@ export class Sheet {
     return text.join("");
   }
 
+  /**
+   * Generates an `<svg>` element suitable for loading in the laser cutter software.
+   * If the runs selector is specified, the SVG will only contain the specified runs.
+   * If `printsAsImages` is specified, all the print layers are actually pre-rendered images,
+   * which is helpful if the laser cutter software doesn't implement all the features of SVG.
+   */
   async getLaserSVG({printsAsImages, runsSelector}: {
     printsAsImages?: boolean,
     runsSelector?: PartialRunsSelector,
@@ -458,6 +469,10 @@ export class Sheet {
     return getSuffixedName(name || DEFAULT_SHEET_NAME, suffix);
   }
 
+  /**
+   * Saves the laser SVG file as a file.
+   * @see Sheet.getLaserSVG
+   */
   async saveLaserSVG(params: PartialLaserSVGParams = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
     const svg = await this.getLaserSVG({printsAsImages, runsSelector});
@@ -468,7 +483,7 @@ export class Sheet {
     if (format === "SVG")
       saveSVG({name, svg});
     else if (format === "PNG")
-      saveSVGAsPNG({
+      await saveSVGAsPNG({
         name,
         svg,
         conversionParams: this.options.resolution,
@@ -500,6 +515,11 @@ export class Sheet {
     return text.join("");
   }
 
+  /**
+   * Returns a `<button>` element which saves the SVG suitable for the laser cutter software
+   * on click.
+   * @see Sheet.saveLaserSVG
+   */
   getLaserSVGSaveButton({params = {}, label, hintSuffix}: {
     params?: PartialLaserSVGParams,
     label?: string,
@@ -518,6 +538,14 @@ export class Sheet {
     });
   }
 
+  /**
+   * Returns all the runs defined in this Sheet in their natural order. The order is:
+   *  - prints on the back side,
+   *  - cuts on the back side (this type of run is rare),
+   *  - the reversing frame - if there were any runs on the back,
+   *  - prints on the front,
+   *  - cuts on the front.
+   */
   getRunsInNaturalOrder(): PartialRunsSelector[] {
     const allOptions = [...this.runOptions.values()];
     const hasReverseSide = allOptions.some(({side}) => side === "back");
@@ -543,6 +571,11 @@ export class Sheet {
       return runsOnSide("front");
   }
 
+  /**
+   * Returns a `<div>` element with buttons for saving the laser SVG files, one per each
+   * runs selector, or a complete set of buttons if `"all"` is specified (the default).
+   * @see Sheet.saveLaserSVG
+   */
   getSaveLaserSVGButtons({
     format = "SVG",
     printsFormat = "both",
@@ -618,5 +651,3 @@ export class Sheet {
   }
 
 }
-
-// TODO: Document.

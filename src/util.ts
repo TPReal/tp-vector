@@ -48,3 +48,7 @@ export function almostEqual(a: number, b: number, {maxError = 1e-9} = {}) {
   const diff = a - b;
   return diff >= -maxError && diff <= maxError;
 }
+
+export async function sleep(timeMillis: number) {
+  await new Promise(resolve => setTimeout(resolve, timeMillis));
+}
