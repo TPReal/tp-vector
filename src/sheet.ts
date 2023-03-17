@@ -471,7 +471,7 @@ export class Sheet {
 
   /**
    * Saves the laser SVG file as a file.
-   * @see Sheet.getLaserSVG
+   * @see {@link Sheet.getLaserSVG}
    */
   async saveLaserSVG(params: PartialLaserSVGParams = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
@@ -518,7 +518,7 @@ export class Sheet {
   /**
    * Returns a `<button>` element which saves the SVG suitable for the laser cutter software
    * on click.
-   * @see Sheet.saveLaserSVG
+   * @see {@link Sheet.saveLaserSVG}
    */
   getLaserSVGSaveButton({params = {}, label, hintSuffix}: {
     params?: PartialLaserSVGParams,
@@ -574,7 +574,7 @@ export class Sheet {
   /**
    * Returns a `<div>` element with buttons for saving the laser SVG files, one per each
    * runs selector, or a complete set of buttons if `"all"` is specified (the default).
-   * @see Sheet.saveLaserSVG
+   * @see {@link Sheet.saveLaserSVG}
    */
   getSaveLaserSVGButtons({
     format = "SVG",

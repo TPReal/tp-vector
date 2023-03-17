@@ -1,6 +1,7 @@
+import * as assets from "./assets.ts";
 import * as dataURIConv from './data_uri_conv.ts';
 import {AttributesDefTool} from './def_tool.ts';
-import {Attributes, createElement, createSVG, getLoadedPromise, withUtilSVG} from './elements.ts';
+import {Attributes, createElement, withUtilSVG} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
 import {sleep} from "./util.ts";
 
@@ -67,7 +68,7 @@ export class Font extends AttributesDefTool {
   }) {
     return await Font.fromURL({
       name,
-      dataURI: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
+      url: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
       fontAttributes,
     });
   }
@@ -80,33 +81,31 @@ export class Font extends AttributesDefTool {
   }) {
     return await Font.fromURL({
       name,
-      dataURI: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
+      url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
       fontAttributes,
     });
   }
 
-  // TODO: Use assets instead.
-  static async fromEncoded({name, type, base64Data}: {
+  static async fromURL({name, url, fontAttributes}: {
     name: string,
-    type: FontType,
-    base64Data: string,
-  }, fontAttributes?: FontAttributes) {
-    return await Font.fromBase64({
-      name: `${name.replaceAll(".", "_")}__encoded`,
-      type,
-      base64Data,
-      fontAttributes,
-    });
-  }
-
-  static async fromURL({name, dataURI, fontAttributes}: {
-    name: string,
-    dataURI: string,
+    url: string,
     fontAttributes?: FontAttributes,
   }) {
     return await Font.fromStyle({
       name,
-      styleContent: styleContentFromFontURL(name, dataURI),
+      styleContent: styleContentFromFontURL(name, url),
+      fontAttributes,
+    });
+  }
+
+  static async fromAsset({name, urlAsset, fontAttributes}: {
+    name: string,
+    urlAsset: assets.ModuleImport<string>,
+    fontAttributes?: FontAttributes,
+  }) {
+    return await Font.fromURL({
+      name,
+      url: await assets.url(urlAsset),
       fontAttributes,
     });
   }
@@ -169,6 +168,9 @@ async function loadStyle(styleContent: string) {
         return;
       await sleep(t);
     }
+    if (!style.sheet)
+      console.warn(`Failed waiting for style to load`, style);
   });
+  await document.fonts.ready;
   return style;
 }
