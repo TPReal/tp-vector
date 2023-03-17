@@ -1,7 +1,9 @@
 export function fromBinary({mimeType, binData}: {
   mimeType: string,
-  binData: string,
+  binData: string | Uint8Array | number[],
 }) {
+  if (typeof binData !== "string")
+    binData = String.fromCharCode(...binData);
   return fromBase64({base64Data: btoa(binData), mimeType});
 }
 

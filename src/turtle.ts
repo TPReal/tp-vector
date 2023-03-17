@@ -17,19 +17,19 @@ function sinCos(angleDeg: number) {
 
 /**
  * Quadratic Bézier curve parameters - There are none to configure for the quadratic curve.
- * @see Turtle.curveTo
+ * @see {@link Turtle.curveTo}
  */
 export type QuadraticCurveArgs = "quad";
 
 /**
  * Speed, used to determine the control points of a cubic Bézier curve.
- * @see Turtle.curveTo
+ * @see {@link Turtle.curveTo}
 */
 export type ControlPointSpeed = number | "auto";
 
 /**
  * Parameters of a cubic Bézier curve.
- * @see Turtle.curveTo
+ * @see {@link Turtle.curveTo}
  */
 export interface PartialCubicCurveArgsInterface {
   /** The default for start and target speed, defaults to `"auto"`. */
@@ -372,7 +372,7 @@ export class Turtle extends DefaultPiece {
    *
    * The auto position is the intersection of the start and target Turtle vector directions.
    * Note that this point might correspond to negative start and/or target speed.
-   * @see Turtle.curve
+   * @see {@link Turtle.curve}
    */
   curveTo(target: Turtle, curveArgs: PartialCurveArgs = "quad") {
     const posAndAngle = {pos: target.pos, angleDeg: target.angleDeg};
@@ -421,8 +421,8 @@ export class Turtle extends DefaultPiece {
 
   /**
    * Draws a curve from the current position to the result of the TurtleFunc. Any drawing done
-   * by the func is discarded, only the final position is taken into account.
-   * @see Turtle.curveTo
+   * by the function is discarded, only the final position is taken into account.
+   * @see {@link Turtle.curveTo}
    */
   curve(func: TurtleFunc, curveArgs?: PartialCurveArgs) {
     return this.curveTo(this.andThen(func), curveArgs);

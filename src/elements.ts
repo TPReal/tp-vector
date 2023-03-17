@@ -216,7 +216,10 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
 export function getLoadedPromise(element: SVGElement) {
   return new Promise((resolve, reject) => {
     element.addEventListener("load", resolve, false);
-    element.addEventListener("error", reject, false);
+    element.addEventListener("error", event => {
+      console.error(`Waiting for the "load" event, got "error"`, element, event);
+      reject(event);
+    }, false);
   });
 }
 

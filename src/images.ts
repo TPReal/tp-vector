@@ -3,6 +3,7 @@ import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {cloneElement, createElement, getElementsBoundingBox, getLoadedPromise, setAttributes} from './elements.ts';
 import {globalOptions} from './global_options.ts';
+import {assets} from "./index.ts";
 import {DefaultPiece} from './pieces.ts';
 
 export type ImageType = "png" | "jpeg" | "gif";
@@ -71,18 +72,16 @@ export class RasterImage extends DefaultPiece {
     });
   }
 
-  // TODO: Use assets instead.
-  static async fromEncoded({type, base64Data}: {
-    type: ImageType,
-    base64Data: string,
-  }, scaling?: PartialImageScaling) {
-    return await RasterImage.fromBase64({type, base64Data, scaling});
-  }
-
-  static async fromURL({url, scaling}: {
+  static async fromURL(url: string): Promise<RasterImage>;
+  static async fromURL(args: {
+    url: string,
+    scaling?: PartialImageScaling,
+  }): Promise<RasterImage>;
+  static async fromURL(arg: string | {
     url: string,
     scaling?: PartialImageScaling,
   }) {
+    const {url, scaling = undefined} = typeof arg === "string" ? {url: arg} : arg;
     const image = createElement({tagName: "image"});
     const loaded = getLoadedPromise(image);
     setAttributes(image, {href: url});
@@ -94,11 +93,35 @@ export class RasterImage extends DefaultPiece {
     });
   }
 
-  static fromImage({image, canModifyImage = false, scaling}: {
+  static async fromAsset(urlAsset: assets.ModuleImport<string>): Promise<RasterImage>;
+  static async fromAsset(args: {
+    urlAsset: assets.ModuleImport<string>,
+    scaling?: PartialImageScaling,
+  }): Promise<RasterImage>;
+  static async fromAsset(arg: assets.ModuleImport<string> | {
+    urlAsset: assets.ModuleImport<string>,
+    scaling?: PartialImageScaling,
+  }) {
+    const {urlAsset, scaling = undefined} = arg instanceof Promise ? {urlAsset: arg} : arg;
+    return await RasterImage.fromURL({
+      url: await assets.url(urlAsset),
+      scaling,
+    });
+  }
+
+  static fromImage(image: SVGImageElement): RasterImage;
+  static fromImage(args: {
+    image: SVGImageElement,
+    canModifyImage?: boolean,
+    scaling?: PartialImageScaling,
+  }): RasterImage;
+  static fromImage(arg: SVGImageElement | {
     image: SVGImageElement,
     canModifyImage?: boolean,
     scaling?: PartialImageScaling,
   }) {
+    const {image, canModifyImage = false, scaling = undefined} =
+      arg instanceof SVGImageElement ? {image: arg} : arg;
     const imageClone = canModifyImage ? image : cloneElement(image);
     const fullScaling = imageScalingFromPartial(scaling);
     applyImageScalingAttributes(imageClone, fullScaling);
