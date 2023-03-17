@@ -215,7 +215,7 @@ export class Piece
       this.boundingBoxPiece);
   }
 
-  then<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args) {
+  andThen<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args) {
     return func(this, ...args);
   }
 

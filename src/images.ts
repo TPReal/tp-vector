@@ -1,7 +1,7 @@
 import {AxisOriginAlignment, Fitting, PartialOriginAlignment, RequiredOriginAlignment, alignmentToNumber, requiredOriginAlignmentFromPartial} from './alignment.ts';
 import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
-import {cloneElement, createElement, getElementsBoundingBox, setAttributes} from './elements.ts';
+import {cloneElement, createElement, getElementsBoundingBox, getLoadedPromise, setAttributes} from './elements.ts';
 import {globalOptions} from './global_options.ts';
 import {DefaultPiece} from './pieces.ts';
 
@@ -49,49 +49,46 @@ export class RasterImage extends DefaultPiece {
     super(image);
   }
 
-  static fromBinary({type = DEFAULT_IMAGE_TYPE, binData, scaling}: {
+  static async fromBinary({type = DEFAULT_IMAGE_TYPE, binData, scaling}: {
     type?: ImageType,
     binData: string,
     scaling?: PartialImageScaling,
   }) {
-    return RasterImage.fromDataURI({
-      dataURI: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
+    return await RasterImage.fromURL({
+      url: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
       scaling,
     });
   }
 
-  static fromBase64({type = DEFAULT_IMAGE_TYPE, base64Data, scaling}: {
+  static async fromBase64({type = DEFAULT_IMAGE_TYPE, base64Data, scaling}: {
     type?: ImageType,
     base64Data: string,
     scaling?: PartialImageScaling,
   }) {
-    return RasterImage.fromDataURI({
-      dataURI: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
+    return await RasterImage.fromURL({
+      url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
       scaling,
     });
   }
 
   // TODO: Use assets instead.
-  static fromEncoded({type, base64Data}: {
+  static async fromEncoded({type, base64Data}: {
     type: ImageType,
     base64Data: string,
   }, scaling?: PartialImageScaling) {
-    return RasterImage.fromBase64({type, base64Data, scaling});
+    return await RasterImage.fromBase64({type, base64Data, scaling});
   }
 
-  // TODO: Make loading async and wait for the URL to load.
-  // TODO: Allow loading external URLs.
-  static fromDataURI({dataURI, scaling}: {
-    dataURI: string,
+  static async fromURL({url, scaling}: {
+    url: string,
     scaling?: PartialImageScaling,
   }) {
+    const image = createElement({tagName: "image"});
+    const loaded = getLoadedPromise(image);
+    setAttributes(image, {href: url});
+    await loaded;
     return RasterImage.fromImage({
-      image: createElement({
-        tagName: "image",
-        attributes: {
-          href: dataURI,
-        },
-      }),
+      image,
       canModifyImage: true,
       scaling,
     });

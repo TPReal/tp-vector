@@ -182,7 +182,6 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
       svg.lastChild?.remove();
     for (const element of elements)
       svg.appendChild(element);
-    svg.setAttribute("viewBox", viewBoxToString(viewBox));
   } else {
     svg = createSVG({
       viewBox,
@@ -211,5 +210,27 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
     return boundingBox;
   } finally {
     svg.remove();
+  }
+}
+
+export function getLoadedPromise(element: SVGElement) {
+  return new Promise((resolve, reject) => {
+    element.addEventListener("load", resolve, false);
+    element.addEventListener("error", reject, false);
+  });
+}
+
+const utilSVG = createSVG({viewBox: viewBoxFromPartial()});
+
+/**
+ * Executes the function on a reusable `<svg>` element appended to body.
+ * The `<svg>` is then removed.
+ */
+export function withUtilSVG<R>(func: (svg: SVGSVGElement) => R) {
+  try {
+    document.body.appendChild(utilSVG);
+    return func(utilSVG);
+  } finally {
+    utilSVG.remove();
   }
 }

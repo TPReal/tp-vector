@@ -25,7 +25,7 @@ export function saveSVG({name, svg}: {
 }
 
 /** Triggers saving of the SVG as a PNG file with the specified name. */
-export function saveSVGAsPNG({
+export async function saveSVGAsPNG({
   name,
   svg,
   conversionParams,
@@ -34,7 +34,5 @@ export function saveSVGAsPNG({
   svg: SVGSVGElement,
   conversionParams: PartialPNGConversionParams,
 }) {
-  getPNGDataURI(svg, conversionParams).then(dataURI => {
-    download({name, url: dataURI});
-  });
+  download({name, url: await getPNGDataURI(svg, conversionParams)});
 }

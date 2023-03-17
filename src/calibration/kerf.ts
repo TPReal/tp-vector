@@ -45,7 +45,7 @@ function frame(params: Params) {
         t => t
           .withPenUp(t => t
             .strafeRight(params.thicknessMillimeters + kerfText.getBoundingBox().height))
-          .then(slots, {
+          .andThen(slots, {
             pattern: pat.matchingSlots(),
             dir: "right",
             options: {
@@ -54,7 +54,7 @@ function frame(params: Params) {
             },
           },
           ))
-        .then(tabs, {
+        .andThen(tabs, {
           pattern: pat.matchingTabs(),
           dir: "left",
           startOnTab: true,
@@ -84,7 +84,7 @@ function frame(params: Params) {
       text(al).normalise({y: {max: 0}})
         .moveUp(p.frameInnerSide / 2)
         .rotateRight(90 * ai)
-        .then(pc => gather(pc, pc.scale(-1)))),
+        .andThen(pc => gather(pc, pc.scale(-1)))),
   );
 }
 
@@ -92,7 +92,7 @@ function prober(params: Params) {
   const {tabs} = interlock(params);
   let t = Turtle.create();
   for (let i = 0; i < 4; i++)
-    t = t.then(tabs, {
+    t = t.andThen(tabs, {
       pattern: TabsPattern.create()
         .base(p.holesMargin).tab(p.tabLen).base(p.holesMargin),
       dir: "left",
@@ -105,7 +105,7 @@ function prober(params: Params) {
         .moveDown(p.tabLen / 2 + p.holesMargin + p.outerCornersRadius +
           params.thicknessMillimeters)
         .rotateRight(90 * ai)
-        .then(pc => gather(pc, pc.scale(-1)))),
+        .andThen(pc => gather(pc, pc.scale(-1)))),
   );
 }
 

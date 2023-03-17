@@ -3,7 +3,7 @@ export {AttributesDefTool, GenericDefTool, getRef} from './def_tool.ts';
 export type {RefBy} from './def_tool.ts';
 export {createClipPath, createLinearGradient, createMask, createRadialGradient} from './def_tools.ts';
 export type {GradientStop, RadialGradientEnd} from './def_tools.ts';
-export {cloneElement, createElement, setAttributes} from './elements.ts';
+export {cloneElement, createElement, setAttributes, getLoadedPromise} from './elements.ts';
 export type {AttributeValue, Attributes} from './elements.ts';
 export * as figures from './figures.ts';
 export {Font, attributesFromFontAttributes} from './fonts.ts';

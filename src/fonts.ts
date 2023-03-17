@@ -1,7 +1,8 @@
 import * as dataURIConv from './data_uri_conv.ts';
 import {AttributesDefTool} from './def_tool.ts';
-import {Attributes} from './elements.ts';
+import {Attributes, createElement, createSVG, getLoadedPromise, withUtilSVG} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
+import {sleep} from "./util.ts";
 
 export type FontType = "woff" | "woff2" | "otf" | "ttf";
 
@@ -58,26 +59,26 @@ export class Font extends AttributesDefTool {
     });
   }
 
-  static fromBinary({name, type = DEFAULT_FONT_TYPE, binData, fontAttributes}: {
+  static async fromBinary({name, type = DEFAULT_FONT_TYPE, binData, fontAttributes}: {
     name: string,
     type?: FontType,
     binData: string,
     fontAttributes?: FontAttributes,
   }) {
-    return Font.fromDataURI({
+    return await Font.fromURL({
       name,
       dataURI: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
       fontAttributes,
     });
   }
 
-  static fromBase64({name, type = DEFAULT_FONT_TYPE, base64Data, fontAttributes}: {
+  static async fromBase64({name, type = DEFAULT_FONT_TYPE, base64Data, fontAttributes}: {
     name: string,
     type?: FontType,
     base64Data: string,
     fontAttributes?: FontAttributes,
   }) {
-    return Font.fromDataURI({
+    return await Font.fromURL({
       name,
       dataURI: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
       fontAttributes,
@@ -85,12 +86,12 @@ export class Font extends AttributesDefTool {
   }
 
   // TODO: Use assets instead.
-  static fromEncoded({name, type, base64Data}: {
+  static async fromEncoded({name, type, base64Data}: {
     name: string,
     type: FontType,
     base64Data: string,
   }, fontAttributes?: FontAttributes) {
-    return Font.fromBase64({
+    return await Font.fromBase64({
       name: `${name.replaceAll(".", "_")}__encoded`,
       type,
       base64Data,
@@ -98,32 +99,19 @@ export class Font extends AttributesDefTool {
     });
   }
 
-  static fromDataURI({name, dataURI, fontAttributes}: {
+  static async fromURL({name, dataURI, fontAttributes}: {
     name: string,
     dataURI: string,
     fontAttributes?: FontAttributes,
   }) {
-    return Font.fromStyleSync({
+    return await Font.fromStyle({
       name,
       styleContent: styleContentFromFontURL(name, dataURI),
       fontAttributes,
     });
   }
 
-  /** Creates a font from a font file URL. Waits for the font to be loaded. */
-  static async fromURL({name, url, fontAttributes}: {
-    name: string,
-    url: string,
-    fontAttributes?: FontAttributes,
-  }) {
-    return await Font.fromStyleAsync({
-      name,
-      styleContent: styleContentFromFontURL(name, url),
-      fontAttributes,
-    });
-  }
-
-  private static fromStyleSync({name, styleContent, fontAttributes}: {
+  private static async fromStyle({name, styleContent, fontAttributes}: {
     name: string,
     styleContent: string,
     fontAttributes?: FontAttributes,
@@ -131,27 +119,8 @@ export class Font extends AttributesDefTool {
     return new Font(
       name,
       fontAttributes,
-      Piece.createElement({
-        tagName: "style",
-        children: styleContent,
-      }).asDefs());
-  }
-
-  private static async fromStyleAsync({name, styleContent, fontAttributes}: {
-    name: string,
-    styleContent: string,
-    fontAttributes?: FontAttributes,
-  }) {
-    const style = document.createElement("style");
-    style.textContent = styleContent;
-    await new Promise((resolve, reject) => {
-      style.addEventListener("load", resolve, false);
-      style.addEventListener("error", reject, false);
-      document.body.appendChild(style);
-    });
-    await new Promise(resolve => setTimeout(resolve, 10));
-    await document.fonts.ready;
-    return Font.fromStyleSync({name, styleContent, fontAttributes});
+      Piece.createDefs(await loadStyle(styleContent)),
+    );
   }
 
   /** Returns a font assumed to be available on the system. */
@@ -177,7 +146,7 @@ export class Font extends AttributesDefTool {
     let family = name;
     if (keys.length)
       family += `:${keys.join(",")}@${vals.join(",")}`;
-    return await Font.fromStyleAsync({
+    return await Font.fromStyle({
       name,
       styleContent: `@import url(${JSON.stringify(
         `http://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}`
@@ -186,4 +155,20 @@ export class Font extends AttributesDefTool {
     });
   }
 
+}
+
+const MAX_LOAD_STYLE_TIME_MILLIS = 5000;
+const STYLE_TIME_MILLIS_STEP = 100;
+
+async function loadStyle(styleContent: string) {
+  const style = createElement({tagName: "style", children: styleContent});
+  await withUtilSVG(async svg => {
+    svg.appendChild(style);
+    for (let t = 0; t < MAX_LOAD_STYLE_TIME_MILLIS; t += STYLE_TIME_MILLIS_STEP) {
+      if (style.sheet)
+        return;
+      await sleep(t);
+    }
+  });
+  return style;
 }
