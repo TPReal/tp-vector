@@ -9,6 +9,8 @@ export type {AttributeValue, Attributes} from './elements.ts';
 export * as figures from './figures.ts';
 export {Font, attributesFromFontAttributes} from './fonts.ts';
 export type {FontAttributes} from './fonts.ts';
+export * as globalOptions from './global_options.ts';
+export {getGlobalOptions} from './global_options.ts';
 export {generateId, registerId} from './ids.ts';
 export {Image} from './images.ts';
 export {slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleInterlock, turtleSlots, turtleTabs} from './interlock.ts';

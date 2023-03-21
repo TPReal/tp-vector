@@ -1,6 +1,6 @@
 export function fromBinary({mimeType, binData}: {
   mimeType: string,
-  binData: string | Uint8Array | number[],
+  binData: string | Uint8Array | readonly number[],
 }) {
   if (typeof binData !== "string")
     // TODO: Optimise.

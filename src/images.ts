@@ -2,7 +2,7 @@ import {AxisOriginAlignment, Fitting, PartialOriginAlignment, RequiredOriginAlig
 import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {cloneElement, createElement, getElementsBoundingBox, getLoadedPromise, setAttributes} from './elements.ts';
-import {globalOptions} from './global_options.ts';
+import {getGlobalOptions} from './global_options.ts';
 import {assets} from "./index.ts";
 import {DefaultPiece} from './pieces.ts';
 
@@ -144,7 +144,7 @@ export class Image extends DefaultPiece {
 
 function applyImageScalingAttributes(image: SVGImageElement, scaling: ImageScaling) {
   if (scaling === "auto") {
-    const {imageAutoSizeLogic} = globalOptions();
+    const {imageAutoSizeLogic} = getGlobalOptions();
     if (imageAutoSizeLogic.widthAndHeight === "auto")
       setAttributes(image, {width: "auto", height: "auto"});
     if (imageAutoSizeLogic.measure) {

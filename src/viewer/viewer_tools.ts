@@ -29,6 +29,9 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   runsController.style.gap = ".5em";
   runsController.style.alignItems = "center";
   const blinkTimers: number[] = [];
+  const checkboxesInfo = document.createElement("span");
+  runsController.appendChild(checkboxesInfo);
+  checkboxesInfo.textContent = "Show runs:";
   for (const g of svg.querySelectorAll(":scope > g[id]")) {
     const id = assert(g.getAttribute("id"));
     const span = document.createElement("span");
@@ -65,10 +68,13 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
 }
 
 type OrPromise<T> = T | Promise<T>;
-type OrFuncPromise<T> = OrPromise<T> | (() => OrPromise<T>);
+type OrFuncPromise<T, Args extends unknown[] = []> =
+  OrPromise<T> | ((...args: Args) => OrPromise<T>);
 
-async function unwrap<T>(obj: OrFuncPromise<T>): Promise<T> {
-  const awaitable = typeof obj === "function" ? (obj as () => OrPromise<T>)() : obj;
+async function unwrap<T, Args extends unknown[]>(obj: OrFuncPromise<T, Args>, args: Args): Promise<T> {
+  const awaitable = typeof obj === "function" ?
+    (obj as (...args: Args) => OrPromise<T>)(...args) :
+    obj;
   return await awaitable;
 }
 
@@ -78,6 +84,10 @@ type SectionDef = OrFuncPromise<{
 }>;
 
 export const ALL_SECTIONS = "*";
+
+export interface SheetModule<Args extends unknown[] = []> {
+  getSheet(...args: Args): OrPromise<Sheet>;
+}
 
 export class Viewer {
 
@@ -92,20 +102,42 @@ export class Viewer {
     return new Viewer([...this.sections, sect]);
   }
 
-  add(element: OrFuncPromise<Sheet>): Viewer;
+  add<Args extends unknown[]>(module: SheetModule<Args>, ...args: Args): Viewer;
+  add<Args extends unknown[]>(element: OrFuncPromise<Sheet, Args>, ...args: Args): Viewer;
   /**
    * Adds a section with the specified element. The name of the section is taken from
    * `element.dataset.name` (taken from the `data-name` attribute).
    */
-  add(element: OrFuncPromise<HTMLElement>): Viewer;
-  add(name: string, element: OrFuncPromise<HTMLElement>): Viewer;
-  add(...args:
-    | [OrFuncPromise<Sheet>]
-    | [OrFuncPromise<HTMLElement>]
-    | [string, OrFuncPromise<HTMLElement>]) {
-    const [name, item] = args.length === 2 ? args : [undefined, args[0]];
+  add<Args extends unknown[]>(element: OrFuncPromise<HTMLElement, Args>, ...args: Args): Viewer;
+  add<Args extends unknown[]>(
+    name: string,
+    element: OrFuncPromise<HTMLElement, Args>,
+    ...args: Args
+  ): Viewer;
+  add<Args extends unknown[]>(...params:
+    | [SheetModule<Args>, ...Args]
+    | [OrFuncPromise<Sheet, Args>, ...Args]
+    | [OrFuncPromise<HTMLElement, Args>, ...Args]
+    | [string, OrFuncPromise<HTMLElement, Args>, ...Args]) {
+    function isModule(params: unknown[]): params is [SheetModule<Args>, ...Args] {
+      const param0 = params[0];
+      if (param0 && typeof param0 === "object" && Object.hasOwn(param0, "getSheet")) {
+        const getSheet = (param0 as SheetModule<Args>).getSheet;
+        if (typeof getSheet === "function")
+          return true;
+      }
+      return false;
+    }
+    if (isModule(params))
+      params = [params[0].getSheet, ...params.slice(1) as Args];
+    function hasName(params: unknown[]):
+      params is [string, OrFuncPromise<HTMLElement, Args>, ...Args] {
+      return typeof params[0] === "string";
+    }
+
+    const [name, item, ...args] = hasName(params) ? params : [undefined, ...params];
     return this.addSect(async () => {
-      const unwrapped = await unwrap(item);
+      const unwrapped = await unwrap(item, args);
       if (unwrapped instanceof Sheet)
         return {
           name: name || unwrapped.name || generateId("sheet"),
@@ -219,7 +251,8 @@ export class Viewer {
     }
 
     addOption("*");
-    for (const {name, element} of await Promise.all(this.sections.map(unwrap)))
+    const promises = this.sections.map(sect => unwrap(sect, []));
+    for (const {name, element} of await Promise.all(promises))
       addSection(name).appendChild(element);
 
     showSection(section);

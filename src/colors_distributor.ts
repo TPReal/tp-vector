@@ -51,6 +51,8 @@ export class MapColorsDistributor implements ColorsDistributor {
 
 }
 
+export type InitialColorsAssignment = [id: Id, index: number][];
+
 /**
  * A ColorsDistributor assigning colors from a given pool, possibly with some predefined colors.
  * When it runs out of colors, it cycles over the pool again.
@@ -62,7 +64,7 @@ export class CyclicColorsDistributor implements ColorsDistributor {
 
   protected constructor(
     private readonly pool: Color[],
-    initial: [id: Id, index: number][],
+    initial: InitialColorsAssignment,
     private nextIndex: number,
   ) {
     for (const [id, index] of initial)
@@ -75,7 +77,7 @@ export class CyclicColorsDistributor implements ColorsDistributor {
     nextIndex = 0,
   }: {
     pool: Color[],
-    initial?: [id: Id, index: number][],
+    initial?: InitialColorsAssignment,
     nextIndex?: number,
   }) {
     return new CyclicColorsDistributor(pool, initial, nextIndex);

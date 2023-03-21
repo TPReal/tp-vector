@@ -1,6 +1,6 @@
 import {ALL_BLACK, ColorsDistributor, CyclicColorsDistributor} from './colors_distributor.ts';
 import {Attributes} from './elements.ts';
-import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, globalOptions} from './global_options.ts';
+import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, getGlobalOptions} from './global_options.ts';
 import {NO_LAYER, OptionalLayerName} from './layers.ts';
 import {toFileName} from "./name.ts";
 import {Point} from './point.ts';
@@ -153,7 +153,7 @@ export function printOptionsFromPartial(
     styleAttributes,
     side = "front",
     includeCornersMarker = true,
-    posCorrectionMillimeters = globalOptions().printPosCorrectionMillimeters,
+    posCorrectionMillimeters = getGlobalOptions().printPosCorrectionMillimeters,
   }: PartialPrintOptions,
   sheetOptions: SheetOptions,
 ): PrintOptions {
@@ -202,7 +202,7 @@ export interface PartialCornersMarkerOptions {
 export interface CornersMarkerOptions extends Required<Readonly<PartialCornersMarkerOptions>> {
 }
 export function cornersMarkerOptionsFromPartial({
-  type = globalOptions().cornersMarkerType,
+  type = getGlobalOptions().cornersMarkerType,
   enable = !!type,
   id = "corners_marker",
   styleAttributes = {},
@@ -311,8 +311,8 @@ export interface LaserRunsOptions {
   handles?: RunHandlesPosition;
 }
 export function laserRunsOptionsFromPartial({
-  colorCodes = globalOptions().laserRunsOptions?.colorCodes?.(),
-  handles = globalOptions().laserRunsOptions?.handles,
+  colorCodes = getGlobalOptions().laserRunsOptions?.colorCodes?.(),
+  handles = getGlobalOptions().laserRunsOptions?.handles,
 }: PartialLaserRunsOptions = {}): LaserRunsOptions {
   return {
     colorCodes,

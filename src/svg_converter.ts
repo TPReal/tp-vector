@@ -1,4 +1,4 @@
-import {PNGAllowTransparency, globalOptions} from './global_options.ts';
+import {PNGAllowTransparency, getGlobalOptions} from './global_options.ts';
 import {assert} from './util.ts';
 
 export function getSVGObjectURL(svg: SVGSVGElement) {
@@ -25,7 +25,7 @@ interface PNGConversionParams {
 }
 function pngConversionParamsFromPartial({
   pixelsPerUnit,
-  allowTransparency = globalOptions().pngAllowTransparency,
+  allowTransparency = getGlobalOptions().pngAllowTransparency,
 }: PartialPNGConversionParams): PNGConversionParams {
   return {
     pixelsPerUnit,

@@ -277,7 +277,7 @@ export class Sheet {
       const runOptions = this.getRunOptions(id);
       let group;
       if (runOptions.type === "print" && printsAsImages)
-        // TODO: Consider converting pieces to PNG separately.
+        // TODO: Consider converting pieces to PNG separately, at declared levels.
         group = (await Image.fromURL({
           url: await getPNGDataURI(
             await this.getRawSVG({

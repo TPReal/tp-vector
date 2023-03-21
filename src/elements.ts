@@ -1,4 +1,4 @@
-import {globalOptions} from "./global_options.ts";
+import {getGlobalOptions} from "./global_options.ts";
 import {OrArray, flattenFilter} from './util.ts';
 import {ViewBox, extendViewBox, fitsInViewBox, viewBoxFromBBox, viewBoxFromPartial, viewBoxToString} from './view_box.ts';
 
@@ -62,7 +62,7 @@ export function setAttributes(element: SVGElement, attributes: Attributes) {
       else
         element.setAttribute(attribute, String(value));
     }
-    if (globalOptions().quirks?.has("requireXlinkHref") && attribute === "href")
+    if (getGlobalOptions().quirks?.xlinkHref && attribute === "href")
       setAttributes(element, {"xlink:href": value});
   }
 }
