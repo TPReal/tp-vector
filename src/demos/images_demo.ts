@@ -12,7 +12,7 @@ const [ts, js, esbuild, deno] = (await Promise.all([
 const gap = 0.05;
 
 export const SHEET = Sheet.create({
-  options: {name: "Images demo"},
+  options: {name: "Images demo", resolution: {pixelsPerInch: 2000}},
   pieces: layouts.column({
     pieces: [[ts, js], [esbuild, deno]].map(pieces => layouts.row({pieces, gap})),
     gap,

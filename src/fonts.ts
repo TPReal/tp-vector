@@ -3,14 +3,14 @@ import * as dataURIConv from './data_uri_conv.ts';
 import {AttributesDefTool} from './def_tool.ts';
 import {Attributes, createElement, withUtilSVG} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
-import {sleep} from "./util.ts";
+import {assert, assertNumber, sleep} from "./util.ts";
 
 export type FontType = "woff" | "woff2" | "otf" | "ttf";
 
 export const DEFAULT_FONT_TYPE: FontType = "woff2";
 
 function mimeType(type: FontType) {
-  return `font/${type}`;
+  return dataURIConv.mimeTypeFromExt(type);
 }
 
 export const FONT_WEIGHT_VALUES = {
@@ -32,21 +32,20 @@ export interface FontAttributes {
   readonly attributes?: Attributes;
 }
 
-export function attributesFromFontAttributes(
-  {italic, bold, weight, attributes}: FontAttributes): Attributes {
-  return {
-    ...attributes,
-    ...italic && {fontStyle: "italic"},
-    ...bold && {fontWeight: FONT_WEIGHT_VALUES.bold},
-    ...weight && {fontWeight: fontWeightValue(weight)},
-  };
+function getFontWeight(fontAttributes?: FontAttributes) {
+  if (fontAttributes?.weight !== undefined)
+    return fontWeightValue(fontAttributes.weight);
+  if (fontAttributes?.bold !== undefined)
+    return FONT_WEIGHT_VALUES[fontAttributes.bold ? "bold" : "regular"];
 }
 
-function styleContentFromFontURL(name: string, url: string) {
-  return `@font-face {
-  font-family: ${JSON.stringify(name)};
-  src: url(${JSON.stringify(url)});
-}`;
+export function attributesFromFontAttributes(
+  {italic, bold, weight, attributes}: FontAttributes): Attributes {
+  const attr = {...attributes};
+  if (italic !== undefined)
+    attr.fontStyle = italic ? "italic" : "normal";
+  attr.fontWeight = getFontWeight({bold, weight});
+  return attr;
 }
 
 export class Font extends AttributesDefTool {
@@ -88,14 +87,21 @@ export class Font extends AttributesDefTool {
     });
   }
 
+  /**
+   * Loads font from a URL.
+   * If it's an external URL, the font is fetched and encoded as data URI instead.
+   */
   static async fromURL({name, url, fontAttributes}: {
     name: string,
     url: string,
     fontAttributes?: FontAttributes,
   }) {
-    return await Font.fromStyle({
+    return await Font.fromStyleWithDataURIs({
       name,
-      styleContent: styleContentFromFontURL(name, url),
+      styleContent: `@font-face {
+  font-family: ${JSON.stringify(name)};
+  src: url(${JSON.stringify(url)});
+}`,
       fontAttributes,
     });
   }
@@ -112,7 +118,7 @@ export class Font extends AttributesDefTool {
     });
   }
 
-  private static async fromStyle({name, styleContent, fontAttributes}: {
+  private static async fromStyleWithDataURIs({name, styleContent, fontAttributes}: {
     name: string,
     styleContent: string,
     fontAttributes?: FontAttributes,
@@ -131,7 +137,14 @@ export class Font extends AttributesDefTool {
 
   /**
    * Creates a font from [Google Fonts](https://fonts.google.com/).
-   * Waits for the font to be loaded.
+   * The font is fetched and encoded as data URI.
+   *
+   * If the font is not available on Google Fonts with the specified attributes,
+   * the fetch will fail. It is still possible to use
+   * [faux attributes](https://fonts.google.com/knowledge/glossary/faux_fake_pseudo_synthesized),
+   * with:
+   *
+   *     Font.googleFonts(name).setFontAttributes(fontAttributes)
    */
   static async googleFonts(name: string, fontAttributes?: FontAttributes) {
     const keys = [];
@@ -140,20 +153,27 @@ export class Font extends AttributesDefTool {
       keys.push("ital");
       vals.push(1);
     }
-    if (fontAttributes?.weight !== undefined) {
+    const weight = getFontWeight(fontAttributes)
+    if (weight !== undefined) {
       keys.push("wght");
-      vals.push(fontWeightValue(fontAttributes.weight));
+      vals.push(weight);
     }
-    let family = name;
-    if (keys.length)
-      family += `:${keys.join(",")}@${vals.join(",")}`;
-    return await Font.fromStyle({
+    return await Font.fromStyleWithDataURIs({
       name,
       styleContent: `@import url(${JSON.stringify(
-        `http://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}`
+        `http://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}` +
+        (keys.length ? `:${keys.join(",")}@${vals.join(",")}` : "")
       )});`,
       fontAttributes,
     });
+  }
+
+  setFontAttributes(fontAttributes: FontAttributes) {
+    return new Font(
+      this.name,
+      {...this.setFontAttributes, ...fontAttributes},
+      this.defs,
+    );
   }
 
 }
@@ -161,8 +181,38 @@ export class Font extends AttributesDefTool {
 const MAX_LOAD_STYLE_TIME_MILLIS = 5000;
 const STYLE_TIME_MILLIS_STEP = 100;
 
+const URL_REGEXP = /(?<import>@import\s+)?\burl\((?<q>['"]?)(?<url>.+?)\k<q>\)(?<semi>;)?/g;
+
+/** Converts the URLs in the style content to data URIs. */
+async function changeToDataURIs(styleContent: string): Promise<string> {
+  const urls = [...styleContent.matchAll(URL_REGEXP)].map(async (mat) => {
+    const blob = await (await fetch(assert(mat.groups).url)).blob();
+    if (blob.type === "text/css" && mat.groups?.import)
+      return {mat, text: await changeToDataURIs(await blob.text()) + "\n"};
+    const dataURI = blob.type.startsWith("text/") ?
+      dataURIConv.fromBinary({
+        mimeType: blob.type,
+        binData: await changeToDataURIs(await blob.text()),
+      }) :
+      await dataURIConv.fromBlob(blob);
+    return {mat, text: `url(${JSON.stringify(dataURI)})${mat.groups?.semi || ""}`};
+  });
+  const out = []
+  let ind = 0;
+  for (const {mat, text} of await Promise.all(urls)) {
+    out.push(styleContent.slice(ind, mat.index));
+    out.push(text);
+    ind = assertNumber(mat.index) + mat[0].length;
+  }
+  out.push(styleContent.slice(ind));
+  return out.join("");
+}
+
 async function loadStyle(styleContent: string) {
-  const style = createElement({tagName: "style", children: styleContent});
+  const style = createElement({
+    tagName: "style",
+    children: await changeToDataURIs(styleContent),
+  });
   await withUtilSVG(async svg => {
     svg.appendChild(style);
     for (let t = 0; t < MAX_LOAD_STYLE_TIME_MILLIS; t += STYLE_TIME_MILLIS_STEP) {
@@ -173,6 +223,7 @@ async function loadStyle(styleContent: string) {
     if (!style.sheet)
       console.warn(`Failed waiting for style to load`, style);
   });
+  await sleep(STYLE_TIME_MILLIS_STEP);
   await document.fonts.ready;
   return style;
 }

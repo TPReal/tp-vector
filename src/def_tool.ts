@@ -29,7 +29,7 @@ export function getRef(id: string, refBy: RefBy = "url") {
 export class GenericDefTool extends IdHelper implements Defs {
 
   protected constructor(
-    private readonly defs: Defs,
+    protected readonly defs: Defs,
     id: string,
   ) {
     super(id);
@@ -70,8 +70,8 @@ export class GenericDefTool extends IdHelper implements Defs {
 export class AttributesDefTool implements Defs {
 
   protected constructor(
-    private readonly defs: Defs,
-    private readonly attributes: Attributes,
+    protected readonly defs: Defs,
+    protected readonly attributes: Attributes,
   ) {
   }
 

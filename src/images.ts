@@ -38,7 +38,7 @@ function imageScalingFromPartial(partialScaling: PartialImageScaling = "auto"): 
 }
 
 function mimeType(type: ImageType) {
-  return `image/${type}`;
+  return dataURIConv.mimeTypeFromExt(type);
 }
 
 export class Image extends DefaultPiece {
@@ -72,7 +72,15 @@ export class Image extends DefaultPiece {
     });
   }
 
+  /**
+   * Loads an image from a URL.
+   * If it's an external URL, the image is fetched and encoded as data URI instead.
+   */
   static async fromURL(url: string): Promise<Image>;
+  /**
+   * Loads an image from a URL, with the specified scaling.
+   * If it's an external URL, the image is fetched and encoded as data URI instead.
+   */
   static async fromURL(args: {
     url: string,
     scaling?: PartialImageScaling,
@@ -84,7 +92,7 @@ export class Image extends DefaultPiece {
     const {url, scaling = undefined} = typeof arg === "string" ? {url: arg} : arg;
     const image = createElement({tagName: "image"});
     const loaded = getLoadedPromise(image);
-    setAttributes(image, {href: url});
+    setAttributes(image, {href: await dataURIConv.urlToDataURI(url)});
     await loaded;
     return Image.fromImage({
       image,
