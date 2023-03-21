@@ -1,7 +1,7 @@
 import {Attributes, createElement, createSVG, setAttributes} from './elements.ts';
 import * as figures from './figures.ts';
-import {RasterImage} from './images.ts';
-import {getNameSizeSuffix, getSizeString, getSuffixedName} from './name.ts';
+import {Image} from './images.ts';
+import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Piece, gather} from './pieces.ts';
 import {getPNGDataURI} from './svg_converter.ts';
@@ -59,8 +59,6 @@ export interface LaserSVGParams {
 }
 
 export type ButtonSaveFormat = SaveFormat | "both";
-
-const DEFAULT_SHEET_NAME = "sheet";
 
 const DEFAULT_RUNS: PartialRunOptions[] = [{type: "print"}, {type: "cut"}];
 
@@ -279,7 +277,8 @@ export class Sheet {
       const runOptions = this.getRunOptions(id);
       let group;
       if (runOptions.type === "print" && printsAsImages)
-        group = (await RasterImage.fromURL({
+        // TODO: Consider converting pieces to PNG separately.
+        group = (await Image.fromURL({
           url: await getPNGDataURI(
             await this.getRawSVG({
               medium,
@@ -425,7 +424,7 @@ export class Sheet {
   private getPreviewHoverTitle({runsSelector: {runs, reversingFrame}}: {
     runsSelector: RunsSelector,
   }) {
-    const text = [this.name || DEFAULT_SHEET_NAME];
+    const text = [this.options.fileName];
     if (runs !== "all") {
       text.push(" (");
       text.push([
@@ -459,14 +458,14 @@ export class Sheet {
     runsSelector: RunsSelector,
     printsAsImages: boolean,
   }) {
-    const name = [
-      this.name,
+    const fileName = [
+      this.options.fileName,
       ...runs === "all" ? [] : [...runs, reversingFrame && this.options.reversingFrame.id],
       printsAsImages && "p_img",
     ].filter(Boolean).join("__");
     const suffix = this.options.includeSizeInName ?
       getNameSizeSuffix(this.viewBox, this.options.millimetersPerUnit) : undefined;
-    return getSuffixedName(name || DEFAULT_SHEET_NAME, suffix);
+    return getSuffixedFileName(fileName, suffix);
   }
 
   /**
@@ -501,7 +500,7 @@ export class Sheet {
     format: SaveFormat,
     runsSelector: RunsSelector,
   }) {
-    const text = [this.name || DEFAULT_SHEET_NAME];
+    const text = [this.options.fileName];
     if (runs !== "all") {
       text.push(" (");
       text.push([

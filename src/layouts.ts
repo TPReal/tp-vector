@@ -1,6 +1,6 @@
 import {Axis} from './axis.ts';
 import {BasicPiece, Piece, gather} from './pieces.ts';
-import {OrArray, flatten} from './util.ts';
+import {OrArray, OrArrayRest, flatten, flattenFilter} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, viewBoxFromPartial, viewBoxMarginFromPartial} from './view_box.ts';
 
 export type Count = number | {from?: number, to: number, step?: number};
@@ -56,7 +56,7 @@ export function layout({count, pieceFunc}: {
 }
 
 /** Arranges the copies of the Piece in a `rows` by `columns` grid. */
-export function gridRepeat({
+export function repeat({
   piece,
   rows = 1,
   columns = 1,
@@ -78,34 +78,49 @@ export function gridRepeat({
   return gather(parts);
 }
 
+function parseArgs<A extends {pieces: (Piece | undefined)[]}>(
+  args: OrArrayRest<Piece | undefined> | [A]): Pick<A, "pieces"> & Partial<A> {
+  function isArgsObj(args: OrArrayRest<Piece | undefined> | [A]): args is [A] {
+    if (args.length !== 1)
+      return false;
+    const arg = args[0];
+    return !!arg && arg.constructor === Object && Object.hasOwn(arg, "pieces");
+  }
+  if (isArgsObj(args))
+    return args[0];
+  return {
+    pieces: flatten(args),
+  } as Pick<A, "pieces"> & Partial<A>;
+}
+
 /**
  * Arranges the pieces in a column, with the default gap.
  * The pieces are translated only along the Y axis, their position on the X axis is left unchanged.
  */
-export function column(pieces: Piece[]): Piece;
+export function column(...pieces: OrArrayRest<Piece | undefined>): Piece;
 /**
  * Arranges the pieces in a column, or row if the X axis is specified.
  * The pieces are translated only along the specified axis, their position on the other axis
  * is left unchanged.
  */
 export function column(params: {
-  pieces: Piece[],
+  pieces: (Piece | undefined)[],
   gap?: number,
   axis?: Axis,
 }): Piece;
-export function column(piecesOrParams: Piece[] | {
-  pieces: Piece[],
+export function column(...args: OrArrayRest<Piece | undefined> | [{
+  pieces: (Piece | undefined)[],
   gap?: number,
   axis?: Axis,
-}) {
+}]) {
   const {
     pieces: piecesArr,
     gap = 1,
     axis = Axis.Y,
-  } = Array.isArray(piecesOrParams) ? {pieces: piecesOrParams} : piecesOrParams;
+  } = parseArgs(args);
   let currentPos = 0;
   const parts = [];
-  for (const piece of piecesArr) {
+  for (const piece of flattenFilter(piecesArr)) {
     const box = piece.getBoundingBox();
     parts.push(
       axis === Axis.X
@@ -120,21 +135,20 @@ export function column(piecesOrParams: Piece[] | {
  * Arranges the pieces in a row, with the default gap.
  * The pieces are translated only along the X axis, their position on the Y axis is left unchanged.
  */
-export function row(pieces: Piece[]): Piece;
+export function row(...pieces: OrArrayRest<Piece | undefined>): Piece;
 /**
  * Arranges the pieces in a row.
  * The pieces are translated only along the X axis, their position on the Y axis is left unchanged.
  */
 export function row(params: {
-  pieces: Piece[],
+  pieces: (Piece | undefined)[],
   gap?: number,
 }): Piece;
-export function row(piecesOrParams: Piece[] | {
-  pieces: Piece[],
+export function row(...args: OrArrayRest<Piece | undefined> | [{
+  pieces: (Piece | undefined)[],
   gap?: number,
-}) {
-  const params = Array.isArray(piecesOrParams) ? {pieces: piecesOrParams} : piecesOrParams;
-  return column({...params, axis: Axis.X});
+}]) {
+  return column({...parseArgs(args), axis: Axis.X});
 }
 
 /**

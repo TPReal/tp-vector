@@ -1,4 +1,5 @@
-import {Sheet, Turtle, figures, gather} from '../index.ts';
+import {Sheet, Turtle, figures, gather, PartialViewBox, viewBoxFromPartial} from '../index.ts';
+import {viewBoxToString} from '../view_box.ts';
 
 export function getAxis({min, max}: {min: number, max: number}) {
   let res = gather(
@@ -12,7 +13,18 @@ export function getAxis({min, max}: {min: number, max: number}) {
   return res;
 }
 
-export function getDemoObject(size: {width: number, height: number}) {
+export function getAxes(viewBox: PartialViewBox) {
+  const {minX, width, minY, height} = viewBoxFromPartial(viewBox);
+  if (minX > 0 || minX + width < 0 || minY > 0 || minY + height < 0)
+    throw new Error(`Expected a ViewBox containing the origin ([0, 0]), ` +
+      `got: ${viewBoxToString({minX, width, minY, height})}`);
+  return gather(
+    getAxis({min: minX, max: minX + width}),
+    getAxis({min: minY, max: minY + height}).rotateRight(),
+  );
+}
+
+export function getExplainerObject(size: {width: number, height: number}) {
   return gather(
     figures.rectangle({...size, cornerRadius: 0.5}),
     Turtle.create().forward(1).right()
@@ -27,23 +39,24 @@ export interface ImageSpec {
   runIds: string[];
 }
 
-export async function getDemoSection(
+export async function getExplainerSection(
   sheet: Sheet,
   images: ImageSpec[] = sheet.getRunIds().map(runId => ({label: runId, runIds: [runId]})),
 ) {
   const div = document.createElement("div");
+  div.setAttribute("data-name", sheet.name || "");
   div.style.display = "flex";
   div.style.flexWrap = "wrap";
-  div.style.gap = "1px";
+  div.style.gap = "1em 1px";
   for (const {label, runIds} of images) {
     const container = document.createElement("div");
     container.style.flex = "1 0 160px";
     container.style.maxWidth = "200px";
+    container.appendChild((await sheet.getPreviewSVG({runsSelector: runIds})));
     const descDiv = document.createElement("div");
     descDiv.style.font = "0.8em monospace";
     descDiv.textContent = label;
     container.appendChild(descDiv);
-    container.appendChild((await sheet.getPreviewSVG({runsSelector: runIds})));
     div.appendChild(container);
   }
   return div;
