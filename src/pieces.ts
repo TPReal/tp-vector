@@ -264,7 +264,6 @@ export class Piece
   getElements() {
     // TODO: Consider detecting multiple calls inside the same SVG object, and reusing a single
     // definition of the element (with `<use>`) instead of including multiple copies.
-    // TODO: Consider an option to render a Piece as PNG at some levels of the hierarchy.
     return this.withTransformAndAttributes(this.parts.flatMap(part => part.getElements()));
   }
 
@@ -350,6 +349,10 @@ export class Piece
           Piece.create(boundingBox) :
           figures.rectangle(boundingBox));
     return Piece.create(this).setBoundingBox(boundingBox);
+  }
+
+  extendBoundingBox(margin: PartialViewBoxMargin) {
+    return this.setBoundingBox(extendViewBox(this.getBoundingBox(), margin));
   }
 
   /** Returns this together with a flipped copy. */
