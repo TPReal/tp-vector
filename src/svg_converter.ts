@@ -2,9 +2,9 @@ import {PNGAllowTransparency, globalOptions} from './global_options.ts';
 import {assert} from './util.ts';
 
 export function getSVGObjectURL(svg: SVGSVGElement) {
-  const url = URL.createObjectURL(
-    new Blob([new XMLSerializer().serializeToString(svg)],
-      {type: "image/svg+xml;charset=utf-8"}));
+  const url = URL.createObjectURL(new Blob(
+    [new XMLSerializer().serializeToString(svg)],
+    {type: "image/svg+xml;charset=utf-8"}));
   return {
     url,
     cleanUpFunc: () => {

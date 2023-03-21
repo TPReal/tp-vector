@@ -10,7 +10,8 @@
     "files": {
       "include": [
         "src/",
-        "test/",
+        // TODO: Create tests. Enable linting and compilation.
+        // "test/",
       ],
       "exclude": [],
     },
@@ -18,6 +19,7 @@
       "tags": ["recommended"],
       "include": [],
       "exclude": [
+        // Various lint rules that are unnecessary when you know what you're doing.
         "ban-types",
         "no-empty-interface",
         "no-inner-declarations",

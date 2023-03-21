@@ -41,7 +41,7 @@ function mimeType(type: ImageType) {
   return `image/${type}`;
 }
 
-export class RasterImage extends DefaultPiece {
+export class Image extends DefaultPiece {
 
   protected constructor(
     private readonly image: SVGImageElement,
@@ -55,7 +55,7 @@ export class RasterImage extends DefaultPiece {
     binData: string,
     scaling?: PartialImageScaling,
   }) {
-    return await RasterImage.fromURL({
+    return await Image.fromURL({
       url: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
       scaling,
     });
@@ -66,17 +66,17 @@ export class RasterImage extends DefaultPiece {
     base64Data: string,
     scaling?: PartialImageScaling,
   }) {
-    return await RasterImage.fromURL({
+    return await Image.fromURL({
       url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
       scaling,
     });
   }
 
-  static async fromURL(url: string): Promise<RasterImage>;
+  static async fromURL(url: string): Promise<Image>;
   static async fromURL(args: {
     url: string,
     scaling?: PartialImageScaling,
-  }): Promise<RasterImage>;
+  }): Promise<Image>;
   static async fromURL(arg: string | {
     url: string,
     scaling?: PartialImageScaling,
@@ -86,35 +86,35 @@ export class RasterImage extends DefaultPiece {
     const loaded = getLoadedPromise(image);
     setAttributes(image, {href: url});
     await loaded;
-    return RasterImage.fromImage({
+    return Image.fromImage({
       image,
       canModifyImage: true,
       scaling,
     });
   }
 
-  static async fromAsset(urlAsset: assets.ModuleImport<string>): Promise<RasterImage>;
+  static async fromAsset(urlAsset: assets.ModuleImport<string>): Promise<Image>;
   static async fromAsset(args: {
     urlAsset: assets.ModuleImport<string>,
     scaling?: PartialImageScaling,
-  }): Promise<RasterImage>;
+  }): Promise<Image>;
   static async fromAsset(arg: assets.ModuleImport<string> | {
     urlAsset: assets.ModuleImport<string>,
     scaling?: PartialImageScaling,
   }) {
     const {urlAsset, scaling = undefined} = arg instanceof Promise ? {urlAsset: arg} : arg;
-    return await RasterImage.fromURL({
+    return await Image.fromURL({
       url: await assets.url(urlAsset),
       scaling,
     });
   }
 
-  static fromImage(image: SVGImageElement): RasterImage;
+  static fromImage(image: SVGImageElement): Image;
   static fromImage(args: {
     image: SVGImageElement,
     canModifyImage?: boolean,
     scaling?: PartialImageScaling,
-  }): RasterImage;
+  }): Image;
   static fromImage(arg: SVGImageElement | {
     image: SVGImageElement,
     canModifyImage?: boolean,
@@ -125,11 +125,11 @@ export class RasterImage extends DefaultPiece {
     const imageClone = canModifyImage ? image : cloneElement(image);
     const fullScaling = imageScalingFromPartial(scaling);
     applyImageScalingAttributes(imageClone, fullScaling);
-    return new RasterImage(imageClone, fullScaling);
+    return new Image(imageClone, fullScaling);
   }
 
   setScaling(scaling: PartialImageScaling) {
-    return RasterImage.fromImage({image: this.image, scaling});
+    return Image.fromImage({image: this.image, scaling});
   }
 
 }

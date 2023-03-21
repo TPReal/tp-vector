@@ -10,7 +10,7 @@ export * as figures from './figures.ts';
 export {Font, attributesFromFontAttributes} from './fonts.ts';
 export type {FontAttributes} from './fonts.ts';
 export {generateId, registerId} from './ids.ts';
-export {RasterImage} from './images.ts';
+export {Image} from './images.ts';
 export {slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleInterlock, turtleSlots, turtleTabs} from './interlock.ts';
 export type {PartialSlotsOptions, PartialTabsOptions, SlotsOptions, TabsOptions} from './interlock.ts';
 export {SlotsPattern, TabsPattern} from './interlock_patterns.ts';

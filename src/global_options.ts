@@ -50,15 +50,11 @@ export interface LaserRunsOptions {
   readonly handles?: RunHandlesPosition;
 }
 
-/**
- * The translation of print layers relative to the cut layers, measured for a particular
- * laser cutter, in millimeters.
- * See the calibrator in _calibration/print_pos_correction.ts_.
- */
+/** Relative translation of a layer, caused by hardware inaccuracy. */
 export type PosCorrectionMillimeters = readonly [number, number];
 
 /** Any quirky behaviour related to a software or hardware being used. */
-export type Quirks =
+export type Quirk =
   // LightBurn 1.3 ignores transform attributes directly on a `<line>` element.
   | "lineTransform"
   // VisiCut ignores the href attribute and only honors xlink:href.
@@ -73,8 +69,13 @@ export interface GlobalOptions {
   readonly cornersMarkerType?: CornersMarkerType;
   readonly imageAutoSizeLogic: ImageAutoSizeLogic;
   readonly laserRunsOptions?: LaserRunsOptions;
+  /**
+   * The translation of print layers relative to the cut layers, caused by hardware inaccuracy,
+   * measured for a particular laser cutter, in millimeters.
+   * See the calibrator in _calibration/print_pos_correction.ts_.
+   */
   readonly printPosCorrectionMillimeters?: PosCorrectionMillimeters;
-  readonly quirks?: Set<Quirks>;
+  readonly quirks?: Set<Quirk>;
 }
 
 export const VISICUT_EPILOG: GlobalOptions = {

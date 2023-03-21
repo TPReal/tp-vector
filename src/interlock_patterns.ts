@@ -59,6 +59,10 @@ export class InterlockPattern {
       this.items.map(({active, length}) => ({active: !active, length})));
   }
 
+  length() {
+    return this.items.reduce((acc, {length}) => acc + length, 0);
+  }
+
   toString() {
     return this.items.map(({active, length}) =>
       active ? `[${length}]` : `${length}`,
@@ -155,6 +159,10 @@ export class TabsPattern {
   /** Returns a SlotsPattern defining slots that these tabs can be inserted into. */
   matchingSlots() {
     return SlotsPattern.create(this.pattern);
+  }
+
+  length() {
+    return this.pattern.length();
   }
 
   toString() {
@@ -290,6 +298,10 @@ export class SlotsPattern {
 
   endsWithSlot() {
     return this.pattern.last()?.active || false;
+  }
+
+  length() {
+    return this.pattern.length();
   }
 
   toString() {

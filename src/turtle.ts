@@ -345,6 +345,12 @@ export class Turtle extends DefaultPiece {
   /** Sets the angle to look directly left. */
   lookLeft() {return this.setAngle(270);}
 
+  /** Sets the angle to direct towards at the specified target. */
+  lookAt(target: Point) {
+    return this.setAngle(
+      Math.atan2(target[0] - this.pos[0], this.pos[1] - target[1]) / Math.PI * 180);
+  }
+
   /** Rotates the Turtle by the specified angle (90 by default). */
   right(angleDeg = 90) {
     return this.append({dAngleDeg: angleDeg});
@@ -506,6 +512,15 @@ export class Turtle extends DefaultPiece {
   private relPos(forward: number, strafeRight: number): Point {
     const [sin, cos] = sinCos(this.angleDeg);
     return [forward * sin + strafeRight * cos, -forward * cos + strafeRight * sin];
+  }
+
+  /** Draws a circle centered at the current position. */
+  circle(radius: number) {
+    if (!this.state.down)
+      return this;
+    return this.branch(t => t
+      .appendJump({dPos: t.relPos(0, -radius)})
+      .arcRight(360, radius));
   }
 
   /** Closes the Turtle's path and returns the Path. */

@@ -1,6 +1,7 @@
 {
   "version": "2.0.0",
   "tasks": [
+
     {
       "label": "Lint",
       "type": "shell",
@@ -9,7 +10,13 @@
         "lint"
       ],
       "problemMatcher": ["$deno"],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
+      },
     },
+
     {
       "label": "Type-check",
       "type": "shell",
@@ -17,12 +24,51 @@
         "deno",
         "check"
         "src/**/*.ts",
-        "test/**/*.ts",
       ],
       "group": {
         "kind": "build",
       },
       "problemMatcher": ["$deno"],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+      },
     },
+
+    {
+      "label": "Viewer",
+      "detail": "Build and serve the Viewer app",
+      "type": "shell",
+      "command": [
+        "esbuild",
+        "src/viewer/viewer.ts"
+        "--watch",
+        "--bundle",
+        "--format=esm",
+        "--sourcemap",
+        "--minify",
+        "--outdir=src/viewer",
+        "--serve=127.0.0.1:4327",
+        "--servedir=src/viewer",
+        "--charset=utf8",
+        "--out-extension:.js=.mjs",
+        // Loaders for assets (see src/assets.ts for information):
+        "--loader:.jpg=file",
+        "--loader:.png=file",
+        "--loader:.svg=file",
+        "--loader:.woff2=file",
+      ],
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true,
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+      },
+    },
+
   ],
 }

@@ -1,129 +1,160 @@
-import {Sheet, TabsPattern, Turtle, createText, figures, gather, kerfUtil, layouts, turtleInterlock} from '../index.ts';
+import {Sheet, TabsPattern, Turtle, createText, figures, gather, kerfUtil, layouts, turtleInterlock, createParams, Piece} from '../index.ts';
 
-const p = {
-  kerfMin: 0,
-  kerfStep: 0.03,
-  kerfCount: 12,
-  tabLen: 8,
-  holesMargin: 4,
-  outerCornersRadius: 2,
-  frameCornerStraight: 10,
-  frameInnerSide: 60,
-};
+export interface KerfParams {
+  min?: number;
+  max?: number;
+  step?: number;
+  /** Material thickness (important especially for slots). */
+  thickness: number;
+}
 
-const FONT = "monospace";
+/**
+ * Returns a calibrator Sheet for determining the right value for the kerf when cutting tabs
+ * and slots. See _src/interlock.ts_.
+ */
+export function getSheet(params: KerfParams) {
 
-function interlock(params: Params) {
-  return turtleInterlock({
+  const p = createParams({
+    min: 0,
+    step: 0.03,
+    max: 0.3,
+    ...params,
+    tabLen: 6,
+    tabsSpace: 4,
+    textHeight: 3,
+    proberCornersRadius: 2,
+  })(p => ({
+    count: Math.floor((p.max - p.min) / p.step + 1e-9) + 1,
+    frameCornersRadius: p.thickness + p.textHeight + p.thickness - p.tabsSpace / 2,
+  }));
+
+  const mpu = {millimetersPerUnit: 1};
+  const fontOptions = {font: "monospace", size: p.textHeight};
+  const {tabs, slots} = turtleInterlock({
     kerf: kerfUtil.ZERO,
-    thickness: params.thicknessMillimeters,
+    thickness: p.thickness,
     outerCornersRadius: 0.5,
-    slotWidthKerf: false,
   });
-}
 
-function text(t: string) {
-  return createText(t, {font: FONT, size: 3.5}).center().setLayer("print");
-}
-
-function frame(params: Params) {
-  const {tabs, slots} = interlock(params);
-  const pat = TabsPattern.create()
-    .base(p.holesMargin / 2).tab(p.tabLen).base(p.holesMargin / 2);
-  let t = Turtle.create();
-  const labels = [];
-  for (let i = 0; i < 4; i++) {
-    for (let kerfI = 0; kerfI < p.kerfCount / 2; kerfI++) {
-      const kerfVal = p.kerfMin + kerfI * p.kerfStep + (i >> 1) * p.kerfCount / 2 * p.kerfStep;
-      const kerf = {oneSideInUnits: kerfVal};
-      const kerfText = text(kerfVal.toFixed(2)).scale(0.8);
-      labels.push(kerfText
-        .normalise({y: {min: params.thicknessMillimeters}})
-        .rotate(t.angleDeg - 90)
-        .translate(...t.forward((p.holesMargin + p.tabLen) / 2).pos));
-      t = t.branch(
-        t => t
-          .withPenUp(t => t
-            .strafeRight(params.thicknessMillimeters + kerfText.getBoundingBox().height))
-          .andThen(slots, {
-            pattern: pat.matchingSlots(),
-            dir: "right",
-            options: {
-              kerf,
-              thickness: params.thicknessMillimeters,
-            },
-          },
-          ))
-        .andThen(tabs, {
-          pattern: pat.matchingTabs(),
-          dir: "left",
-          startOnTab: true,
-          endOnTab: true,
-          options: {kerf},
-        });
+  const prober = (() => {
+    let t = Turtle.create();
+    const pattern = TabsPattern.base(p.tabsSpace).tab(p.tabLen).base(p.tabsSpace);
+    function makeTab(t: Turtle) {
+      // Zero kerf is used here, double kerf is used on the frame instead.
+      return t.andThen(tabs, {
+        pattern,
+        dir: "left",
+      });
     }
-    t = t.forward(p.frameCornerStraight)
-      .arcRight(90, p.outerCornersRadius)
-      .forward(p.frameCornerStraight);
-  }
-  return gather(
-    gather(
-      t,
-      ...labels,
-      text("kerf").rotateRight(45).translate(
-        (p.outerCornersRadius + p.frameCornerStraight) / 2,
-        (p.outerCornersRadius + p.frameCornerStraight) / 2,
+    // Make the tabs for Y and X axes.
+    for (let i = 0; i < 2; i++)
+      t = t
+        .andThen(makeTab)
+        .arcRight(90, p.proberCornersRadius);
+    // Make the tab at 45°.
+    t = t
+      .arcRight(45, p.proberCornersRadius)
+      .forward(pattern.length() * (Math.sqrt(2) - 1) / 2)
+      .andThen(makeTab)
+      .forward(pattern.length() * (Math.sqrt(2) - 1) / 2)
+      .arcRight(135, p.proberCornersRadius);
+    return gather(
+      t
+        .center()
+        .translate(-p.thickness / 2, -p.thickness / 2),
+      ["X", "Y"].map((al, ai) =>
+        createText(al, fontOptions)
+          .normalise({x: "center", y: {max: -pattern.length() / 2}})
+          .rotateLeft(90 * ai)
+          .setLayer("print")
       ),
-    ).center(),
-    figures.rectangle({
-      centered: true,
-      side: p.frameInnerSide,
-      cornerRadius: p.outerCornersRadius,
-    }),
-    ["X", "Y"].map((al, ai) =>
-      text(al).normalise({y: {max: 0}})
-        .moveUp(p.frameInnerSide / 2)
-        .rotateRight(90 * ai)
-        .andThen(pc => gather(pc, pc.scale(-1)))),
-  );
-}
+    )
+      .normalise("default");
+  })();
 
-function prober(params: Params) {
-  const {tabs} = interlock(params);
-  let t = Turtle.create();
-  for (let i = 0; i < 4; i++)
-    t = t.andThen(tabs, {
-      pattern: TabsPattern.create()
-        .base(p.holesMargin).tab(p.tabLen).base(p.holesMargin),
-      dir: "left",
-    }).arcRight(90, p.outerCornersRadius);
-  return gather(
-    t.center(),
-    text("kerf").rotateRight(45),
-    ["X", "Y"].map((al, ai) =>
-      text(al).normalise({y: {max: 0}})
-        .moveDown(p.tabLen / 2 + p.holesMargin + p.outerCornersRadius +
-          params.thicknessMillimeters)
-        .rotateRight(90 * ai)
-        .andThen(pc => gather(pc, pc.scale(-1)))),
-  );
-}
+  const frameWithProbers = (() => {
+    /** Pattern of a single tab, with half the space before and after. */
+    const tabPattern = TabsPattern.base(p.tabsSpace / 2).tab(p.tabLen).base(p.tabsSpace / 2);
+    let t = Turtle.create();
+    const labels: Piece[] = [];
+    function makeTabs(t: Turtle) {
+      t = t.forward(p.tabsSpace / 2);
+      for (let kerfI = 0; kerfI < p.count; kerfI++) {
+        const kerfVal = p.min + kerfI * p.step;
+        /**
+         * Options for the tab/slot. Double kerf value is used because zero kerf is used
+         * on the prober.
+         */
+        const options = {kerf: kerfUtil.millimeters(2 * kerfVal, mpu)};
+        labels.push(createText(kerfVal.toFixed(2), fontOptions)
+          .normalise({
+            x: {pos: "center", len: p.tabLen},
+            y: {min: p.thickness, len: p.textHeight, align: "center"},
+          })
+          .rotate(t.angleDeg - 90)
+          .translate(...t.forward((p.tabsSpace + p.tabLen) / 2).pos));
+        t = t.branch(
+          t => t
+            // Create the slot.
+            .withPenUp(t => t
+              .strafeRight(p.thickness + p.textHeight))
+            .andThen(slots, {
+              pattern: tabPattern.matchingSlots(),
+              dir: "right",
+              options,
+            },
+            ))
+          // Create the tab.
+          .andThen(tabs, {
+            pattern: tabPattern.matchingTabs(),
+            dir: "left",
+            startOnTab: true,
+            endOnTab: true,
+            options,
+          });
+      }
+      return t.forward(p.tabsSpace / 2);
+    }
+    // Make the tabs for Y and X axes.
+    for (let i = 0; i < 2; i++)
+      t = t.andThen(makeTabs).arcRight(90, p.frameCornersRadius);
+    // Make the tabs at 45°.
+    const totalTabsLength = p.count * p.tabLen + (p.count + 1) * p.tabsSpace;
+    t = t
+      .arcRight(45, p.frameCornersRadius)
+      .forward(totalTabsLength * (Math.sqrt(2) - 1) / 2)
+      .andThen(makeTabs)
+      .forward(totalTabsLength * (Math.sqrt(2) - 1) / 2)
+      .arcRight(135, p.frameCornersRadius);
+    const innerCutToCenterDist = totalTabsLength / 2 - p.tabsSpace / 2 - 1.5 * p.textHeight;
+    const innerCutCornerCoord =
+      innerCutToCenterDist - Math.sqrt(2) * (totalTabsLength / 2 - innerCutToCenterDist);
+    return gather(
+      gather(
+        t,
+        gather(labels).setLayer("print"),
+      ).center(),
+      ["X", "Y"].map((al, ai) =>
+        createText(al, fontOptions)
+          .normalise({x: "center", y: {max: -innerCutToCenterDist}})
+          .rotateLeft(90 * ai)
+          .setLayer("print")
+      ),
+      // Inner cut.
+      figures.polygon(
+        [-innerCutToCenterDist, -innerCutToCenterDist],
+        [innerCutCornerCoord, -innerCutToCenterDist],
+        [-innerCutToCenterDist, innerCutCornerCoord],
+      ),
+      // Probers inside the cut-out inner triangle.
+      layouts.column(layouts.row(prober, prober), prober)
+        .translate(-innerCutToCenterDist + 1, -innerCutToCenterDist + 1),
+    );
+  })();
 
-export interface Params {
-  thicknessMillimeters: number;
-}
-
-// TODO: All logic in the function.
-export function getSheet(params: Params) {
   return Sheet.create({
-    options: {name: "kerf_calibrator", millimetersPerUnit: 1},
-    pieces: [
-      frame(params),
-      layouts.gridRepeat({columns: 2, rows: 2, piece: prober(params)}).center(),
-    ],
+    options: {name: "Kerf calibrator", ...mpu},
+    pieces: frameWithProbers,
   });
+
 }
-
-export const SHEET_3MILLIMETERS = getSheet({thicknessMillimeters: 3});
-
-// TODO: Clean up.

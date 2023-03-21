@@ -2,6 +2,7 @@ import {ALL_BLACK, ColorsDistributor, CyclicColorsDistributor} from './colors_di
 import {Attributes} from './elements.ts';
 import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, globalOptions} from './global_options.ts';
 import {NO_LAYER, OptionalLayerName} from './layers.ts';
+import {toFileName} from "./name.ts";
 import {Point} from './point.ts';
 
 /** The context for which an SVG is generated. */
@@ -319,8 +320,11 @@ export function laserRunsOptionsFromPartial({
   };
 }
 
+export const DEFAULT_SHEET_FILE_NAME = "sheet";
+
 export interface PartialSheetOptions {
   name?: string;
+  fileName?: string;
   includeSizeInName?: boolean;
   millimetersPerUnit?: number;
   cornersMarker?: PartialCornersMarkerOptions;
@@ -332,6 +336,7 @@ export interface PartialSheetOptions {
 }
 export interface SheetOptions {
   readonly name?: string;
+  readonly fileName: string;
   readonly includeSizeInName: boolean;
   readonly millimetersPerUnit?: number;
   readonly cornersMarker: CornersMarkerOptions;
@@ -342,6 +347,7 @@ export interface SheetOptions {
 }
 export function sheetOptionsFromPartial({
   name,
+  fileName = name ? toFileName(name) : DEFAULT_SHEET_FILE_NAME,
   millimetersPerUnit,
   includeSizeInName = millimetersPerUnit !== undefined,
   cornersMarker,
@@ -352,6 +358,7 @@ export function sheetOptionsFromPartial({
 }: PartialSheetOptions): SheetOptions {
   return {
     name,
+    fileName,
     includeSizeInName,
     millimetersPerUnit,
     cornersMarker: cornersMarkerOptionsFromPartial(cornersMarker),

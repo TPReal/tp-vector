@@ -13,29 +13,31 @@ function mimeType(type: FontType) {
   return `font/${type}`;
 }
 
-export const FONT_WEIGHT_NAMES = {
+export const FONT_WEIGHT_VALUES = {
   thin: 100,
   regular: 400,
   bold: 700,
 };
 
-export type FontWeight = number | keyof typeof FONT_WEIGHT_NAMES;
+export type FontWeight = number | keyof typeof FONT_WEIGHT_VALUES;
 
 export function fontWeightValue(weight: FontWeight) {
-  return typeof weight === "string" ? FONT_WEIGHT_NAMES[weight] : weight;
+  return typeof weight === "string" ? FONT_WEIGHT_VALUES[weight] : weight;
 }
 
 export interface FontAttributes {
   readonly italic?: boolean;
+  readonly bold?: boolean;
   readonly weight?: FontWeight;
   readonly attributes?: Attributes;
 }
 
 export function attributesFromFontAttributes(
-  {italic, weight, attributes}: FontAttributes): Attributes {
+  {italic, bold, weight, attributes}: FontAttributes): Attributes {
   return {
     ...attributes,
     ...italic && {fontStyle: "italic"},
+    ...bold && {fontWeight: FONT_WEIGHT_VALUES.bold},
     ...weight && {fontWeight: fontWeightValue(weight)},
   };
 }
