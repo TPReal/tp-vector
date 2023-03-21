@@ -3,6 +3,7 @@ import {Sheet, createText, figures, gather, layouts, Turtle, Font} from '../inde
 const coin1 = await (async () => {
   const p = {
     coinR: 11,
+    outerR: 10.5,
     dentsR: 10,
     numDents: 16,
     dentToSpaceRatio: 1.7,
@@ -12,7 +13,7 @@ const coin1 = await (async () => {
     dentCircleR: 0.5,
   };
   let t = Turtle.create()
-    .circle(p.coinR + 0.2)
+    .circle(p.outerR)
     .right(360 / p.numDents * (0.5 / (p.dentToSpaceRatio + 1)))
     .withPenUp(t => t.strafeLeft(p.dentsR));
   for (let i = 0; i < p.numDents; i++)
@@ -38,7 +39,8 @@ const coin1 = await (async () => {
     gather(
       dents,
       createText("1", {
-        font: await Font.googleFonts("Sawarabi Mincho", {bold: true}),
+        font: (await Font.googleFonts("Sawarabi Mincho"))
+          .setFontAttributes({bold: true}),
         size: 13,
       }).center(),
     ).andThen(pc => gather(
@@ -51,13 +53,14 @@ const coin1 = await (async () => {
 const coin2 = await (async () => {
   const p = {
     coinR: 10,
-    dentsR: 8.8,
+    outerR: 9.3,
+    dentsR: 8.5,
     numDents: 10,
     dentAngle: 50,
     dentSpeed: 3,
   };
   let t = Turtle.create()
-    .circle(p.coinR + 0.2)
+    .circle(p.outerR + 0.2)
     .left(360 / p.numDents / 4)
     .withPenUp(t => t.strafeLeft(p.dentsR));
   for (let i = 0; i < p.numDents; i++)
@@ -86,12 +89,11 @@ const coin2 = await (async () => {
 const coin5 = await (async () => {
   const p = {
     coinR: 12,
-    outerR: 11,
-    innerR: 10,
+    outerR: 11.5,
+    innerR: 10.6,
     numDents: 18,
   };
   let t = Turtle.create()
-    .circle(p.coinR + 0.2)
     .lookLeft()
     .left(360 / p.numDents / 4)
     .withPenUp(t => t.strafeLeft(p.innerR));
@@ -106,9 +108,10 @@ const coin5 = await (async () => {
     gather(
       t.setAttributes({fillRule: "evenodd"}),
       createText("5", {
-        font: await Font.googleFonts("Vidaloka"),
+        font: (await Font.googleFonts("Vidaloka")).setFontAttributes({bold: true}),
         size: 20,
-      }).center().moveDown(1),
+      }).center().moveDown(1)
+        .setAttributes({fill: "white"}),
     ).andThen(pc => gather(
       pc.setLayer("print"),
       pc.flipX().setLayer("print_back"),
@@ -121,7 +124,7 @@ const coins = [coin1, coin2, coin5];
 export const SHEET = Sheet.create({
   options: {name: "Coins", millimetersPerUnit: 1},
   pieces: layouts.column({
-    pieces: [0, 1, 2].map(i => layouts.row(
+    pieces: [0].map(i => layouts.row(
       ...coins.slice(i), ...coins.slice(0, i),
     )),
     gap: -1,

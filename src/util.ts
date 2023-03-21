@@ -44,6 +44,12 @@ export function assert<T>(value: T): Truthy<T> {
   return value as Truthy<T>;
 }
 
+export function assertNumber(value: unknown): number {
+  if (typeof value !== "number")
+    throw new Error(`Assertion failed, expected number, got ${value}`);
+  return value;
+}
+
 export function almostEqual(a: number, b: number, {maxError = 1e-9} = {}) {
   const diff = a - b;
   return diff >= -maxError && diff <= maxError;
