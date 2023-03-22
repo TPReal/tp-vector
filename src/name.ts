@@ -18,7 +18,7 @@ export function toFileName(name: string) {
   return name
     .replaceAll(/(\p{Lu}+)(?=\p{Lu}\p{Ll})/gu, "$1 ")
     .replaceAll(/(\p{Ll})(\p{Lu})/gu, "$1 $2")
-    .split(/\p{Z}/gu)
+    .split(/(?:\p{Z}|\p{P})+/gu)
     .filter(Boolean)
     .join("_")
     .toLocaleLowerCase();
