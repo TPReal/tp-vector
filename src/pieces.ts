@@ -5,7 +5,7 @@ import * as figures from './figures.ts';
 import {generateId} from './ids.ts';
 import {Layerable, NO_LAYER, OptionalLayerName, inLayerString} from './layers.ts';
 import {NormaliseArgs, getNormaliseTransform} from './normalise_transform.ts';
-import {Point} from "./point.ts";
+import {Point} from './point.ts';
 import {Tf, Transform, transformedToString} from './transform.ts';
 import {AbstractTransformableTo} from './transformable.ts';
 import {OrArray, OrArrayRest, flatten, flattenFilter} from './util.ts';

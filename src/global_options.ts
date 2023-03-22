@@ -1,5 +1,5 @@
 import {ColorsDistributor, CyclicColorsDistributor, InitialColorsAssignment} from './colors_distributor.ts';
-import {flatten, OrArrayRest} from "./util.ts";
+import {flatten, OrArrayRest} from './util.ts';
 
 /** Method of handling transparency when converting SVG to PNG. */
 export type PNGAllowTransparency =
@@ -93,32 +93,28 @@ export interface GlobalOptions {
   readonly quirks?: Readonly<Quirks>;
 }
 
-
 export namespace presets {
 
   export const DEFAULT = {
     pngAllowTransparency: true,
     imageAutoSizeLogic: {
-      measure: false,
-      widthAndHeight: "auto",
+      measure: true,
+      widthAndHeight: "_not_set_",
     },
   } satisfies GlobalOptions;
 
-
-  export function chromeImageAutoSizeLogic() {
+  /**
+   * Returns a preset for the theoretically correct way of sizing images, with width and height
+   * set to `"auto"`. Note that it might not work in practice.
+   * @see {@link ImageAutoSizeLogic}
+   */
+  export function imageAutoSizeLogic() {
     return {
       imageAutoSizeLogic: {
-        measure: true,
-        widthAndHeight: "_not_set_",
+        measure: false,
+        widthAndHeight: "auto",
       },
     } satisfies PartialGlobalOptions;
-  }
-
-  /** Returns preset for the Google Chrome browser. */
-  export function chrome() {
-    return [
-      chromeImageAutoSizeLogic(),
-    ];
   }
 
   /**

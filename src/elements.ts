@@ -1,4 +1,4 @@
-import {getGlobalOptions} from "./global_options.ts";
+import {getGlobalOptions} from './global_options.ts';
 import {OrArray, flattenFilter} from './util.ts';
 import {ViewBox, extendViewBox, fitsInViewBox, viewBoxFromBBox, viewBoxFromPartial, viewBoxToString} from './view_box.ts';
 

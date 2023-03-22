@@ -1,5 +1,5 @@
-import {generateId} from "../ids.ts";
-import {assert, Sheet} from "../index.ts";
+import {generateId} from '../ids.ts';
+import {assert, Sheet} from '../index.ts';
 
 /**
  * Returns a `<div>` containing a preview of the Sheet, including checkboxes to control runs
@@ -29,9 +29,8 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   runsController.style.gap = ".5em";
   runsController.style.alignItems = "center";
   const blinkTimers: number[] = [];
-  const checkboxesInfo = document.createElement("span");
+  const checkboxesInfo = document.createTextNode("Show runs:");
   runsController.appendChild(checkboxesInfo);
-  checkboxesInfo.textContent = "Show runs:";
   for (const g of svg.querySelectorAll(":scope > g[id]")) {
     const id = assert(g.getAttribute("id"));
     const span = document.createElement("span");
@@ -83,8 +82,14 @@ type SectionDef = OrFuncPromise<{
   element: HTMLElement,
 }>;
 
-export const ALL_SECTIONS = "*";
-
+/**
+ * Interface for a module with exported `getSheet` function, regular or async,
+ * with or without parameters, returning a Sheet.
+ *
+ * Exporting a function is the preferred way for a module to produce a Sheet. Creating the Sheet
+ * object at the file level is not recommended because it might execute before setting  the global
+ * options. See _src/global_options.ts_.
+ */
 export interface SheetModule<Args extends unknown[] = []> {
   getSheet(...args: Args): OrPromise<Sheet>;
 }
@@ -150,9 +155,13 @@ export class Viewer {
     });
   }
 
+  addAll(other: Viewer) {
+    return new Viewer([...this.sections, ...other.sections]);
+  }
+
   async show({
     parent = document.body,
-    section = new URLSearchParams(location.search).get("section") || ALL_SECTIONS,
+    section = new URLSearchParams(location.search).get("section") || undefined,
   }: {
     parent?: HTMLElement,
     section?: string,
@@ -197,11 +206,24 @@ export class Viewer {
 
     const sectionSelectContainer = document.createElement("div");
     resizableArea.appendChild(sectionSelectContainer);
+    sectionSelectContainer.style.display = "flex";
+    sectionSelectContainer.style.gap = "0.5em";
+    sectionSelectContainer.style.marginBottom = "2em";
+    const sectionSelectLabel = document.createElement("span")
+    sectionSelectContainer.appendChild(sectionSelectLabel);
+    sectionSelectLabel.textContent = "Show:";
+    sectionSelectLabel.style.alignSelf = "center";
     const sectionSelect = document.createElement("select");
     sectionSelectContainer.appendChild(sectionSelect);
-    sectionSelect.style.marginBottom = "2em";
+    sectionSelect.setAttribute("title", "Select section");
     sectionSelect.addEventListener("change", () => {
       switchToSection(sectionSelect.value);
+    });
+    const clearSectionButton = document.createElement("button");
+    sectionSelectContainer.appendChild(clearSectionButton);
+    clearSectionButton.textContent = "⨯";
+    clearSectionButton.addEventListener("click", () => {
+      switchToSection(undefined);
     });
     const sectionsContainer = document.createElement("div");
     resizableArea.appendChild(sectionsContainer);
@@ -222,13 +244,15 @@ export class Viewer {
     function showSection(id: string | undefined) {
       sectionSelect.value = id || "";
       for (const section of document.querySelectorAll<HTMLElement>(".section"))
-        section.style.display = id === "*" || section.id === id ? "unset" : "none";
+        section.style.display = !id || section.id === id ? "unset" : "none";
     }
 
-    function addOption(name: string) {
+    function addOption(name: string | undefined) {
       const option = document.createElement("option");
-      option.text = name;
-      option.setAttribute("value", name);
+      option.text = name || "all sections";
+      if (!name)
+        option.style.fontWeight = "bold";
+      option.setAttribute("value", name || "");
       sectionSelect.appendChild(option);
     }
 
@@ -250,14 +274,14 @@ export class Viewer {
       return section;
     }
 
-    addOption("*");
+    addOption(undefined);
     const promises = this.sections.map(sect => unwrap(sect, []));
     for (const {name, element} of await Promise.all(promises))
       addSection(name).appendChild(element);
 
     showSection(section);
     addEventListener("popstate", event => {
-      showSection(event.state?.section || ALL_SECTIONS);
+      showSection(event.state?.section);
     });
 
     return container;
@@ -273,6 +297,6 @@ export const RELOAD = () => {
  * Installs the live reload provided by esbuild.
  * @see https://esbuild.github.io/api/#live-reload
  */
-export function installLiveReload(handler = RELOAD) {
+export function installLiveReload(handler: () => void = RELOAD) {
   new EventSource('/esbuild').addEventListener('change', handler);
 }

@@ -3,7 +3,7 @@ import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {cloneElement, createElement, getElementsBoundingBox, getLoadedPromise, setAttributes} from './elements.ts';
 import {getGlobalOptions} from './global_options.ts';
-import {assets} from "./index.ts";
+import {assets} from './index.ts';
 import {DefaultPiece} from './pieces.ts';
 
 export type ImageType = "png" | "jpeg" | "gif";
