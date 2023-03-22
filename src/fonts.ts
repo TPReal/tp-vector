@@ -1,9 +1,9 @@
-import * as assets from "./assets.ts";
+import * as assets from './assets.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {AttributesDefTool} from './def_tool.ts';
 import {Attributes, createElement, withUtilSVG} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
-import {assert, assertNumber, sleep} from "./util.ts";
+import {assert, assertNumber, sleep} from './util.ts';
 
 export type FontType = "woff" | "woff2" | "otf" | "ttf";
 
@@ -96,7 +96,7 @@ export class Font extends AttributesDefTool {
     url: string,
     fontAttributes?: FontAttributes,
   }) {
-    return await Font.fromStyleWithDataURIs({
+    return await Font.fromStyle({
       name,
       styleContent: `@font-face {
   font-family: ${JSON.stringify(name)};
@@ -118,7 +118,7 @@ export class Font extends AttributesDefTool {
     });
   }
 
-  private static async fromStyleWithDataURIs({name, styleContent, fontAttributes}: {
+  private static async fromStyle({name, styleContent, fontAttributes}: {
     name: string,
     styleContent: string,
     fontAttributes?: FontAttributes,
@@ -158,7 +158,7 @@ export class Font extends AttributesDefTool {
       keys.push("wght");
       vals.push(weight);
     }
-    return await Font.fromStyleWithDataURIs({
+    return await Font.fromStyle({
       name,
       styleContent: `@import url(${JSON.stringify(
         `http://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}` +
@@ -177,9 +177,6 @@ export class Font extends AttributesDefTool {
   }
 
 }
-
-const MAX_LOAD_STYLE_TIME_MILLIS = 5000;
-const STYLE_TIME_MILLIS_STEP = 100;
 
 const URL_REGEXP = /(?<import>@import\s+)?\burl\((?<q>['"]?)(?<url>.+?)\k<q>\)(?<semi>;)?/g;
 
@@ -208,11 +205,15 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
   return out.join("");
 }
 
+const MAX_LOAD_STYLE_TIME_MILLIS = 5000;
+const STYLE_TIME_MILLIS_STEP = 100;
+
 async function loadStyle(styleContent: string) {
   const style = createElement({
     tagName: "style",
     children: await changeToDataURIs(styleContent),
   });
+  // TODO: Make waiting for load more reliable.
   await withUtilSVG(async svg => {
     svg.appendChild(style);
     for (let t = 0; t < MAX_LOAD_STYLE_TIME_MILLIS; t += STYLE_TIME_MILLIS_STEP) {

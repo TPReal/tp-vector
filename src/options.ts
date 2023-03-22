@@ -2,7 +2,7 @@ import {ALL_BLACK, ColorsDistributor, CyclicColorsDistributor} from './colors_di
 import {Attributes} from './elements.ts';
 import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, getGlobalOptions} from './global_options.ts';
 import {NO_LAYER, OptionalLayerName} from './layers.ts';
-import {toFileName} from "./name.ts";
+import {toFileName} from './name.ts';
 import {Point} from './point.ts';
 
 /** The context for which an SVG is generated. */
