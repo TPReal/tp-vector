@@ -34,8 +34,8 @@ export interface PartialCommonRunOptions {
   styleAttributes?: PartialMediaStyleAttributes;
   /**
    * Side of the material on which the run should be executed. Note that for `"back"`, the contents
-   * of the layer needs to be mirrored in the X axis, as if viewed from the front side of a
-   * transparent material.
+   * of the layer needs to be mirrored in the X axis, as if viewed from the front side (which would
+   * actually be possible if the material was transparent).
    */
   side?: Side;
   includeCornersMarker?: boolean;
