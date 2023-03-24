@@ -61,6 +61,15 @@ interface TurtleToPieceFunc<Args extends unknown[] = []> {
   (turtle: Turtle, ...args: Args): Piece;
 }
 
+/**
+ * A tool for creating [turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics).
+ * A single Turtle creates a single `<path>` element.
+ *
+ * Note that the Turtle class is immutable, so all the drawing methods and setters return
+ * a new instance of Turtle - a copy of the original Turtle with the desired changes.
+ *
+ * See _docs/immutability.md_
+ */
 export class Turtle extends DefaultPiece {
 
   protected constructor(

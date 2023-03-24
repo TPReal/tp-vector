@@ -3,32 +3,6 @@
   "tasks": [
 
     {
-      "label": "Lint",
-      "type": "shell",
-      "command": "deno lint",
-      "problemMatcher": ["$deno"],
-      "presentation": {
-        "focus": false,
-        "panel": "dedicated",
-        "showReuseMessage": false,
-      },
-    },
-
-    {
-      "label": "Type-check",
-      "type": "shell",
-      "command": "deno check src/**/*.ts",
-      "group": {
-        "kind": "build",
-      },
-      "problemMatcher": ["$deno"],
-      "presentation": {
-        "focus": false,
-        "panel": "dedicated",
-      },
-    },
-
-    {
       "label": "Viewer",
       "detail": "Build and serve the Viewer app",
       "type": "shell",
@@ -60,6 +34,32 @@ src/viewer/viewer.ts \
       "presentation": {
         "focus": false,
         "panel": "dedicated",
+      },
+    },
+
+    {
+      "label": "Type-check",
+      "type": "shell",
+      "command": "deno check src/**/*.ts",
+      "group": {
+        "kind": "build",
+      },
+      "problemMatcher": ["$deno"],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+      },
+    },
+
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "deno lint",
+      "problemMatcher": ["$deno"],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": false,
       },
     },
 

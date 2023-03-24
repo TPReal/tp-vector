@@ -1,6 +1,6 @@
 import {AttributesDefTool} from './def_tool.ts';
 import {Attributes, AttributesBuilder} from './elements.ts';
-import {Font} from './fonts.ts';
+import {attributesFromFontAttributes, Font, FontAttributes} from './fonts.ts';
 import {Defs, Piece} from './pieces.ts';
 
 interface PathForTextArgs {
@@ -56,11 +56,13 @@ export class PathForText extends AttributesDefTool {
 export function createText(text: string, {
   font,
   size = 1,
+  fontAttributes,
   textPath,
   attributes = {},
 }: {
   font?: Font | string,
   size?: string | number,
+  fontAttributes?: FontAttributes,
   textPath?: PathForText | PathForTextArgs,
   attributes?: Attributes,
 } = {}) {
@@ -79,6 +81,7 @@ export function createText(text: string, {
     tagName: "text",
     attributes: {
       fontSize: size,
+      ...fontAttributes && attributesFromFontAttributes(fontAttributes),
       ...attributes,
     },
     children: [textChild],

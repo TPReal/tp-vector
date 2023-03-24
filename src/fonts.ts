@@ -1,9 +1,9 @@
 import * as assets from './assets.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {AttributesDefTool} from './def_tool.ts';
-import {Attributes, createElement, withUtilSVG} from './elements.ts';
+import {Attributes, createElement} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
-import {assert, assertNumber, sleep} from './util.ts';
+import {assert, assertNumber} from './util.ts';
 
 export type FontType = "woff" | "woff2" | "otf" | "ttf";
 
@@ -205,26 +205,11 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
   return out.join("");
 }
 
-const MAX_LOAD_STYLE_TIME_MILLIS = 5000;
-const STYLE_TIME_MILLIS_STEP = 100;
-
+// deno-lint-ignore require-await
 async function loadStyle(styleContent: string) {
-  const style = createElement({
+  // TODO: Find a reliable way of waiting for the font to load.
+  return createElement({
     tagName: "style",
-    children: await changeToDataURIs(styleContent),
+    children: styleContent,
   });
-  // TODO: Make waiting for load more reliable.
-  await withUtilSVG(async svg => {
-    svg.appendChild(style);
-    for (let t = 0; t < MAX_LOAD_STYLE_TIME_MILLIS; t += STYLE_TIME_MILLIS_STEP) {
-      if (style.sheet)
-        return;
-      await sleep(t);
-    }
-    if (!style.sheet)
-      console.warn(`Failed waiting for style to load`, style);
-  });
-  await sleep(STYLE_TIME_MILLIS_STEP);
-  await document.fonts.ready;
-  return style;
 }

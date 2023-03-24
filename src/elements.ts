@@ -28,11 +28,11 @@ const NAMESPACES = new Map([
  * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
  */
 const HYPHENATED_ATTRIBUTES = ["accent-height", "alignment-baseline", "arabic-form", "baseline-shift", "cap-height", "clip-path", "clip-rule", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "dominant-baseline", "enable-background", "fill-opacity", "fill-rule", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-name", "glyph-orientation-horizontal", "glyph-orientation-vertical", "horiz-adv-x", "horiz-origin-x", "image-rendering", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "overline-position", "overline-thickness", "panose-1", "paint-order", "pointer-events", "rendering-intent", "shape-rendering", "stop-color", "stop-opacity", "strikethrough-position", "strikethrough-thickness", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-rendering", "transform-origin", "underline-position", "underline-thickness", "unicode-bidi", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "vector-effect", "vert-adv-y", "vert-origin-x", "vert-origin-y", "word-spacing", "writing-mode", "x-height"];
-const HYPHENATED_ATTRIBUTES_MAP = new Map();
+const HYPHENATED_ATTRIBUTES_MAP = new Map<string, string>();
 
 function toCamelCase(hyphenated: string) {
   return hyphenated.split("-").map((p, i) =>
-    i ? p[0].toUpperCase() + p.substr(1) : p,
+    i ? p[0].toUpperCase() + p.slice(1) : p,
   ).join("");
 }
 
@@ -51,7 +51,7 @@ export function setAttributes(element: SVGElement, attributes: Attributes) {
     const useNS = !/^xmlns(:\w+)?$/.test(attribute);
     if (useNS) {
       const colonPos = attribute.indexOf(":");
-      const ns = colonPos > 0 && NAMESPACES.get(attribute.substring(0, colonPos)) || null;
+      const ns = colonPos > 0 && NAMESPACES.get(attribute.slice(0, colonPos)) || null;
       if (value === undefined)
         element.removeAttributeNS(ns, attribute);
       else
@@ -213,7 +213,7 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
   }
 }
 
-export function getLoadedPromise(element: SVGElement) {
+export function getLoadedPromise(element: HTMLElement | SVGElement) {
   return new Promise((resolve, reject) => {
     element.addEventListener("load", resolve, false);
     element.addEventListener("error", event => {

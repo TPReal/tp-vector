@@ -598,7 +598,7 @@ export class Sheet {
           first = false;
         else
           item.style.marginLeft = "-1px";
-        item.style.height = "2.2em";
+        item.style.minHeight = "2.2em";
         span.appendChild(item);
       }
       container.appendChild(span);

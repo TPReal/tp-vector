@@ -126,7 +126,7 @@ export async function getSheet() {
   return Sheet.create({
     options: {name: "Coins", millimetersPerUnit: 1},
     pieces: layouts.column({
-      pieces: [0, 1, 2].map(i => layouts.row(
+      pieces: coins.map((_c, i) => layouts.row(
         ...coins.slice(i), ...coins.slice(0, i),
       )),
       gap: -1,

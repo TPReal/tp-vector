@@ -1,6 +1,6 @@
 import {globalOptions} from '../index.ts';
 import {DEMOS_VIEWER} from './demos_viewer.ts';
-import {installLiveReload} from './viewer_tools.ts';
+import {installLiveReload, Viewer} from './viewer_tools.ts';
 
 installLiveReload();
 
@@ -12,4 +12,12 @@ globalOptions.modify(
   // {printPosCorrectionMillimeters: [0.0, 0.0]},
 );
 
-await DEMOS_VIEWER.show();
+await Viewer.create()
+
+  // Add your own projects here:
+  // .add(myProjectModule)
+
+  // Add the demos at the end.
+  .addAll(DEMOS_VIEWER)
+
+  .show();

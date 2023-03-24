@@ -167,6 +167,28 @@ export class Viewer {
     section?: string,
   } = {}) {
     // TODO: Consider improving the Viewer page.
+    const sectionSelectContainer = document.createElement("div");
+    document.body.appendChild(sectionSelectContainer);
+    sectionSelectContainer.style.display = "flex";
+    sectionSelectContainer.style.gap = "0.5em";
+    sectionSelectContainer.style.marginBottom = "1em";
+    const sectionSelectLabel = document.createElement("span")
+    sectionSelectContainer.appendChild(sectionSelectLabel);
+    sectionSelectLabel.textContent = "Show:";
+    sectionSelectLabel.style.alignSelf = "center";
+    const sectionSelect = document.createElement("select");
+    sectionSelectContainer.appendChild(sectionSelect);
+    sectionSelect.setAttribute("title", "Select section");
+    sectionSelect.addEventListener("change", () => {
+      switchToSection(sectionSelect.value);
+    });
+    const clearSectionButton = document.createElement("button");
+    sectionSelectContainer.appendChild(clearSectionButton);
+    clearSectionButton.textContent = "⨯";
+    clearSectionButton.addEventListener("click", () => {
+      switchToSection(undefined);
+    });
+
     const container = document.createElement("div");
     parent.appendChild(container);
     container.style.display = "flex";
@@ -174,7 +196,7 @@ export class Viewer {
     const resizableArea = document.createElement("div");
     container.appendChild(resizableArea);
     resizableArea.style.flex = "0 1 auto";
-    resizableArea.style.minWidth = "300px";
+    resizableArea.style.minWidth = "100px";
     const resizeWidth = localStorage.getItem("width");
     resizableArea.style.width = resizeWidth ? `${resizeWidth}px` : "100%";
     const resizeHandle = document.createElement("div");
@@ -204,27 +226,6 @@ export class Viewer {
       }
     });
 
-    const sectionSelectContainer = document.createElement("div");
-    resizableArea.appendChild(sectionSelectContainer);
-    sectionSelectContainer.style.display = "flex";
-    sectionSelectContainer.style.gap = "0.5em";
-    sectionSelectContainer.style.marginBottom = "2em";
-    const sectionSelectLabel = document.createElement("span")
-    sectionSelectContainer.appendChild(sectionSelectLabel);
-    sectionSelectLabel.textContent = "Show:";
-    sectionSelectLabel.style.alignSelf = "center";
-    const sectionSelect = document.createElement("select");
-    sectionSelectContainer.appendChild(sectionSelect);
-    sectionSelect.setAttribute("title", "Select section");
-    sectionSelect.addEventListener("change", () => {
-      switchToSection(sectionSelect.value);
-    });
-    const clearSectionButton = document.createElement("button");
-    sectionSelectContainer.appendChild(clearSectionButton);
-    clearSectionButton.textContent = "⨯";
-    clearSectionButton.addEventListener("click", () => {
-      switchToSection(undefined);
-    });
     const sectionsContainer = document.createElement("div");
     resizableArea.appendChild(sectionsContainer);
     sectionsContainer.style.display = "flex";
