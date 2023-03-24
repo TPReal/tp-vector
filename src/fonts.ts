@@ -205,11 +205,10 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
   return out.join("");
 }
 
-// deno-lint-ignore require-await
 async function loadStyle(styleContent: string) {
   // TODO: Find a reliable way of waiting for the font to load.
   return createElement({
     tagName: "style",
-    children: styleContent,
+    children: await changeToDataURIs(styleContent),
   });
 }
