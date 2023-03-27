@@ -19,12 +19,16 @@ steps:
     enabled.
   - Launch the _Viewer_ debug session (from the menu select _Run | Start
     Debugging_ or _Run | Run Without Debugging_). This will start the _Viewer_
-    task and launch the browser with the viewer opened.
+    task (an [esbuild](https://esbuild.github.io/) process that bundles and
+    hosts the code) and launch the browser with the Viewer page opened.
 - Alternatively, you can launch the esbuild server manually. You can find the
-  command in the [.vscode/tasks.json](../.vscode/tasks.json) file, in the
-  definition of the _Viewer_ task.
+  command in [.vscode/tasks.json](../.vscode/tasks.json), in the definition of
+  the _Viewer_ task.
+
+Changes done in the code are immediately caught by esbuild, and the browser is
+refreshed to show the changes.
 
 If you want to develop your own projects, the easiest option is to create your
-projects in the [_src/demos_](../src/demos) directory (or some other directory
-like _src/projects_), and include them in the
+projects in the [_src/demos_](../src/demos) directory, or some other directory
+like _src/projects_, and include them in the
 [_src/viewer/viewer.ts_](../src/viewer/viewer.ts).

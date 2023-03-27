@@ -38,7 +38,7 @@ function* getMultiIndices(count: OrArray<Count>) {
 }
 
 /**
- * Iterates over the (possibly multidimensional) count, calls `pieceFunc` in each interation and
+ * Iterates over the (possibly multidimensional) count, calls `pieceFunc` in each iteration and
  * gathers the results. The results of the calls are not moved or rotated, only grouped together,
  * so it's `pieceFunc`'s responsibility to arrange the pieces as needed.
  */

@@ -1,5 +1,5 @@
 {
-  // Type checking is done separately.
+  // Type-checking is done separately.
   "skipErrorChecking": true,
   "entryPoints": ["src"],
   "out": "docs",

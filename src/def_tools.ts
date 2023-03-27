@@ -1,3 +1,4 @@
+import {AttributesDefTool} from './def_tool.ts';
 import {Attributes} from './elements.ts';
 import {Piece, PiecePartArg} from './pieces.ts';
 import {Transform} from './transform.ts';
@@ -8,26 +9,33 @@ interface AttributesAndId {
   id?: string;
 }
 
+type PiecesArg = OrArray<PiecePartArg | undefined>;
 type PiecesAttributesAndId<P extends string = "pieces"> = AttributesAndId & {
-  [key in P]: OrArray<PiecePartArg | undefined>;
+  [key in P]: PiecesArg;
 }
 type PartialPieceAttributesAndId<P extends string> =
-  PiecePartArg | PiecesAttributesAndId<P>;
+  PiecesArg | PiecesAttributesAndId<P>;
 
-function isPiecePartArg<P extends string>(
-  arg: PartialPieceAttributesAndId<P>, piecesPath: P): arg is PiecePartArg {
-  return !(Object.getPrototypeOf(arg) === Object.prototype &&
+function isPiecesArg<P extends string>(
+  arg: PartialPieceAttributesAndId<P>, piecesPath: P): arg is PiecesArg {
+  return !(arg && Object.getPrototypeOf(arg) === Object.prototype &&
     Object.hasOwn(arg, piecesPath));
 }
 
 function piecesAttributesAndIdFromPartial<P extends string>(
   arg: PartialPieceAttributesAndId<P>, piecesPath: P): PiecesAttributesAndId {
-  if (isPiecePartArg(arg, piecesPath))
+  if (isPiecesArg(arg, piecesPath))
     return {pieces: arg};
   const {attributes, id, [piecesPath]: pieces} = arg;
   return {attributes, id, pieces};
 }
 
+export function createClipPath(path: PiecesArg): AttributesDefTool;
+export function createClipPath(args: {
+  paths: PiecePartArg,
+  attributes?: Attributes,
+  id?: string,
+}): AttributesDefTool;
 export function createClipPath(arg: PartialPieceAttributesAndId<"paths">) {
   const {pieces, attributes, id} = piecesAttributesAndIdFromPartial(arg, "paths");
   return Piece.createElement({
@@ -37,6 +45,12 @@ export function createClipPath(arg: PartialPieceAttributesAndId<"paths">) {
   }).asDefTool(id).useByAttribute("clip-path");
 }
 
+export function createMask(mask: PiecesArg): AttributesDefTool;
+export function createMask(args: {
+  mask: PiecePartArg,
+  attributes?: Attributes,
+  id?: string,
+}): AttributesDefTool;
 export function createMask(arg: PartialPieceAttributesAndId<"mask">) {
   const {pieces, attributes, id} = piecesAttributesAndIdFromPartial(arg, "mask");
   return Piece.createElement({

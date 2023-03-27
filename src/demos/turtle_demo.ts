@@ -10,7 +10,8 @@ export function getSheet() {
         (() => {
           let t = Turtle.create();
           const end = t.forward(1).right().forward(0.5);
-          for (let speed = 0.3; speed <= 1.8; speed += 0.3)
+          for (let speed = 0.35; speed <= 2; speed += 0.3)
+            // The same curve with different target speeds.
             t = t.branch(t => t.curveTo(end, {startSpeed: 1.6, targetSpeed: speed}));
           return t;
         })(),
@@ -21,6 +22,7 @@ export function getSheet() {
           }
           let t = Turtle.create().forward(10);
           for (let i = 1; i <= 5; i++)
+            // In each iteration go forward, and then branch to the side.
             t = t.forward(1).branch(t => t.andThen(fu, i));
           return t;
         })(),
@@ -29,6 +31,7 @@ export function getSheet() {
           const n = 11;
           const m = 4;
           let t = Turtle.create().right(1.75 * 360 / n);
+          // Five sides of a self-intersecting regular 11-sided polygon.
           for (let i = 0; i < 5; i++)
             t = t.right(360 * m / n).forward(1);
           return t.extendBoundingBox({right: -0.2});
@@ -36,6 +39,7 @@ export function getSheet() {
 
         (() => {
           let t = Turtle.create();
+          // A spiral.
           for (let i = 1; i < 10; i++)
             t = t.arcLeft(90, i).forward(3).arcLeft(90, i)
           return t.arcLeft(110, 16);
@@ -43,16 +47,22 @@ export function getSheet() {
 
         Turtle.create()
           .arcRight(160, 1)
-          .branch(t => t.right(140).push())
+          .branch(t => t
+            .right(140)
+            // Save this position and angle.
+            .push()
+          )
           .withPenUp(t => t.arcRight(40, 1))
           .branch(t => t
             .left(140)
+            // Draw a curve from the saved position.
             .curveFromPeek({speed: 0.6})
             .curveFromPop({speed: 0.8})
           )
           .arcRight(160, 1),
 
         (() => {
+          // A recursive function for drawing a fractal.
           function rec(t: Turtle, level: number): Turtle {
             if (!level)
               return t;
@@ -75,6 +85,7 @@ export function getSheet() {
                 .strafeRight(1.08)
                 .withPenDown(t => t.circle(0.2))
               );
+          // A collection of circles, both as a line and as a figure.
           return gather(
             t.setAttributes({fill: "#ddd", fillRule: "evenodd"})
               .setLayer("print"),
@@ -82,6 +93,7 @@ export function getSheet() {
           );
         })(),
 
+        // A simple curve.
         Turtle.create().right(10)
           .curve(t => t.forward(1).right(90).forward(0.5), {speed: 4})
           .curve(t => t.forward(2).lookDown().right(10).forward(4))

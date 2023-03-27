@@ -1,5 +1,8 @@
 # Code style
 
+TPVector is written entirely in [TypeScript](https://www.typescriptlang.org/).
+At any time, the most modern features of the language might be used.
+
 ## Immutability
 
 All the classes and most interfaces in TPVector are
@@ -24,6 +27,11 @@ freedom, some choices were made for consistency:
 
 ## Documentation
 
-The code is written in a clear and self-descriptive way. JSDoc is added where it
-is needed, or clearly beneficial. There are no strict requirements on using the
-JSDoc tags like `@param` etc.
+The code is well structured and self-documenting as much as possible. JSDoc is
+added where it is needed, or clearly beneficial, and the HTML documentation is
+generated using [typedoc](https://typedoc.org/), configured in
+[typedoc.json](../typedoc.json). However, it might be a good idea to read the
+code of the library, and not just the docs.
+
+When writing JSDoc, there are no strict requirements on using the tags like
+`@param` etc. A free-form text explaining the entity is enough.

@@ -528,7 +528,7 @@ export class Turtle extends DefaultPiece {
     if (!this.state.down)
       return this;
     return this.branch(t => t
-      .appendJump({dPos: t.relPos(0, -radius)})
+      .appendJump({dPos: t.relPos(radius, 0), dAngleDeg: 90})
       .arcRight(360, radius));
   }
 

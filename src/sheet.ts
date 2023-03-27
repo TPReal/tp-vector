@@ -519,18 +519,18 @@ export class Sheet {
    * on click.
    * @see {@link Sheet.saveLaserSVG}
    */
-  getLaserSVGSaveButton({params = {}, label, hintSuffix}: {
+  getLaserSVGSaveButton({params = {}, label, hintDesc}: {
     params?: PartialLaserSVGParams,
     label?: string,
-    hintSuffix?: string,
+    hintDesc?: string,
   } = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
-    let hint = this.getSVGName({runsSelector, printsAsImages});
-    if (hintSuffix)
-      hint += " " + hintSuffix;
     return createSaveButton({
       label: label || this.getSaveButtonLabel({format, runsSelector}),
-      hint,
+      hint: [
+        this.getSVGName({runsSelector, printsAsImages}),
+        hintDesc,
+      ].filter(Boolean).join("\n"),
       save: () => {
         this.saveLaserSVG({format, printsAsImages, runsSelector});
       },
@@ -587,8 +587,11 @@ export class Sheet {
     runsSelectors?: (PartialRunsSelector | "separator")[] | "all",
   } = {}) {
     const container = document.createElement("div");
-    container.style.display = "flex";
-    container.style.flexWrap = "wrap";
+    container.textContent = `Files for the laser software:`;
+    const buttonsContainer = document.createElement("div");
+    container.appendChild(buttonsContainer);
+    buttonsContainer.style.display = "flex";
+    buttonsContainer.style.flexWrap = "wrap";
     function addItems(items: OrArray<HTMLElement>) {
       const span = document.createElement("span");
       span.style.margin = "2px";
@@ -601,12 +604,12 @@ export class Sheet {
         item.style.minHeight = "2.2em";
         span.appendChild(item);
       }
-      container.appendChild(span);
+      buttonsContainer.appendChild(span);
     }
     function addSep() {
       const sep = document.createElement("hr");
       sep.style.margin = "2px";
-      container.appendChild(sep);
+      buttonsContainer.appendChild(sep);
     }
     if (runsSelectors === "all") {
       const naturalOrder = this.getRunsInNaturalOrder();
@@ -630,14 +633,17 @@ export class Sheet {
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "SVG", printsAsImages: true, runsSelector},
             label: "[PNG prints]",
-            hintSuffix: "(print layers embedded as PNG images)",
+            hintDesc: "(print layers embedded as PNG images)",
           }));
         if (fullFormat === "both")
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "PNG", runsSelector},
             label: this.getFormatLabel("PNG"),
-            hintSuffix: "(raster image)",
+            hintDesc: "(raster image)",
           }));
+        if (fullRunsSelector.runs === "all")
+          for (const button of buttons)
+            button.style.fontWeight = "bold";
         addItems(buttons);
       }
     }
