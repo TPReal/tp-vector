@@ -20,16 +20,20 @@ With the immutability approach, you can be sure it's the latter, because it is
 not possible to modify an object. So the code above returns three copies of the
 original object, looking somewhat like this: `oOo`.
 
-Throughout the TPVector library, whenever a function or method doc says:
+Throughout the TPVector library, whenever a method (or a function) the doc says:
 
+<!-- deno-fmt-ignore -->
 ```ts
-/** Does this and that to the object. */
+/** Does _something_ to `this`. */
+someMethod(...) {
 ```
 
 it really means:
 
+<!-- deno-fmt-ignore -->
 ```ts
-/** Returns a copy of the object, with this and that done to it. */
+/** Returns a copy of `this`, with _something_ done to it. */
+someMethod(...) {
 ```
 
 ## Turtle

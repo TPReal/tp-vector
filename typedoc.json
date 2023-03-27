@@ -1,0 +1,27 @@
+{
+  // Type checking is done separately.
+  "skipErrorChecking": true,
+  "entryPoints": ["src"],
+  "out": "docs",
+  "excludeNotDocumented": true,
+  "excludeNotDocumentedKinds": [
+    "Namespace",
+    "Reference",
+  ],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "readme": "none",
+  "searchInComments": true,
+  "sort": [
+    "static-first",
+    "kind",
+    "source-order",
+  ],
+  "kindSortOrder": [
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Function",
+  ],
+}

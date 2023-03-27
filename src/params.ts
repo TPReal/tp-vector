@@ -93,7 +93,7 @@ function mergeParams<P1 extends object, P2 extends object>(p1: P1, p2: P2): P1 &
  *     const p = createParams({
  *       side: 5,
  *     })(p => ({
- *       side2: 2* p.side,
+ *       side2: 2 * p.side,
  *     });
  *
  * This sets `p.side` to 5 and `p.side2` to 10.

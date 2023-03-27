@@ -41,6 +41,7 @@ function mimeType(type: ImageType) {
   return dataURIConv.mimeTypeFromExt(type);
 }
 
+/** A class representing an image, usually referenced by URL or data URI. */
 export class Image extends DefaultPiece {
 
   protected constructor(

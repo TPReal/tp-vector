@@ -178,22 +178,22 @@ export class Turtle extends DefaultPiece {
     return this.pushInternal(stackKey, this.state);
   }
 
-  /** Pushes only the current position to the specified stack. */
+  /** Pushes the current position (but not angle) to the specified stack. */
   pushPos(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {pos: this.pos});
   }
 
-  /** Pushes only the current angle to the specified stack. */
+  /** Pushes the current angle to the specified stack. */
   pushAngle(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {angleDeg: this.angleDeg});
   }
 
-  /** Pushes only the current position and angle to the specified stack. */
+  /** Pushes the current position and angle to the specified stack. */
   pushPosAndAngle(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {pos: this.pos, angleDeg: this.angleDeg});
   }
 
-  /** Pushes only the current pen state to the specified stack. */
+  /** Pushes the current pen state to the specified stack. */
   pushPen(stackKey = DEFAULT_STACK_KEY) {
     return this.pushInternal(stackKey, {down: this.isPenDown});
   }
@@ -237,7 +237,7 @@ export class Turtle extends DefaultPiece {
    * Executes the TurtleFunc and then restores the state from before the execution.
    * This is similar to:
    *
-   *     .push().andThen(func, args).pop()
+   *     .push().andThen(func, ...args).pop()
    */
   branch<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
     const state = this.state;
@@ -246,13 +246,13 @@ export class Turtle extends DefaultPiece {
 
   /** Copies the state (position, angle and pen state) from the specified Turtle. */
   copy(t: Turtle) {return this.appendState(t.state);}
-  /** Copies the position only from the specified Turtle. */
+  /** Copies the position from the specified Turtle. Does not copy the angle. */
   copyPos(t: Turtle) {return this.appendState({pos: t.pos});}
-  /** Copies the angle only from the specified Turtle. */
+  /** Copies the angle from the specified Turtle. */
   copyAngle(t: Turtle) {return this.appendState({angleDeg: t.angleDeg});}
-  /** Copies the position and angle only from the specified Turtle. */
+  /** Copies the position and angle from the specified Turtle. */
   copyPosAndAngle(t: Turtle) {return this.appendState({pos: t.pos, angleDeg: t.angleDeg});}
-  /** Copies the pen state only from the specified Turtle. */
+  /** Copies the pen state from the specified Turtle. */
   copyPen(t: Turtle) {return this.appendState({down: t.isPenDown});}
 
   /** Clears the path drawn by the Turtle, without changing its state. */
@@ -261,7 +261,7 @@ export class Turtle extends DefaultPiece {
   }
 
   /**
-   * Sets the pen down or up. Consequent move commands only draw the path if the pen is down.
+   * Sets the pen down or up. Subsequent move commands only draw the path if the pen is down.
    */
   penDown(down = true) {
     return this.append({down});

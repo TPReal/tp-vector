@@ -7,13 +7,17 @@ imported into laser cutter software like
 [LightBurn](https://lightburnsoftware.com/) or [VisiCut](https://visicut.org/),
 both for cutting and engraving.
 
-For quick start, see [Installation](docs/installation.md).
+For quick start, see [Installation](wiki/installation.md).
+
+For source code documentation, see [Documentation](docs/index.html), but note
+that it is not ideal or complete right now. It is recommended to consult the
+source code.
 
 ## Features
 
 ### [Basic figures](src/figures.ts)
 
-![Figures](docs/feature_figures.png)
+![Figures](wiki/feature_figures.png)
 
 <details><summary>Code</summary>
 
@@ -31,7 +35,7 @@ gather(
 
 ### [Turtle graphics](src/turtle.ts)
 
-![Turtle](docs/feature_turtle.png)
+![Turtle](wiki/feature_turtle.png)
 
 <details><summary>Code</summary>
 
@@ -47,7 +51,7 @@ Turtle.create()
 
 ### [Geometric transforms](src/transformable.ts)
 
-![Transform](docs/feature_transform.png)
+![Transform](wiki/feature_transform.png)
 
 <details><summary>Code</summary>
 
@@ -78,7 +82,7 @@ const pieces = gather(
 
 ### [Alignment and normalisation](src/normalise_transform.ts)
 
-![Normalise](docs/feature_normalise.png)
+![Normalise](wiki/feature_normalise.png)
 
 <details><summary>Code</summary>
 
@@ -106,10 +110,10 @@ const pieces = gather(
 
 ### [Layers](src/layers.ts)
 
-![Normalise](docs/feature_layers.png)
+![Normalise](wiki/feature_layers.png)
 <br> This is a single object with three layers: the outer circle is cut, the
 green circle is scored (cut, but not all the way through), and the inner shape
-is printed (engraved). See [Layers and runs](docs/layers_and_runs.md) page for
+is printed (engraved). See [Layers and runs](wiki/layers_and_runs.md) page for
 more information.
 
 <details><summary>Code</summary>
@@ -137,7 +141,7 @@ Sheet.create({
   runs: [
     {type: "cut", id: "score", /* layers: ["score"], */},
     {type: "print", /* layers: ["print"], */},
-    {type: "cut", /* layers: [undefined, "cut"], */},
+    {type: "cut", /* layers: [NO_LAYER, "cut"], */},
   ],
 });
 ```
@@ -146,7 +150,7 @@ Sheet.create({
 
 ### [Text](src/text.ts)
 
-![Normalise](docs/feature_text.png)
+![Normalise](wiki/feature_text.png)
 
 <details><summary>Code</summary>
 
@@ -164,11 +168,11 @@ createText("TPVector", {
 
 </details>
 
-### [Dual-sided projects](docs/dual_sided.md)
+### [Dual-sided projects](wiki/dual_sided.md)
 
-![Dual-sided](docs/feature_dual_sided.png)
+![Dual-sided](wiki/feature_dual_sided.png)
 <br> The green layer will is printed on the back. See the
-[Dual-sided projects](docs/dual_sided.md) page for more information.
+[Dual-sided projects](wiki/dual_sided.md) page for more information.
 
 <details><summary>Code</summary>
 
@@ -206,6 +210,6 @@ TODO: Add information about more features:
 ---
 
 For a short summary of the coding style used in TPVector, see the
-[Code style](docs/code_style.md).
+[Code style](wiki/code_style.md).
 
 _Copyright © 2023 by TPReal_

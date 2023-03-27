@@ -6,9 +6,9 @@
   "configurations": [
 
     {
+      "name": "Viewer",
       "type": "chrome",
       "request": "launch",
-      "name": "Viewer",
       "url": "http://localhost:4327/",
       "webRoot": "${workspaceFolder}",
       "preLaunchTask": "${defaultBuildTask}",

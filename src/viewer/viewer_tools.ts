@@ -27,6 +27,7 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   const runsController = document.createElement("div");
   runsController.style.display = "flex";
   runsController.style.gap = ".5em";
+  runsController.style.flexWrap = "wrap";
   runsController.style.alignItems = "center";
   const blinkTimers: number[] = [];
   const checkboxesInfo = document.createTextNode("Show runs:");
@@ -35,6 +36,7 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
     const id = assert(g.getAttribute("id"));
     const span = document.createElement("span");
     runsController.appendChild(span);
+    span.style.whiteSpace = "nowrap";
     const checkbox = document.createElement("input");
     span.appendChild(checkbox);
     checkbox.setAttribute("type", "checkbox");

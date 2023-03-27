@@ -38,7 +38,7 @@ interface PartialRunsSelectorInterface {
   cornersMarker?: boolean | "auto";
   reversingFrame?: boolean | "auto";
 }
-type PartialRunsSelector = PartialRunsSelectorInterface | string[];
+export type PartialRunsSelector = PartialRunsSelectorInterface | string[];
 export interface RunsSelector {
   runs: string[] | "all";
   cornersMarker: boolean;

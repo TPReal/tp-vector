@@ -51,8 +51,8 @@ export function createMask(arg: PartialPieceAttributesAndId<"mask">) {
  * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/linearGradient
  * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/radialGradient
  */
-type GradientCoordFrac = number;
-type GradientFracPoint = readonly [GradientCoordFrac | undefined, GradientCoordFrac | undefined];
+export type GradientCoordFrac = number;
+export type GradientFracPoint = readonly [GradientCoordFrac | undefined, GradientCoordFrac | undefined];
 
 export interface GradientStopValue {
   readonly color?: string;

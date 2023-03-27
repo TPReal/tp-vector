@@ -63,5 +63,16 @@ src/viewer/viewer.ts \
       },
     },
 
+    {
+      "label": "Generate docs",
+      "type": "shell",
+      "command": "typedoc",
+      "problemMatcher": [],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+      },
+    },
+
   ],
 }
