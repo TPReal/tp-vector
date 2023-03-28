@@ -1,5 +1,7 @@
 import {generateId} from '../ids.ts';
 import {assert, Sheet} from '../index.ts';
+import {OrFuncPromise, OrPromise, SectionDef, unwrap} from './types.ts';
+import {showViewer} from './viewer_page.ts';
 
 /**
  * Returns a `<div>` containing a preview of the Sheet, including checkboxes to control runs
@@ -39,7 +41,7 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
     span.style.whiteSpace = "nowrap";
     const checkbox = document.createElement("input");
     span.appendChild(checkbox);
-    checkbox.setAttribute("type", "checkbox");
+    checkbox.type = "checkbox";
     checkbox.checked = true;
     const label = document.createElement("label");
     span.appendChild(label);
@@ -67,22 +69,6 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   }
   return runsController;
 }
-
-type OrPromise<T> = T | Promise<T>;
-type OrFuncPromise<T, Args extends unknown[] = []> =
-  OrPromise<T> | ((...args: Args) => OrPromise<T>);
-
-async function unwrap<T, Args extends unknown[]>(obj: OrFuncPromise<T, Args>, args: Args): Promise<T> {
-  const awaitable = typeof obj === "function" ?
-    (obj as (...args: Args) => OrPromise<T>)(...args) :
-    obj;
-  return await awaitable;
-}
-
-type SectionDef = OrFuncPromise<{
-  name: string,
-  element: HTMLElement,
-}>;
 
 /**
  * Interface for a module with exported `getSheet` function, regular or async,
@@ -161,133 +147,15 @@ export class Viewer {
     return new Viewer([...this.sections, ...other.sections]);
   }
 
-  async show({
-    parent = document.body,
-    section = new URLSearchParams(location.search).get("section") || undefined,
-  }: {
+  async show({parent, section}: {
     parent?: HTMLElement,
     section?: string,
   } = {}) {
-    // TODO: Consider improving the Viewer page.
-    const sectionSelectContainer = document.createElement("div");
-    document.body.appendChild(sectionSelectContainer);
-    sectionSelectContainer.style.display = "flex";
-    sectionSelectContainer.style.gap = "0.5em";
-    sectionSelectContainer.style.marginBottom = "1em";
-    const sectionSelectLabel = document.createElement("span")
-    sectionSelectContainer.appendChild(sectionSelectLabel);
-    sectionSelectLabel.textContent = "Show:";
-    sectionSelectLabel.style.alignSelf = "center";
-    const sectionSelect = document.createElement("select");
-    sectionSelectContainer.appendChild(sectionSelect);
-    sectionSelect.setAttribute("title", "Select section");
-    sectionSelect.addEventListener("change", () => {
-      switchToSection(sectionSelect.value);
+    return await showViewer({
+      sectionDefs: this.sections,
+      parent,
+      section,
     });
-    const clearSectionButton = document.createElement("button");
-    sectionSelectContainer.appendChild(clearSectionButton);
-    clearSectionButton.textContent = "⨯";
-    clearSectionButton.addEventListener("click", () => {
-      switchToSection(undefined);
-    });
-
-    const container = document.createElement("div");
-    parent.appendChild(container);
-    container.style.display = "flex";
-    container.style.gap = "4px";
-    const resizableArea = document.createElement("div");
-    container.appendChild(resizableArea);
-    resizableArea.style.flex = "0 1 auto";
-    resizableArea.style.minWidth = "100px";
-    const resizeWidth = localStorage.getItem("width");
-    resizableArea.style.width = resizeWidth ? `${resizeWidth}px` : "100%";
-    const resizeHandle = document.createElement("div");
-    container.appendChild(resizeHandle);
-    resizeHandle.style.flex = "0 0 8px";
-    resizeHandle.style.backgroundColor = "grey";
-    resizeHandle.style.boxSizing = "border-box";
-    resizeHandle.style.border = "2px solid white";
-    resizeHandle.style.cursor = "ew-resize";
-
-    const handleRect = resizeHandle.getBoundingClientRect();
-    const resizeOffset = handleRect.left + handleRect.width / 2 - resizableArea.getBoundingClientRect().width;
-    let resizeHandleGrabbed = false;
-    resizeHandle.addEventListener("mousedown", () => {resizeHandleGrabbed = true;});
-    document.addEventListener("mouseup", () => {resizeHandleGrabbed = false;});
-    document.addEventListener("mousemove", e => {
-      if (resizeHandleGrabbed) {
-        const width = e.clientX - resizeOffset;
-        resizableArea.style.width = `${width}px`;
-        if (resizableArea.clientWidth >= width)
-          localStorage.setItem("width", String(width));
-        else {
-          resizableArea.style.width = "100%";
-          localStorage.removeItem("width");
-        }
-        e.preventDefault();
-      }
-    });
-
-    const sectionsContainer = document.createElement("div");
-    resizableArea.appendChild(sectionsContainer);
-    sectionsContainer.style.display = "flex";
-    sectionsContainer.style.flexDirection = "column";
-    sectionsContainer.style.gap = "2em";
-
-    function switchToSection(id: string | undefined) {
-      const url = new URL(location.href);
-      if (id)
-        url.searchParams.set("section", id);
-      else
-        url.searchParams.delete("section");
-      history.pushState({section: id}, "", url.toString());
-      showSection(id);
-    }
-
-    function showSection(id: string | undefined) {
-      sectionSelect.value = id || "";
-      for (const section of document.querySelectorAll<HTMLElement>(".section"))
-        section.style.display = !id || section.id === id ? "unset" : "none";
-    }
-
-    function addOption(name: string | undefined) {
-      const option = document.createElement("option");
-      option.text = name || "all sections";
-      if (!name)
-        option.style.fontWeight = "bold";
-      option.setAttribute("value", name || "");
-      sectionSelect.appendChild(option);
-    }
-
-    function addSection(name: string) {
-      const section = document.createElement("div");
-      sectionsContainer.appendChild(section);
-      section.style.display = "none";
-      section.classList.add("section");
-      section.setAttribute("id", name);
-      addOption(name);
-      const title = document.createElement("div");
-      section.appendChild(title);
-      title.textContent = name;
-      title.style.fontSize = "1.5em";
-      title.style.cursor = "pointer";
-      title.addEventListener("click", () => {
-        switchToSection(name);
-      });
-      return section;
-    }
-
-    addOption(undefined);
-    const promises = this.sections.map(sect => unwrap(sect, []));
-    for (const {name, element} of await Promise.all(promises))
-      addSection(name).appendChild(element);
-
-    showSection(section);
-    addEventListener("popstate", event => {
-      showSection(event.state?.section);
-    });
-
-    return container;
   }
 
 }

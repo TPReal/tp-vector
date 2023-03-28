@@ -1,4 +1,4 @@
-import {NO_LAYER, OptionalLayerName} from './layers.ts';
+import {LayerName, NO_LAYER, OptionalLayerName} from './layers.ts';
 import {BasicPiece, Piece, PiecePartArg, RestPieceCreateArgs} from './pieces.ts';
 import {Tf} from './transform.ts';
 import {OrArray, OrArrayRest} from './util.ts';
@@ -29,7 +29,7 @@ class LazyWrapperPiece implements BasicPiece {
     return this.getWrapped().getDefs();
   }
 
-  setLayer(layer: OptionalLayerName) {
+  setLayer(layer: LayerName) {
     return this.getWrapped().setLayer(layer);
   }
 

@@ -44,7 +44,7 @@ export async function getExplainerSection(
   images: ImageSpec[] = sheet.getRunIds().map(runId => ({label: runId, runIds: [runId]})),
 ) {
   const div = document.createElement("div");
-  div.setAttribute("data-name", sheet.name || "");
+  div.dataset.name = sheet.name || "";
   div.style.display = "flex";
   div.style.flexWrap = "wrap";
   div.style.gap = "1em 1px";

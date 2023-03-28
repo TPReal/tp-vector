@@ -7,8 +7,11 @@ export type OptionalLayerName = LayerName | typeof NO_LAYER;
 
 export interface Layerable<T extends Layerable<T>> {
 
-  /** Assigns this object and all of its parts to the specified layer. */
-  setLayer(layer: OptionalLayerName): T;
+  /**
+   * Assigns this object and all of its parts to the specified layer.
+   * Any previous assignment is ignored.
+   */
+  setLayer(layer: LayerName): T;
   /**
    * Returns a subset of this object that is assigned to any of the specified layers.
    * If `NO_LAYER` is specified, includes any parts not assigned to any layer.

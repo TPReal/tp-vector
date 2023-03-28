@@ -183,7 +183,13 @@ const URL_REGEXP = /(?<import>@import\s+)?\burl\((?<q>['"]?)(?<url>.+?)\k<q>\)(?
 /** Converts the URLs in the style content to data URIs. */
 async function changeToDataURIs(styleContent: string): Promise<string> {
   const urls = [...styleContent.matchAll(URL_REGEXP)].map(async (mat) => {
-    const blob = await (await fetch(assert(mat.groups).url)).blob();
+    const {url} = assert(mat.groups);
+    let blob;
+    try {
+      blob = await (await fetch(url)).blob();
+    } catch (e) {
+      throw new Error(`Failed to fetch: ${url}\n${e}`, {cause: e});
+    }
     if (blob.type === "text/css" && mat.groups?.import)
       return {mat, text: await changeToDataURIs(await blob.text()) + "\n"};
     const dataURI = blob.type.startsWith("text/") ?

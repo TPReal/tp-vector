@@ -30,7 +30,15 @@ function piecesAttributesAndIdFromPartial<P extends string>(
   return {attributes, id, pieces};
 }
 
+/**
+ * Creates a clip path AttributesDefTool, used to restrict the painting region of a Piece.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
+ */
 export function createClipPath(path: PiecesArg): AttributesDefTool;
+/**
+ * Creates a clip path AttributesDefTool, used to restrict the painting region of a Piece.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
+ */
 export function createClipPath(args: {
   paths: PiecePartArg,
   attributes?: Attributes,
@@ -45,7 +53,15 @@ export function createClipPath(arg: PartialPieceAttributesAndId<"paths">) {
   }).asDefTool(id).useByAttribute("clip-path");
 }
 
+/**
+ * Creates an alpha mask AttributesDefTool.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
+ */
 export function createMask(mask: PiecesArg): AttributesDefTool;
+/**
+ * Creates an alpha mask AttributesDefTool.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
+ */
 export function createMask(args: {
   mask: PiecePartArg,
   attributes?: Attributes,

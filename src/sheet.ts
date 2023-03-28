@@ -519,18 +519,18 @@ export class Sheet {
    * on click.
    * @see {@link Sheet.saveLaserSVG}
    */
-  getLaserSVGSaveButton({params = {}, label, hintDesc}: {
+  getLaserSVGSaveButton({params = {}, label, hintLines = []}: {
     params?: PartialLaserSVGParams,
     label?: string,
-    hintDesc?: string,
+    hintLines?: string[],
   } = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
     return createSaveButton({
       label: label || this.getSaveButtonLabel({format, runsSelector}),
       hint: [
         this.getSVGName({runsSelector, printsAsImages}),
-        hintDesc,
-      ].filter(Boolean).join("\n"),
+        ...hintLines,
+      ].join("\n"),
       save: () => {
         this.saveLaserSVG({format, printsAsImages, runsSelector});
       },
@@ -626,20 +626,31 @@ export class Sheet {
         const {cut, print} = this.getRunsTypes(fullRunsSelector);
         const fullFormat = print && !cut ? printsFormat : format;
         const mainFormat = fullFormat === "both" ? "SVG" : fullFormat;
+        const hintLines = [];
+        if (fullRunsSelector.runs === "all")
+          hintLines.push(`All the laser runs`);
+        else {
+          if (fullRunsSelector.runs.length)
+            hintLines.push(`Laser runs: ${fullRunsSelector.runs.map(
+              run => JSON.stringify(run)).join(", ")}`);
+          if (fullRunsSelector.reversingFrame)
+            hintLines.push(`Reversing frame`);
+        }
         buttons.push(this.getLaserSVGSaveButton({
           params: {format: mainFormat, runsSelector},
+          hintLines: hintLines,
         }));
         if (includePrintsAsImages && print && mainFormat === "SVG")
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "SVG", printsAsImages: true, runsSelector},
-            label: "[PNG prints]",
-            hintDesc: "(print layers embedded as PNG images)",
+            label: `[PNG prints]`,
+            hintLines: [`Print layers embedded as raster images`, ...hintLines],
           }));
         if (fullFormat === "both")
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "PNG", runsSelector},
             label: this.getFormatLabel("PNG"),
-            hintDesc: "(raster image)",
+            hintLines: [`Raster image`, ...hintLines],
           }));
         if (fullRunsSelector.runs === "all")
           for (const button of buttons)

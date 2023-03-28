@@ -34,7 +34,13 @@ export function isDataURI(url: string) {
 export async function urlToDataURI(url: string) {
   if (isDataURI(url))
     return url;
-  return await fromBlob(await (await fetch(url)).blob());
+  let blob;
+  try {
+    blob = await (await fetch(url)).blob();
+  } catch (e) {
+    throw new Error(`Failed to fetch: ${url}\n${e}`, {cause: e});
+  }
+  return await fromBlob(blob);
 }
 
 export const DEFAULT_MIME_TYPE = "application/octet-stream";

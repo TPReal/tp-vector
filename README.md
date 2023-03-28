@@ -7,7 +7,7 @@ imported into laser cutter software like
 [LightBurn](https://lightburnsoftware.com/) or [VisiCut](https://visicut.org/),
 both for cutting and engraving.
 
-For quick start, see [Installation](wiki/installation.md).
+For quick start, see [Installation and usage](wiki/installation_and_usage.md).
 
 For source code documentation, see [Documentation](docs/index.html), but note
 that it is neither ideal nor complete right now. It is recommended to consult
@@ -180,6 +180,9 @@ createText("TPVector", {
 <br> The font is fetched from [Google Fonts](https://fonts.google.com/) and
 embedded in the generated SVG. See the [External resources](wiki/external.md)
 page for more details.
+
+_Note:_ If the text using a web font is misaligned, refreshing the page should
+help.
 
 <details><summary>Code</summary>
 

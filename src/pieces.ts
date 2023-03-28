@@ -3,7 +3,7 @@ import {AttributesDefTool, GenericDefTool, RefBy} from './def_tool.ts';
 import {Attributes, cloneElement, createElement, getElementsBoundingBox, setAttributes, uniqueElements} from './elements.ts';
 import * as figures from './figures.ts';
 import {generateId} from './ids.ts';
-import {Layerable, NO_LAYER, OptionalLayerName, inLayerString} from './layers.ts';
+import {Layerable, NO_LAYER, OptionalLayerName, inLayerString, LayerName} from './layers.ts';
 import {NormaliseArgs, getNormaliseTransform} from './normalise_transform.ts';
 import {Point} from './point.ts';
 import {Tf, Transform, transformedToString} from './transform.ts';
@@ -67,7 +67,7 @@ class SVGElementWrapperPiece implements BasicPiece {
     return [cloneElement(this.element)];
   }
 
-  setLayer(layer: OptionalLayerName) {
+  setLayer(layer: LayerName) {
     return SVGElementWrapperPiece.create(this.element, layer);
   }
 
@@ -245,7 +245,7 @@ export class Piece
     return this.setAttributes(attrDefTools.asAttributes()).addDefs(attrDefTools);
   }
 
-  setLayer(layer: OptionalLayerName) {
+  setLayer(layer: LayerName) {
     return new Piece(this.parts, this.tf, layer, this.defs, this.attributes,
       this.boundingBoxPiece);
   }
