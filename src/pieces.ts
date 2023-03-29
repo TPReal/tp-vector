@@ -118,8 +118,8 @@ export type OptMargin = {
   margin?: PartialViewBoxMargin,
 };
 
-export interface PieceFunc<Args extends unknown[] = []> {
-  (piece: Piece, ...args: Args): Piece;
+export interface PieceFunc<P extends Piece = Piece, R = Piece, Args extends unknown[] = []> {
+  (piece: P, ...args: Args): R;
 }
 
 /** The main building block of the geometry. */
@@ -215,7 +215,7 @@ export class Piece
       this.boundingBoxPiece);
   }
 
-  andThen<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args) {
+  andThen<R, Args extends unknown[]>(func: PieceFunc<this, R, Args>, ...args: Args) {
     return func(this, ...args);
   }
 
@@ -234,12 +234,12 @@ export class Piece
   useDefTool(defTool: GenericDefTool, attributeName: OrArray<string>, refBy?: RefBy): Piece;
   /** Applies the specified AttributesDefTool to this Piece. */
   useDefTool(defTool: AttributesDefTool): Piece;
-  useDefTool(...args: [GenericDefTool, OrArray<string>, RefBy?] | [AttributesDefTool]) {
+  useDefTool(...params: [GenericDefTool, OrArray<string>, RefBy?] | [AttributesDefTool]) {
     let attrDefTools;
-    if (args.length === 1)
-      [attrDefTools] = args;
+    if (params.length === 1)
+      [attrDefTools] = params;
     else {
-      const [defTools, attributeName, refBy] = args;
+      const [defTools, attributeName, refBy] = params;
       attrDefTools = defTools.useByAttribute(attributeName, refBy);
     }
     return this.setAttributes(attrDefTools.asAttributes()).addDefs(attrDefTools);

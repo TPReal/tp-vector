@@ -74,9 +74,9 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
 
   scale(k: number, center?: Point): R;
   scale(kx: number, ky: number, center?: Point): R;
-  scale(...args: [number, Point?] | [number, number, Point?]) {
-    const [kx, ky, center] = typeof args[1] === "number" ?
-      args as [number, number, Point?] : [args[0], args[0], args[1]];
+  scale(...params: [number, Point?] | [number, number, Point?]) {
+    const [kx, ky, center] = typeof params[1] === "number" ?
+      params as [number, number, Point?] : [params[0], params[0], params[1]];
     if (center) {
       const [dx, dy] = center;
       return this.translate(-dx, -dy).scale(kx, ky).translate(dx, dy);
@@ -101,17 +101,17 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
 
   rotateRight(angleDeg: number, center?: Point): R;
   rotateRight(center?: Point): R;
-  rotateRight(...args: [number, Point?] | [Point?]) {
-    const [angleDeg, center] = typeof args[0] === "number" ?
-      args as [number, Point?] : [90, args[0]];
+  rotateRight(...params: [number, Point?] | [Point?]) {
+    const [angleDeg, center] = typeof params[0] === "number" ?
+      params as [number, Point?] : [90, params[0]];
     return this.rotate(angleDeg, center);
   }
 
   rotateLeft(angleDeg: number, center?: Point): R;
   rotateLeft(center?: Point): R;
-  rotateLeft(...args: [number, Point?] | [Point?]) {
-    const [angleDeg, center] = typeof args[0] === "number" ?
-      args as [number, Point?] : [90, args[0]];
+  rotateLeft(...params: [number, Point?] | [Point?]) {
+    const [angleDeg, center] = typeof params[0] === "number" ?
+      params as [number, Point?] : [90, params[0]];
     return this.rotate(-angleDeg, center);
   }
 

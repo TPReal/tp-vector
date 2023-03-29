@@ -1,5 +1,5 @@
 import {Path} from './path.ts';
-import {DefaultPiece, Piece, PieceFunc} from './pieces.ts';
+import {DefaultPiece} from './pieces.ts';
 import {Point} from './point.ts';
 import {Tf} from './transform.ts';
 import {assert} from './util.ts';
@@ -54,11 +54,7 @@ function isStackKey(value: StackKey | {}): value is StackKey {
 }
 
 export interface TurtleFunc<Args extends unknown[] = []> {
-  (turtle: Turtle, ...args: Args): Turtle;
-}
-
-interface TurtleToPieceFunc<Args extends unknown[] = []> {
-  (turtle: Turtle, ...args: Args): Piece;
+  (t: Turtle, ...args: Args): Turtle;
 }
 
 /**
@@ -160,13 +156,6 @@ export class Turtle extends DefaultPiece {
     if (pos)
       result = result.appendJump({pos});
     return result.append({angleDeg, down});
-  }
-
-  andThen<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args): Turtle;
-  andThen<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args): Piece;
-  andThen<Args extends unknown[]>(func: TurtleToPieceFunc<Args>, ...args: Args): Piece;
-  andThen<Args extends unknown[]>(func: PieceFunc<Args> | TurtleFunc<Args>, ...args: Args) {
-    return super.andThen<Args>(func as PieceFunc<Args>, ...args);
   }
 
   private pushInternal(stackKey: StackKey, state: Partial<State>) {
@@ -276,17 +265,11 @@ export class Turtle extends DefaultPiece {
   withPenDown<Args extends unknown[]>(
     func: TurtleFunc<Args>, ...args: Args): Turtle;
   withPenDown<Args extends unknown[]>(
-    downOrFunc: boolean | TurtleFunc<Args>,
-    func?: TurtleFunc<Args>, ...args: Args) {
-    let down = true;
-    if (typeof downOrFunc === "boolean")
-      down = downOrFunc;
-    else {
-      func = downOrFunc;
-      args = [func, ...args] as Args;
-    }
+    ...params: [boolean, TurtleFunc<Args>, ...Args] |
+    [TurtleFunc<Args>, ...Args]) {
+    const [down = true, func, ...args] = typeof params[0] === "boolean" ? params : [undefined, ...params];
     const prev = this.isPenDown;
-    return this.penDown(down).andThen(assert(func), ...args).penDown(prev);
+    return this.penDown(down).andThen(func, ...args).penDown(prev);
   }
 
   withPenUp<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
@@ -447,13 +430,10 @@ export class Turtle extends DefaultPiece {
   curveFromPop(stackKey: StackKey, curveArgs?: PartialCurveArgs): Turtle;
   /** Pops from the stack and then draws a curve to the current position. */
   curveFromPop(curveArgs?: PartialCurveArgs): Turtle;
-  curveFromPop(
-    stackKeyOrCurveArgs?: StackKey | PartialCurveArgs, curveArgs?: PartialCurveArgs) {
-    let stackKey = DEFAULT_STACK_KEY;
-    if (isStackKey(stackKeyOrCurveArgs))
-      stackKey = stackKeyOrCurveArgs;
-    else
-      curveArgs = stackKeyOrCurveArgs;
+  curveFromPop(...params: [StackKey, PartialCurveArgs?] | [PartialCurveArgs?]) {
+    const [stackKey = DEFAULT_STACK_KEY, curveArgs] = isStackKey(params[0]) ?
+      (params as [StackKey, PartialCurveArgs?]) :
+      [undefined, ...params as [PartialCurveArgs?]];
     return this.pop(stackKey).curveTo(this, curveArgs);
   }
 
@@ -461,13 +441,10 @@ export class Turtle extends DefaultPiece {
   curveFromPeek(stackKey: StackKey, curveArgs?: PartialCurveArgs): Turtle;
   /** Peeks the stack and then draws a curve to the current position. */
   curveFromPeek(curveArgs?: PartialCurveArgs): Turtle;
-  curveFromPeek(
-    stackKeyOrCurveArgs?: StackKey | PartialCurveArgs, curveArgs?: PartialCurveArgs) {
-    let stackKey = DEFAULT_STACK_KEY;
-    if (isStackKey(stackKeyOrCurveArgs))
-      stackKey = stackKeyOrCurveArgs;
-    else
-      curveArgs = stackKeyOrCurveArgs;
+  curveFromPeek(...params: [StackKey, PartialCurveArgs?] | [PartialCurveArgs?]) {
+    const [stackKey = DEFAULT_STACK_KEY, curveArgs] = isStackKey(params[0]) ?
+      (params as [StackKey, PartialCurveArgs?]) :
+      [undefined, ...params as [PartialCurveArgs?]];
     return this.peek(stackKey).curveTo(this, curveArgs);
   }
 

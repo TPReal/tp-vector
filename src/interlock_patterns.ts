@@ -205,16 +205,16 @@ export class SlotsPattern {
     slotLengthsRatio?: number,
     slot1LengthFrac?: number,
   }): [SlotsPattern, SlotsPattern];
-  static slidePair(...args: [number] | [number, number] | [{
+  static slidePair(...params: [number] | [number, number] | [{
     length: number,
     slotLengthsRatio?: number,
     slot1LengthFrac?: number,
   }]) {
     let len1, len2;
-    if (args.length == 2)
-      [len1, len2] = args;
+    if (params.length == 2)
+      [len1, len2] = params;
     else {
-      const arg = args[0];
+      const arg = params[0];
       if (typeof arg === "number")
         len1 = len2 = arg / 2;
       else {

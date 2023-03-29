@@ -55,8 +55,8 @@ export function rectangle({
 
 export function line(originTo: Point): Piece;
 export function line(from: Point, to: Point): Piece;
-export function line(...args: [Point] | [Point, Point]) {
-  const [from, to] = args.length == 1 ? [[0, 0], args[0]] : args;
+export function line(...params: [Point] | [Point, Point]) {
+  const [from, to] = params.length == 1 ? [[0, 0], params[0]] : params;
   const line = Piece.createElement({
     tagName: "line",
     attributes: {x1: from[0], y1: from[1], x2: to[0], y2: to[1]},
