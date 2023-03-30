@@ -229,10 +229,11 @@ export function viewBoxFromBBox(element: SVGGraphicsElement): ViewBox {
  * Multiplies the specified margin by the specified multiplier. The multiplier can specify
  * different values for different sides, and defaults to 1 for the unspecified values.
  */
-export function multiplyMargin({left, right, top, bottom}: ViewBoxMargin,
-  multiplicator: PartialViewBoxMargin): ViewBoxMargin {
+export function multiplyMargin(
+  {left, right, top, bottom}: ViewBoxMargin,
+  multiplier: PartialViewBoxMargin): ViewBoxMargin {
   const {left: leftMult, right: rightMult, top: topMult, bottom: bottomMult} =
-    viewBoxMarginFromPartial(multiplicator, 1);
+    viewBoxMarginFromPartial(multiplier, 1);
   return {
     left: left * leftMult,
     right: right * rightMult,

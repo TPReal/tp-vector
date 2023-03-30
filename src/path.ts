@@ -36,7 +36,7 @@ export interface PartialArcArgs {
   radiusY?: number;
   xAxisRotationDeg?: number;
   largeArc?: boolean;
-  clockwiseSweep: boolean;
+  clockwise: boolean;
   target: Point;
 }
 interface ArcArgs extends Required<PartialArcArgs> {
@@ -46,10 +46,10 @@ function arcArgsFromPartial({
   radiusY = radiusX,
   xAxisRotationDeg = 0,
   largeArc = false,
-  clockwiseSweep,
+  clockwise,
   target,
 }: PartialArcArgs): ArcArgs {
-  return {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwiseSweep, target};
+  return {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwise, target};
 }
 
 /** A builder for a `<path>` element. */
@@ -200,12 +200,12 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     relative?: boolean,
   }) {
     return this.append(args.map(arcArgs => {
-      const {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwiseSweep, target} =
+      const {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwise, target} =
         arcArgsFromPartial(arcArgs);
       return {
         command: "A",
         args: `${radiusX},${radiusY} ${xAxisRotationDeg} ` +
-          `${Number(largeArc)} ${Number(clockwiseSweep)} ` +
+          `${Number(largeArc)} ${Number(clockwise)} ` +
           pointsToString([target]),
         relative,
       };

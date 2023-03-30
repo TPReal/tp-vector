@@ -229,8 +229,18 @@ export class Turtle extends DefaultPiece {
    *     .push().andThen(func, ...args).pop()
    */
   branch<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
-    const state = this.state;
-    return this.andThen(func, ...args).appendState(state);
+    return this.andThen(func, ...args).appendState(this.state);
+  }
+
+  branches<Args extends unknown[]>(
+    count: number,
+    func: TurtleFunc<[number, ...Args]>,
+    ...args: Args
+  ) {
+    let t: Turtle = this;
+    for (let i = 0; i < count; i++)
+      t = t.branch(func, i, ...args);
+    return t;
   }
 
   /** Copies the state (position, angle and pen state) from the specified Turtle. */
@@ -476,7 +486,7 @@ export class Turtle extends DefaultPiece {
           radiusX: radius,
           target: relTarget,
           largeArc: (sin < 0) === (angleDeg > 0),
-          clockwiseSweep: angleDeg > 0,
+          clockwise: angleDeg > 0,
         }),
         dPos: relTarget,
         dAngleDeg: angleDeg,
@@ -488,6 +498,35 @@ export class Turtle extends DefaultPiece {
     if (this.isPenDown)
       return atTarget.push().arcRight(180, radius).arcRight(180, radius).pop();
     return atTarget;
+  }
+
+  /**
+   * Draws an ellipse arc corresponding to the path:
+   *
+   *     .forward(forward).right().forward(right)
+   */
+  roundCornerRight(forward: number, right = forward) {
+    const relPos = this.relPos(forward, right);
+    return this.appendDraw({
+      pathIfDown: this.path.relativeArc({
+        target: relPos,
+        radiusX: right,
+        radiusY: forward,
+        xAxisRotationDeg: this.angleDeg,
+        clockwise: forward * right >= 0,
+      }),
+      dPos: relPos,
+      dAngleDeg: 90,
+    });
+  }
+
+  /**
+   * Draws an ellipse arc corresponding to the path:
+   *
+   *     .forward(forward).left().forward(left)
+   */
+  roundCornerLeft(forward: number, left: number) {
+    return this.roundCornerRight(forward, -left).turnBack();
   }
 
   /** Makes a turn over the specified angle, with the specified radius. */
