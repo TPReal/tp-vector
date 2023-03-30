@@ -7,11 +7,21 @@ imported into laser cutter software like
 [LightBurn](https://lightburnsoftware.com/) or [VisiCut](https://visicut.org/),
 both for cutting and engraving.
 
-For quick start, see [Installation and usage](wiki/installation_and_usage.md).
+## Quick start
 
-For source code documentation, see [Documentation](docs/index.html), but note
-that it is neither ideal nor complete right now. It is recommended to consult
-the source code.
+See [Installation and usage](wiki/installation_and_usage.md).
+
+The library gives a high level of both compile-time safety, thanks to
+TypeScript, and runtime safety, thanks to immutability (see the
+[Immutability](wiki/immutability.md) document).
+
+<!-- TODO: Link to documentation using https://htmlpreview.github.io/. -->
+
+For the source code documentation, see [Documentation](docs/index.html), but
+note that it is neither ideal nor complete right now. It is recommended to
+consult the source code.
+
+![Lines of code](https://img.shields.io/tokei/lines/github/TPReal/tp-vector?style=flat&label=total%20src%20lines)
 
 ## Features
 
@@ -50,7 +60,7 @@ Turtle.create()
 
 </details>
 
-See the [Turtle tutorial](wiki/turtle.md) page for advanced uses.
+See the [Turtle tutorial](wiki/turtle.md) document for advanced uses.
 
 ### [Geometric transforms](src/transformable.ts)
 
@@ -119,8 +129,8 @@ const pieces = gather(
 ![Layers](wiki/feature_layers.png)
 <br> This is a single object with three layers: the outer circle is cut, the
 green circle is scored (cut, but not all the way through), and the inner shape
-is printed (engraved). See [Layers and runs](wiki/layers_and_runs.md) page for
-more information.
+is printed (engraved). See [Layers and runs](wiki/layers_and_runs.md) document
+for more information.
 
 <details><summary>Code</summary>
 
@@ -178,8 +188,8 @@ createText("TPVector", {
 
 ![Web fonts](wiki/feature_font.png)
 <br> The font is fetched from [Google Fonts](https://fonts.google.com/) and
-embedded in the generated SVG. See the [External resources](wiki/external.md)
-page for more details.
+embedded in the generated SVG. See the
+[Using external resources](wiki/external.md) page for more details.
 
 _Note:_ If the text using a web font is misaligned, refreshing the page should
 help.
@@ -204,11 +214,11 @@ createText("TPVector", {
 
 </details>
 
-### [External images](src/images.ts)
+### [Images](src/images.ts), [external images](wiki/external.md)
 
 ![Images](wiki/feature_images.png)
 <br> The images are fetched from a URL and embedded in the generated SVG. See
-the [External resources](wiki/external.md) page for more details.
+the [Using external resources](wiki/external.md) page for more details.
 
 <details><summary>Code</summary>
 
@@ -342,7 +352,7 @@ const pieces = layouts.row({
 
 ![Dual-sided](wiki/feature_dual_sided.png)
 <br> The green layer will is printed on the back of this square token. See the
-[Dual-sided projects](wiki/dual_sided.md) page for more information.
+[Dual-sided projects](wiki/dual_sided.md) document for more information.
 
 <details><summary>Code</summary>
 
@@ -426,9 +436,14 @@ const pieces = layouts.row(
 
 </details>
 
-TODO: Add information about more features:
+## Important reads
 
-- Sheet
+- [Installation and usage](wiki/installation_and_usage.md)
+- [Immutability](wiki/immutability.md)
+- [Turtle tutorial](wiki/turtle.md)
+- [Layers and runs](wiki/layers_and_runs.md)
+- [Dual-sided projects](wiki/dual_sided.md)
+- [Using external resources](wiki/external.md)
 
 ---
 

@@ -17,8 +17,8 @@ const myArrangedObjects = layout.row(
 Without immutability, it is not certain whether `makeSmaller` modifies its
 argument and then returns it, or if it returns a smaller copy of the argument.
 With the immutability approach, you can be sure it's the latter, because it is
-not possible to modify an object. So the code above returns three copies of the
-original object, looking somewhat like this: `oOo`.
+just not possible to modify an object. So the code above returns three copies of
+the original object, looking somewhat like this: `oOo`.
 
 Throughout the TPVector library, whenever a method (or a function) the doc says:
 
@@ -36,11 +36,41 @@ it really means:
 someMethod(...) {
 ```
 
+## Piece
+
+The [Piece](../src/pieces.ts) class is immutable - this means that any
+operations like `transform`, `setLayer` or `setAttributes` return a new copy of
+the original Piece, with the specified modification applied. The following code
+shows the safety that this gives:
+
+<!-- deno-fmt-ignore -->
+```ts
+// Create some shape.
+const myShape: Piece = createMyShape();
+const pieces = gather(
+  // A smaller copy of the shape, assigned to the "cut" layer.
+  myShape.scale(0.8).setLayer("cut"),
+  gather(
+    // A copy of the original shape, moved to the right by 10 units.
+    myShape.moveRight(10),
+    // Another copy of the original shape, moved to the left.
+    myShape.moveLeft(10),
+    // These two shapes together assigned to the "print" layer.
+  ).setLayer("print"),
+  // The original shape, assigned to the "cut" layer.
+  myShape.setLayer("cut"),
+);
+```
+
+The order of the references to `myShape` doesn't matter, because the original
+`myShape` object is never modified.
+
 ## Turtle
 
-This applies also to the [Turtle](../src/turtle.ts) class. All the drawing
-methods like `forward` return a new object - a copy of the original Turtle, with
-its position and drawn path updated. The original turtle is never affected.
+Immutability applies also to the [Turtle](../src/turtle.ts) class (which is a
+subclass of Piece). All the drawing methods like `forward` return a new object -
+a copy of the original Turtle, with its position and drawn path updated. The
+original turtle is never affected.
 
 In consequence, to call drawing operations in a loop, you need to store the new
 Turtle every time, like this:
@@ -52,15 +82,8 @@ for (let i = 0; i < 5; i++)
   t = t.forward(10).right(144);
 ```
 
-Alternative implementation:
-
-<!-- deno-fmt-ignore -->
-```ts
-const starSide: TurtleFunc = t => t.forward(10).right(144);
-let t = Turtle.create().right(18)
-  .andThen(starSide).andThen(starSide).andThen(starSide)
-  .andThen(starSide).andThen(starSide);
-```
+(This can be simplified using the `repeat` method, but it's important to
+understand how it works under the hood.)
 
 Result:<br> ![Star](star.png)
 

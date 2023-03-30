@@ -23,12 +23,16 @@ Finally, fork the TPVector repository.
 - Launch the _Viewer_ debug session (from the menu select _Run | Start
   Debugging_). This will start the _Viewer_ task (an esbuild process that
   bundles and serves the code) and launch the browser with the Viewer page
-  opened.
+  opened (http://localhost:4327/).
 
-Alternatively, you can launch the esbuild server manually, or using a different
+(Alternatively, you can launch the esbuild server manually, or using a different
 IDE. You can find the esbuild command in
 [_.vscode/tasks.json_](../.vscode/tasks.json), in the definition of the _Viewer_
-task.
+task.)
+
+The TypeScript code is bundled and served by esbuild. The main logic is executed
+in the browser - it generates the SVGs, both for preview and for the laser
+software.
 
 ## Where to start
 
