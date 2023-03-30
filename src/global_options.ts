@@ -60,7 +60,9 @@ export type PosCorrectionMillimeters = readonly [number, number];
 /** Any quirky behaviour related to a software or hardware being used. */
 export type Quirk =
   // LightBurn 1.3 ignores transform attributes directly on a `<line>` element.
-  | "lineTransformBroken"
+  | "lineTransformBrokenLightBurn"
+  // LightBurn 1.3 only supports equal rounded corners on X and Y axis.
+  | "roundedCornersRectangleLimitedLightBurn"
   // VisiCut ignores the href attribute and only honors xlink:href.
   | "xlinkHref";
 
@@ -158,7 +160,10 @@ export namespace presets {
         // There is no way of selecting a layer by id, so include the handles.
         handles: layersHandles,
       },
-      quirks: {lineTransformBroken: true},
+      quirks: {
+        lineTransformBrokenLightBurn: true,
+        roundedCornersRectangleLimitedLightBurn: true,
+      },
     } satisfies PartialGlobalOptions;
   }
 

@@ -1,15 +1,14 @@
 import {PartialBoxAlignment} from './alignment.ts';
 import {AttributesDefTool, GenericDefTool, RefBy} from './def_tool.ts';
 import {Attributes, cloneElement, createElement, getElementsBoundingBox, setAttributes, uniqueElements} from './elements.ts';
-import * as figures from './figures.ts';
 import {generateId} from './ids.ts';
-import {Layerable, NO_LAYER, OptionalLayerName, inLayerString, LayerName} from './layers.ts';
+import {LayerName, Layerable, NO_LAYER, OptionalLayerName, inLayerString} from './layers.ts';
 import {NormaliseArgs, getNormaliseTransform} from './normalise_transform.ts';
 import {Point} from './point.ts';
 import {Tf, Transform, transformedToString} from './transform.ts';
 import {AbstractTransformableTo} from './transformable.ts';
 import {OrArray, OrArrayRest, flatten, flattenFilter} from './util.ts';
-import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMargin, viewBoxMarginFromPartial} from './view_box.ts';
+import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMargin, viewBoxMarginFromPartial, viewBoxFromPartial} from './view_box.ts';
 
 /**
  * A part of SVG that is not directly rendered, but rather is placed in the `<defs>` element,
@@ -345,9 +344,10 @@ export class Piece
   setBoundingBox(boundingBox: SVGElement | BasicPiece | PartialViewBox): Piece {
     if (!this.tf.svgTransform)
       return new Piece(this.parts, this.tf, this.layer, this.defs, this.attributes,
-        (boundingBox instanceof SVGElement) || isBasicPiece(boundingBox) ?
-          Piece.create(boundingBox) :
-          figures.rectangle(boundingBox));
+        Piece.create(
+          (boundingBox instanceof SVGElement) || isBasicPiece(boundingBox) ?
+            boundingBox : boundingBoxRect(boundingBox))
+      );
     return Piece.create(this).setBoundingBox(boundingBox);
   }
 
@@ -418,4 +418,12 @@ export abstract class DefaultPiece extends Piece {
 /** Gathers multiple objects into a single Piece. */
 export function gather(...parts: RestPieceCreateArgs) {
   return Piece.create(...parts);
+}
+
+function boundingBoxRect(boundingBox: PartialViewBox) {
+  const {minX, minY, width, height} = viewBoxFromPartial(boundingBox);
+  return createElement({
+    tagName: "rect",
+    attributes: {x: minX, y: minY, width, height},
+  });
 }
