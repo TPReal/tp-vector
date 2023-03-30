@@ -33,7 +33,7 @@ function pngConversionParamsFromPartial({
   };
 }
 
-/** Converts the SVG to PNG, returned as data URI, using the specified conversion params. */
+/** Converts the SVG to PNG, returned as a data URI, using the specified conversion params. */
 export async function getPNGDataURI(
   svg: SVGSVGElement, conversionParams: PartialPNGConversionParams): Promise<string> {
   const {

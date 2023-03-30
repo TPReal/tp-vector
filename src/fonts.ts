@@ -89,7 +89,7 @@ export class Font extends AttributesDefTool {
 
   /**
    * Loads font from a URL.
-   * If it's an external URL, the font is fetched and encoded as data URI instead.
+   * If it's an external URL, the font is fetched and encoded as a data URI instead.
    */
   static async fromURL({name, url, fontAttributes}: {
     name: string,
@@ -137,7 +137,7 @@ export class Font extends AttributesDefTool {
 
   /**
    * Creates a font from [Google Fonts](https://fonts.google.com/).
-   * The font is fetched and encoded as data URI.
+   * The font is fetched and encoded as a data URI.
    *
    * If the font is not available on Google Fonts with the specified attributes,
    * the fetch will fail. It is still possible to use
@@ -212,7 +212,8 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
 }
 
 async function loadStyle(styleContent: string) {
-  // TODO: Find a reliable way of waiting for the font to load.
+  // TODO: Find a reliable way of waiting for the font to load. Right now a page reload is
+  // sometimes necessary, because text elements are measured before the font is loaded.
   return createElement({
     tagName: "style",
     children: await changeToDataURIs(styleContent),

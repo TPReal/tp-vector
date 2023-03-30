@@ -14,27 +14,26 @@ export async function getSheet() {
       dentCirclePos: 0.9,
       dentCircleR: 0.5,
     };
-    let t = Turtle.create()
+    const t = Turtle.create()
       .circle(p.outerR)
       .right(360 / p.numDents * (0.5 / (p.dentToSpaceRatio + 1)))
-      .withPenUp(t => t.strafeLeft(p.dentsR));
-    for (let i = 0; i < p.numDents; i++)
-      t = t
+      .withPenUp(t => t.strafeLeft(p.dentsR))
+      .repeat(p.numDents, t => t
         .arcRight(360 / p.numDents * (p.dentToSpaceRatio / (p.dentToSpaceRatio + 1)), p.dentsR)
         .right(p.dentAngle)
         .curveTo(
           t.arcRight(360 / p.numDents, p.dentsR).left(p.dentAngle),
           {speed: p.dentSpeed},
         )
-        .right(p.dentAngle);
-    t = t
+        .right(p.dentAngle)
+      )
       .penUp()
       .arcRight(-360 / p.numDents * (0.5 / (p.dentToSpaceRatio + 1)), p.dentsR)
-      .strafeRight(p.dentCirclePos);
-    for (let i = 0; i < p.numDents; i++)
-      t = t
+      .strafeRight(p.dentCirclePos)
+      .repeat(p.numDents, t => t
         .withPenDown(t => t.circle(p.dentCircleR))
-        .arcRight(360 / p.numDents, p.dentsR - p.dentCirclePos);
+        .arcRight(360 / p.numDents, p.dentsR - p.dentCirclePos)
+      );
     const dents = t.setAttributes({fillRule: "evenodd"});
     return gather(
       figures.circle({radius: p.coinR}),
@@ -61,18 +60,18 @@ export async function getSheet() {
       dentAngle: 50,
       dentSpeed: 3,
     };
-    let t = Turtle.create()
+    const t = Turtle.create()
       .circle(p.outerR + 0.2)
       .left(360 / p.numDents / 4)
-      .withPenUp(t => t.strafeLeft(p.dentsR));
-    for (let i = 0; i < p.numDents; i++)
-      t = t
+      .withPenUp(t => t.strafeLeft(p.dentsR))
+      .repeat(p.numDents, t => t
         .right(p.dentAngle)
         .curveTo(
           t.arcRight(360 / p.numDents, p.dentsR).right(p.dentAngle),
           {speed: p.dentSpeed},
         )
-        .left(p.dentAngle);
+        .left(p.dentAngle)
+      );
     return gather(
       figures.circle({radius: p.coinR}),
       gather(
@@ -95,16 +94,16 @@ export async function getSheet() {
       innerR: 10.6,
       numDents: 18,
     };
-    let t = Turtle.create()
+    const t = Turtle.create()
       .lookLeft()
       .left(360 / p.numDents / 4)
-      .withPenUp(t => t.strafeLeft(p.innerR));
-    for (let i = 0; i < p.numDents; i++)
-      t = t
+      .withPenUp(t => t.strafeLeft(p.innerR))
+      .repeat(p.numDents, t => t
         .arcRight(360 / p.numDents / 2, p.innerR)
         .strafeLeft(p.outerR - p.innerR)
         .arcRight(360 / p.numDents / 2, p.outerR)
-        .strafeRight(p.outerR - p.innerR);
+        .strafeRight(p.outerR - p.innerR)
+      );
     return gather(
       figures.circle({radius: p.coinR}),
       gather(

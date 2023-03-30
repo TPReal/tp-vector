@@ -51,7 +51,7 @@ export function rectangle({
       const radiusY = Math.min(cornerRadiusY, height / 2);
       const flatWid = width - 2 * radiusX;
       const flatHei = height - 2 * radiusY;
-      const arc = {radiusX, radiusY, clockwiseSweep: true};
+      const arc = {radiusX, radiusY, clockwise: true};
       return Path.create([minX, minY + radiusY])
         .relativeArc({...arc, target: [radiusX, -radiusY]})
         .relativeHorizontal(flatWid)

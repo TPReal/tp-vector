@@ -18,23 +18,23 @@ export function getSheet() {
 
         (() => {
           function fu(t: Turtle, size: number) {
-            return t.right().forward(size).arcRight(180, size);
+            return t.right().forward(size / 2)
+              .halfEllipseRight(size + 2, 2 * size);
           }
           let t = Turtle.create().forward(10);
           for (let i = 1; i <= 5; i++)
             // In each iteration go forward, and then branch to the side.
-            t = t.forward(1).branch(t => t.andThen(fu, i));
+            t = t.forward(1).branch(fu, i);
           return t;
         })(),
 
         (() => {
           const n = 11;
           const m = 4;
-          let t = Turtle.create().right(1.75 * 360 / n);
-          // Five sides of a self-intersecting regular 11-sided polygon.
-          for (let i = 0; i < 5; i++)
-            t = t.right(360 * m / n).forward(1);
-          return t.extendBoundingBox({right: -0.2});
+          return Turtle.create().right(1.75 * 360 / n)
+            // Five sides of a self-intersecting regular 11-sided polygon.
+            .repeat(5, t => t.right(360 * m / n).forward(1))
+            .extendBoundingBox({right: -0.2});
         })(),
 
         (() => {
@@ -68,23 +68,24 @@ export function getSheet() {
               return t;
             return t
               .forward(1 << level)
-              .branch(t => t.right().andThen(rec, level - 1))
-              .branch(t => t.left().andThen(rec, level - 1));
+              .branch(t => t.right(80).andThen(rec, level - 1))
+              .branch(t => t.left(80).andThen(rec, level - 1));
           }
           return Turtle.create().andThen(rec, 6);
         })(),
 
         (() => {
-          let t = Turtle.create()
-            .circle(1)
-            .penUp();
           const n = 13;
-          for (let i = 0; i < n; i++)
-            t = t.right(360 / n)
+          const t = Turtle.create()
+            .circle(1)
+            .penUp()
+            .repeat(n, t => t
+              .right(360 / n)
               .branch(t => t
                 .strafeRight(1.08)
-                .withPenDown(t => t.circle(0.2))
-              );
+                .withPenDown(t => t.ellipse(0.2, 0.35))
+              )
+            );
           // A collection of circles, both as a line and as a figure.
           return gather(
             t.setAttributes({fill: "#ddd", fillRule: "evenodd"})

@@ -31,15 +31,12 @@ export type ControlPointSpeed = number | "auto";
  * Parameters of a cubic Bézier curve.
  * @see {@link Turtle.curveTo}
  */
-export interface PartialCubicCurveArgsInterface {
+export interface PartialCubicCurveArgs {
   /** The default for start and target speed, defaults to `"auto"`. */
   speed?: ControlPointSpeed;
   startSpeed?: ControlPointSpeed;
   targetSpeed?: ControlPointSpeed;
 }
-/** Cubic Bézier curve parameters. The `"cubic"` value is equivalent to `"auto"` speed. */
-export type PartialCubicCurveArgs = "cubic" | PartialCubicCurveArgsInterface;
-
 /** Parameters of a quadratic or cubic Bézier curve. */
 export type PartialCurveArgs = QuadraticCurveArgs | PartialCubicCurveArgs;
 
@@ -232,14 +229,27 @@ export class Turtle extends DefaultPiece {
     return this.andThen(func, ...args).appendState(this.state);
   }
 
+  /** Executes the function in a loop, each time in a separate branch. */
   branches<Args extends unknown[]>(
     count: number,
-    func: TurtleFunc<[number, ...Args]>,
+    func: TurtleFunc<[...Args, number]>,
     ...args: Args
   ) {
     let t: Turtle = this;
     for (let i = 0; i < count; i++)
-      t = t.branch(func, i, ...args);
+      t = t.branch(func, ...args, i);
+    return t;
+  }
+
+  /** Executes the function in a loop, each time passing the result of the previous call. */
+  repeat<Args extends unknown[]>(
+    count: number,
+    func: TurtleFunc<[...Args, number]>,
+    ...args: Args
+  ) {
+    let t: Turtle = this;
+    for (let i = 0; i < count; i++)
+      t = t.andThen(func, ...args, i);
     return t;
   }
 
@@ -266,24 +276,33 @@ export class Turtle extends DefaultPiece {
     return this.append({down});
   }
 
-  penUp() {
-    return this.penDown(false);
+  penUp(up = true) {
+    return this.penDown(!up);
   }
 
   withPenDown<Args extends unknown[]>(
     down: boolean, func: TurtleFunc<Args>, ...args: Args): Turtle;
   withPenDown<Args extends unknown[]>(
     func: TurtleFunc<Args>, ...args: Args): Turtle;
-  withPenDown<Args extends unknown[]>(
-    ...params: [boolean, TurtleFunc<Args>, ...Args] |
-    [TurtleFunc<Args>, ...Args]) {
-    const [down = true, func, ...args] = typeof params[0] === "boolean" ? params : [undefined, ...params];
+  withPenDown<Args extends unknown[]>(...params:
+    | [boolean, TurtleFunc<Args>, ...Args]
+    | [TurtleFunc<Args>, ...Args]) {
+    const [down = true, func, ...args] = typeof params[0] === "boolean" ?
+      params : [undefined, ...params];
     const prev = this.isPenDown;
     return this.penDown(down).andThen(func, ...args).penDown(prev);
   }
 
-  withPenUp<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
-    return this.withPenDown(false, func, ...args);
+  withPenUp<Args extends unknown[]>(
+    up: boolean, func: TurtleFunc<Args>, ...args: Args): Turtle;
+  withPenUp<Args extends unknown[]>(
+    func: TurtleFunc<Args>, ...args: Args): Turtle;
+  withPenUp<Args extends unknown[]>(...params:
+    | [boolean, TurtleFunc<Args>, ...Args]
+    | [TurtleFunc<Args>, ...Args]) {
+    const [up = true, func, ...args] = typeof params[0] === "boolean" ?
+      params : [undefined, ...params];
+    return this.withPenDown(!up, func, ...args);
   }
 
   forward(length: number) {
@@ -391,9 +410,6 @@ export class Turtle extends DefaultPiece {
       {
         startSpeed: "auto" as const,
         targetSpeed: undefined,
-      } : curveArgs === "cubic" ? {
-        startSpeed: "auto" as const,
-        targetSpeed: "auto" as const,
       } : {
         startSpeed: curveArgs.startSpeed ?? curveArgs.speed ?? "auto",
         targetSpeed: curveArgs.targetSpeed ?? curveArgs.speed ?? "auto",
@@ -529,6 +545,35 @@ export class Turtle extends DefaultPiece {
     return this.roundCornerRight(forward, -left).turnBack();
   }
 
+  /**
+   * Draws half of an ellipse, corresponding to the path:
+   *
+   *     .forward(length).right().forward(right).right().forward(length)
+   */
+  halfEllipseRight(forward: number, right: number) {
+    const relPos = this.relPos(0, right);
+    return this.appendDraw({
+      pathIfDown: this.path.relativeArc({
+        target: relPos,
+        radiusX: right / 2,
+        radiusY: forward,
+        xAxisRotationDeg: this.angleDeg,
+        clockwise: forward * right >= 0,
+      }),
+      dPos: relPos,
+      dAngleDeg: 180,
+    });
+  }
+
+  /**
+   * Draws half of an ellipse, corresponding to the path:
+   *
+   *     .forward(length).left().forward(left).left().forward(length)
+   */
+  halfEllipseLeft(forward: number, left: number) {
+    return this.halfEllipseRight(forward, -left);
+  }
+
   /** Makes a turn over the specified angle, with the specified radius. */
   arcLeft(angleDeg: number, radius: number) {
     return this.arcRight(-angleDeg, -radius);
@@ -541,11 +586,18 @@ export class Turtle extends DefaultPiece {
 
   /** Draws a circle centered at the current position. */
   circle(radius: number) {
+    return this.ellipse(radius);
+  }
+
+  /** Draws an ellipse centered at the current position. */
+  ellipse(radiusForward: number, radiusSides = radiusForward) {
     if (!this.state.down)
       return this;
     return this.branch(t => t
-      .appendJump({dPos: t.relPos(radius, 0), dAngleDeg: 90})
-      .arcRight(360, radius));
+      .appendJump({dPos: t.relPos(radiusForward, 0), dAngleDeg: 90})
+      .halfEllipseRight(radiusSides, 2 * radiusForward)
+      .halfEllipseRight(radiusSides, 2 * radiusForward)
+    );
   }
 
   /** Closes the Turtle's path and returns the Path. */

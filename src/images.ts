@@ -75,12 +75,12 @@ export class Image extends DefaultPiece {
 
   /**
    * Loads an image from a URL.
-   * If it's an external URL, the image is fetched and encoded as data URI instead.
+   * If it's an external URL, the image is fetched and encoded as a data URI instead.
    */
   static async fromURL(url: string): Promise<Image>;
   /**
    * Loads an image from a URL, with the specified scaling.
-   * If it's an external URL, the image is fetched and encoded as data URI instead.
+   * If it's an external URL, the image is fetched and encoded as a data URI instead.
    */
   static async fromURL(args: {
     url: string,

@@ -110,8 +110,8 @@ export interface CutOptions extends CommonRunOptions {
  */
 export function cutOptionsFromPartial(
   {
-    id,
-    layers = id === undefined ? ["cut", NO_LAYER] : [id],
+    id = "cut",
+    layers = id === "cut" ? ["cut", NO_LAYER] : [id],
     styleAttributes,
     side = "front",
     includeCornersMarker = false,
@@ -121,7 +121,7 @@ export function cutOptionsFromPartial(
 ): CutOptions {
   return {
     type: "cut",
-    id: id ?? "cut",
+    id,
     layers,
     styleAttributes: styleAttributesFromPartial({
       styleAttributes,
@@ -186,7 +186,7 @@ export function runOptionsFromPartial(
   return options satisfies never;
 }
 
-const DEFUALT_FRAME_STYLE_ATTRIBUTES = styleAttributesFromPartial({
+const DEFAULT_FRAME_STYLE_ATTRIBUTES = styleAttributesFromPartial({
   styleAttributes: {
     preview: {stroke: "red"},
   },
@@ -243,7 +243,7 @@ export function reversingFrameOptionsFromPartial({
     id,
     styleAttributes: styleAttributesFromPartial({
       styleAttributes,
-      defaults: DEFUALT_FRAME_STYLE_ATTRIBUTES,
+      defaults: DEFAULT_FRAME_STYLE_ATTRIBUTES,
     }),
   };
 }

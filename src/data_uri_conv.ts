@@ -29,7 +29,7 @@ export function isDataURI(url: string) {
 /**
  * Returns a data URI representing the specified resource.
  * If the URL is a data URI, it is returned directly. Otherwise the resource is fetched and
- * converted to data URI, with the MIME type specified by the server.
+ * converted to a data URI, with the MIME type specified by the server.
  */
 export async function urlToDataURI(url: string) {
   if (isDataURI(url))
