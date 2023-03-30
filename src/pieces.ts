@@ -314,12 +314,15 @@ export class Piece
     });
   }
 
-  /** Returns a `<g>` element containing all the elements defined in this Piece. */
-  asG(attributes: Attributes = {}) {
+  /** Returns a `<g>` element containing the elements defined in this Piece. */
+  asG(attributes?: Attributes) {
+    const elements = this.getElements();
+    if (!attributes && elements.length === 1 && elements[0] instanceof SVGGElement)
+      return elements[0];
     return createElement({
       tagName: "g",
       attributes,
-      children: this.getElements(),
+      children: elements,
     });
   }
 

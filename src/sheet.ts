@@ -7,7 +7,7 @@ import {BasicPiece, Piece, gather} from './pieces.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
-import {OrArray, flatten, flattenFilter} from './util.ts';
+import {OrArray, flatten, flattenFilter, assert} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, viewBoxFromPartial, viewBoxMarginFromPartial, viewBoxToString} from './view_box.ts';
 
 const DEFAULT_SVG_BORDER_STYLE = "solid #00f4 1px";
@@ -340,39 +340,49 @@ export class Sheet {
     const {handles} = this.options.laserRunsOptions;
     if (!handles)
       return undefined;
-    const ids = this.getAllRunIdsInNaturalOrder();
+    const ids = this.getHandleRuns();
+    if (ids.length < 2)
+      return undefined;
     const wid = this.viewBox.width / ids.length;
     const baseWid = 100;
     const handleViewBox = extendViewBox(viewBoxFromPartial({
       width: baseWid,
       height: 15,
-      ...handles === "above" ? {maxY: 0} : handles === "below" ? {minY: 0} : handles satisfies never,
+      ...handles === "above" ? {maxY: 0} :
+        handles === "below" ? {minY: 0} :
+          handles satisfies never,
     }), -2);
-    return new Map(ids.map((id, index) => [
-      id,
-      gather(
-        figures.rectangle(handleViewBox).setAttributes({
-          stroke: "none",
-          fill: this.options.laserRunsOptions.colorCodes ? undefined : "black",
-        }),
-        createText(id, {
-          size: 5,
-          font: "monospace",
-        }).normalise({
-          target: handleViewBox,
-          align: {y: "center"},
-        }, {margin: 1}).setAttributes({fill: "white"}),
-      ).setAttributes({stroke: "none"})
-        .moveRight(index * baseWid)
-        .scale(wid / baseWid)
-        .translate(this.viewBox.minX, this.viewBox.minY)
-        .moveDown(handles === "below" ? this.viewBox.height : 0)
-        .asG({id: `${id}-handle`}),
-    ]));
+    const textAttribs = {size: 5, font: "monospace"};
+    return new Map(ids.map(({runId, type}, index) => {
+      const typeText = createText(type, textAttribs).normalise({
+        target: handleViewBox,
+        align: {x: "right", y: "center"},
+      }, {margin: 1}).setAttributes({fill: "white"});
+      const idText = createText(runId, textAttribs).normalise({
+        target: extendViewBox(handleViewBox, {right: -typeText.getBoundingBox().width}),
+        align: {y: "center"},
+      }, {margin: 1}).setAttributes({fill: "white"});
+      return [
+        runId,
+        gather(
+          figures.rectangle(handleViewBox).setAttributes({
+            fill: this.options.laserRunsOptions.colorCodes ? undefined : "black",
+          }),
+          idText,
+          typeText,
+        ).setAttributes({stroke: "none"})
+          .moveRight(index * baseWid)
+          .scale(wid / baseWid)
+          .translate(this.viewBox.minX, this.viewBox.minY)
+          .moveDown(handles === "below" ? this.viewBox.height : 0)
+          .setAttributes({id: `${runId}-handle`})
+          .asG(),
+      ];
+    }));
   }
 
-  private getAllRunIdsInNaturalOrder() {
-    const idsSet = new Set<string>();
+  private getHandleRuns() {
+    const result = [];
     for (const partialRunsSelector of this.getRunsInNaturalOrder()) {
       const runsSelector = this.runsSelectorFromPartial({
         medium: "laser",
@@ -380,15 +390,21 @@ export class Sheet {
       });
       if (runsSelector.runs !== "all") {
         if (runsSelector.runs.length)
-          for (const run of runsSelector.runs)
-            idsSet.add(run);
-        else if (runsSelector.reversingFrame)
-          idsSet.add(this.options.reversingFrame.id);
+          for (const run of runsSelector.runs) {
+            const runOptions = assert(this.runOptions.get(run));
+            result.push({
+              runId: run,
+              type: (runOptions.side === "back" ? "-" : "") + runOptions.type[0],
+            });
+          }
+        if (runsSelector.reversingFrame)
+          result.push({
+            runId: this.options.reversingFrame.id,
+            type: "#",
+          });
       }
     }
-    for (const runId of this.runOptions.keys())
-      idsSet.add(runId);
-    return [...idsSet];
+    return result;
   }
 
   /**
@@ -540,7 +556,7 @@ export class Sheet {
   /**
    * Returns all the runs defined in this Sheet in their natural order. The order is:
    *  - prints on the back side,
-   *  - cuts on the back side (this type of run is rare),
+   *  - cuts on the back side (for scoring, as the main cut needs to be done on the front side),
    *  - the reversing frame - if there were any runs on the back,
    *  - prints on the front,
    *  - cuts on the front.

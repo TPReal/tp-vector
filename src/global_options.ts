@@ -54,7 +54,10 @@ export interface LaserRunsOptions {
   readonly handles?: RunHandlesPosition;
 }
 
-/** Relative translation of a layer, caused by hardware inaccuracy. */
+/**
+ * Relative translation of a run, caused by hardware inaccuracy. Remember not to rotate the
+ * work in the laser cutter program when this is used.
+ */
 export type PosCorrectionMillimeters = readonly [number, number];
 
 /** Any quirky behaviour related to a software or hardware being used. */
@@ -78,7 +81,7 @@ export interface PartialGlobalOptions {
   imageAutoSizeLogic?: ImageAutoSizeLogic;
   laserRunsOptions?: LaserRunsOptions;
   /**
-   * The translation of print layers relative to the cut layers, caused by hardware inaccuracy,
+   * The translation of print runs relative to the cut runs, caused by hardware inaccuracy,
    * measured for a particular laser cutter, in millimeters.
    * See the calibrator in _calibration/print_pos_correction.ts_.
    */
@@ -135,30 +138,29 @@ export namespace presets {
    * @see https://lightburnsoftware.com/
    */
   export function lightburn({
-    layersHandles = "above",
-    colorCodedLayersPreset,
-    colorCodedLayers = !!colorCodedLayersPreset,
+    runsHandles,
+    colorCodedRunsPreset,
+    colorCodedRuns = !!colorCodedRunsPreset,
   }: {
-    layersHandles?: RunHandlesPosition,
-    colorCodedLayers?: boolean,
-    colorCodedLayersPreset?: true | InitialColorsAssignment,
+    runsHandles?: RunHandlesPosition,
+    colorCodedRuns?: boolean,
+    colorCodedRunsPreset?: true | InitialColorsAssignment,
   } = {}) {
     return {
-      // Non-transparent white covers other layers.
+      // Non-transparent white covers other runs and makes the harder to select.
       pngAllowTransparency: "iffWhite",
       // Circles with zero radius are optimised away by LightBurn.
       cornersMarkerType: "lines",
       laserRunsOptions: {
-        ...colorCodedLayers ? {
+        ...colorCodedRuns ? {
           colorCodes: () => CyclicColorsDistributor.create({
-            pool: LIGHTBURN_LAYERS_COLORS,
-            initial: colorCodedLayersPreset === true ?
-              DEFAULT_LIGHTBURN_COLOR_CODED_LAYERS :
-              colorCodedLayersPreset,
+            pool: LIGHTBURN_RUNS_COLORS,
+            initial: colorCodedRunsPreset === true ?
+              DEFAULT_LIGHTBURN_COLOR_CODED_RUNS :
+              colorCodedRunsPreset,
           }),
         } : undefined,
-        // There is no way of selecting a layer by id, so include the handles.
-        handles: layersHandles,
+        handles: runsHandles,
       },
       quirks: {
         lineTransformBrokenLightBurn: true,
@@ -167,7 +169,7 @@ export namespace presets {
     } satisfies PartialGlobalOptions;
   }
 
-  export const DEFAULT_LIGHTBURN_COLOR_CODED_LAYERS = [
+  export const DEFAULT_LIGHTBURN_COLOR_CODED_RUNS = [
     ["print_back", 5],
     ["reversing_frame", 10],
     ["print", 15],
@@ -175,7 +177,8 @@ export namespace presets {
     ["corners_marker", 29],
   ] satisfies InitialColorsAssignment;
 
-  export const LIGHTBURN_LAYERS_COLORS = [
+  /** Colors of the LightBurn layers. */
+  export const LIGHTBURN_RUNS_COLORS = [
     "#000000",
     "#0000ff",
     "#ff0000",
