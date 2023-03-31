@@ -31,7 +31,7 @@ and it can produce SVGElement&#39;s. Additionally, its bounding box might be def
 <ul class="tsd-hierarchy">
 <li><a href="../classes/Piece.html" class="tsd-signature-type" data-tsd-kind="Class">Piece</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/705b2a0/src/pieces.ts#L29">pieces.ts:29</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/pieces.ts#L28">pieces.ts:28</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -50,19 +50,20 @@ and it can produce SVGElement&#39;s. Additionally, its bounding box might be def
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a id="setLayer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Layer</span><a href="#setLayer" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="setLayer.setLayer-1">set<wbr/>Layer<span class="tsd-signature-symbol">(</span>layer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="BasicPiece.html" class="tsd-signature-type" data-tsd-kind="Interface">BasicPiece</a><a href="#setLayer.setLayer-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="setLayer.setLayer-1">set<wbr/>Layer<span class="tsd-signature-symbol">(</span>layer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="BasicPiece.html" class="tsd-signature-type" data-tsd-kind="Interface">BasicPiece</a><a href="#setLayer.setLayer-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Assigns this object and all of its parts to the specified layer.</p>
+<div class="tsd-comment tsd-typography"><p>Assigns this object and all of its parts to the specified layer.
+Any previous assignment is ignored.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>layer: <span class="tsd-signature-type">any</span></h5></li></ul></div>
+<h5>layer: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="BasicPiece.html" class="tsd-signature-type" data-tsd-kind="Interface">BasicPiece</a></h4><aside class="tsd-sources">
 <p>Inherited from Layerable.setLayer</p>
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/705b2a0/src/layers.ts#L11">layers.ts:11</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/layers.ts#L14">layers.ts:14</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a id="selectLayers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>select<wbr/>Layers</span><a href="#selectLayers" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
@@ -83,7 +84,7 @@ to any layer (or assigned to <code>NO_LAYER</code>), selection recurses into its
 <h4 class="tsd-returns-title">Returns <a href="BasicPiece.html" class="tsd-signature-type" data-tsd-kind="Interface">BasicPiece</a></h4><aside class="tsd-sources">
 <p>Inherited from Layerable.selectLayers</p>
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/705b2a0/src/layers.ts#L21">layers.ts:21</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/layers.ts#L24">layers.ts:24</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface tsd-is-inherited"><a id="getDefs" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>get<wbr/>Defs</span><a href="#getDefs" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface tsd-is-inherited">
@@ -92,7 +93,7 @@ to any layer (or assigned to <code>NO_LAYER</code>), selection recurses into its
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">SVGElement</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Inherited from Partial.getDefs</p>
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/705b2a0/src/pieces.ts#L21">pieces.ts:21</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/pieces.ts#L20">pieces.ts:20</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface"><a id="getElements" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Elements</span><a href="#getElements" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
@@ -100,7 +101,7 @@ to any layer (or assigned to <code>NO_LAYER</code>), selection recurses into its
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">SVGElement</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/705b2a0/src/pieces.ts#L31">pieces.ts:31</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/pieces.ts#L30">pieces.ts:30</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface"><a id="getBoundingBoxElements" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>get<wbr/>Bounding<wbr/>Box<wbr/>Elements</span><a href="#getBoundingBoxElements" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
@@ -111,7 +112,7 @@ this Piece. Otherwise, <code>getElements()</code> is used.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">SVGElement</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/705b2a0/src/pieces.ts#L37">pieces.ts:37</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/pieces.ts#L36">pieces.ts:36</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
