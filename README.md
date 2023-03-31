@@ -1,9 +1,9 @@
-# TPVector
+# ![Icon](wiki/tp_vector_icon_small.png) TPVector
 
 TPVector is a library for generating vector geometry and graphics for a laser
-cutter. It consists of a number of tools helpful for generating
+cutter. It offers a number of tools helpful for generating
 [SVG](https://pl.wikipedia.org/wiki/Scalable_Vector_Graphics) files that can be
-imported into laser cutter software like
+imported into laser cutter software, like
 [LightBurn](https://lightburnsoftware.com/) or [VisiCut](https://visicut.org/),
 both for cutting and engraving.
 
@@ -19,7 +19,8 @@ TypeScript, and runtime safety, thanks to immutability (see the
 
 For the source code documentation, see [Documentation](docs/index.html), but
 note that it is neither ideal nor complete right now. It is recommended to
-consult the source code.
+consult the source code of the library - the type system will provide a lot of
+additional information.
 
 ![Lines of code](https://img.shields.io/tokei/lines/github/TPReal/tp-vector?style=flat&label=total%20src%20lines)
 
@@ -188,8 +189,8 @@ createText("TPVector", {
 
 ![Web fonts](wiki/feature_font.png)
 <br> The font is fetched from [Google Fonts](https://fonts.google.com/) and
-embedded in the generated SVG. See the
-[Using external resources](wiki/external.md) page for more details.
+embedded in the generated SVG. See [Using external resources](wiki/external.md)
+for more details.
 
 _Note:_ If the text using a web font is misaligned, refreshing the page should
 help.
@@ -392,6 +393,7 @@ const {tabs, slots} = turtleInterlock({
   // Calibrated for the given laser and material.
   kerf: kerfUtil.millimeters(0.15, {millimetersPerUnit: 1}),
   thickness: 3,
+  tabsDir: "left",
   // Slightly rounded corners, to make joining the pieces easier.
   outerCornersRadius: 0.8,
 });
@@ -404,21 +406,16 @@ const pieces = layouts.row(
   Turtle.create()
     .andThen(tabs, {
       pattern: interlockPattern.matchingTabs(),
+      // Override the direction.
       dir: "right",
     })
     .left().forward(10).left().forward(interlockPattern.length())
     .closePath(),
 
   Turtle.create()
-    .andThen(tabs, {
-      pattern: interlockPattern,
-      dir: "left",
-    })
+    .andThen(tabs, interlockPattern)
     .right().forward(20).right()
-    .andThen(tabs, {
-      pattern: interlockPattern.reverse(),
-      dir: "left",
-    })
+    .andThen(tabs, interlockPattern.reverse())
     .closePath(),
 
   Turtle.create()
@@ -444,6 +441,23 @@ const pieces = layouts.row(
 - [Layers and runs](wiki/layers_and_runs.md)
 - [Dual-sided projects](wiki/dual_sided.md)
 - [Using external resources](wiki/external.md)
+
+## Demos
+
+To view the demos start the Viewer (follow the steps from
+[Installation and usage](wiki/installation_and_usage.md)). The code can be found
+in [demos_viewer](src/viewer/demos_viewer.ts).
+
+Photos of some of the demo projects:
+
+- [Coins](src/demos/coins.ts) - a [dual-sided project](wiki/dual_sided.md).
+  <br> ![Coins](wiki/demos_coins.jpg)
+  <br> (the reversing frame shown on the left)
+- [Tabs and slots](src/demos/tabs_and_slots.ts) - holds without glue (due to the
+  kerf), even when made with 3-ply paperboard
+  <br> ![Tabs and slots](wiki/demos_tas_1.jpg)
+  <br> ![Tabs and slots](wiki/demos_tas_2.jpg)
+  <br> ![Tabs and slots](wiki/demos_tas_3.jpg)
 
 ---
 

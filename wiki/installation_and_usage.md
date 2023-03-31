@@ -23,7 +23,8 @@ Finally, fork the TPVector repository.
 - Launch the _Viewer_ debug session (from the menu select _Run | Start
   Debugging_). This will start the _Viewer_ task (an esbuild process that
   bundles and serves the code) and launch the browser with the Viewer page
-  opened (http://localhost:4327/).
+  opened (http://localhost:4327/). The Viewer shows some demo projects, defined
+  in [demos](../src/demos/).
 
 (Alternatively, you can launch the esbuild server manually, or using a different
 IDE. You can find the esbuild command in
