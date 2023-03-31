@@ -1,8 +1,9 @@
-import { globalOptions } from './global_options.ts';
-import { Piece } from './pieces.ts';
-import { Point, pointsToString } from './point.ts';
-import { flattenPoints, OrArrayRest } from './util.ts';
-import { PartialViewBox, viewBoxFromPartial } from './view_box.ts';
+import {getGlobalOptions} from './global_options.ts';
+import {Path} from "./path.ts";
+import {Piece} from './pieces.ts';
+import {Point, pointsToString} from './point.ts';
+import {flattenPoints, OrArrayRest} from './util.ts';
+import {PartialViewBox, viewBoxFromPartial} from './view_box.ts';
 
 export function circle({
   center = [0, 0],
@@ -43,6 +44,24 @@ export function rectangle({
   cornerRadiusY?: number,
 } = {}) {
   const {minX, minY, width, height} = viewBoxFromPartial(viewBox);
+  if (getGlobalOptions().quirks?.roundedCornersRectangleLimitedLightBurn)
+    if (cornerRadiusX !== cornerRadiusY ||
+      2 * cornerRadiusX > width || 2 * cornerRadiusY > height) {
+      const radiusX = Math.min(cornerRadiusX, width / 2);
+      const radiusY = Math.min(cornerRadiusY, height / 2);
+      const flatWid = width - 2 * radiusX;
+      const flatHei = height - 2 * radiusY;
+      const arc = {radiusX, radiusY, clockwise: true};
+      return Path.create([minX, minY + radiusY])
+        .relativeArc({...arc, target: [radiusX, -radiusY]})
+        .relativeHorizontal(flatWid)
+        .relativeArc({...arc, target: [radiusX, radiusY]})
+        .relativeVertical(flatHei)
+        .relativeArc({...arc, target: [-radiusX, radiusY]})
+        .relativeHorizontal(-flatWid)
+        .relativeArc({...arc, target: [-radiusX, -radiusY]})
+        .closePath();
+    }
   return Piece.createElement({
     tagName: "rect",
     attributes: {
@@ -55,13 +74,13 @@ export function rectangle({
 
 export function line(originTo: Point): Piece;
 export function line(from: Point, to: Point): Piece;
-export function line(...args: [Point] | [Point, Point]) {
-  const [from, to] = args.length == 1 ? [[0, 0], args[0]] : args;
+export function line(...params: [Point] | [Point, Point]) {
+  const [from, to] = params.length == 1 ? [[0, 0], params[0]] : params;
   const line = Piece.createElement({
     tagName: "line",
     attributes: {x1: from[0], y1: from[1], x2: to[0], y2: to[1]},
   });
-  return globalOptions().quirks?.has("lineTransformBug") ?
+  return getGlobalOptions().quirks?.lineTransformBrokenLightBurn ?
     line.wrapInG() : line;
 }
 

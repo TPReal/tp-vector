@@ -3,6 +3,10 @@ export interface PatternItem {
   readonly length: number;
 }
 
+/**
+ * Pattern of tabs and/or slots used to connect two layers of cut material,
+ * to create 3-dimensional structures.
+ */
 export class InterlockPattern {
 
   protected constructor(readonly items: readonly PatternItem[]) {
@@ -20,6 +24,12 @@ export class InterlockPattern {
     return this.items.at(-1);
   }
 
+  /**
+   * Adds a section to the pattern. If the section has the same active param as the last one,
+   * they are merged. Zero-length sections are ignored. Negative length is an error.
+   *
+   * The active param is an abstract value, with meaning given by the using class.
+   */
   add(active: boolean, length: number) {
     if (length < 0)
       throw new Error(`Expected non-negative length, got: ${length}`);
@@ -43,9 +53,14 @@ export class InterlockPattern {
     return new InterlockPattern([...this.items].reverse());
   }
 
+  /** Change active sections to non-active and vice versa. */
   invert() {
     return new InterlockPattern(
       this.items.map(({active, length}) => ({active: !active, length})));
+  }
+
+  length() {
+    return this.items.reduce((acc, {length}) => acc + length, 0);
   }
 
   toString() {
@@ -56,30 +71,42 @@ export class InterlockPattern {
 
 }
 
+const EMPTY_PATTERN = InterlockPattern.create();
+
+/** A pattern of tabs at the edge of material. */
 export class TabsPattern {
 
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = InterlockPattern.create()) {
+  static create(pattern = EMPTY_PATTERN) {
     return new TabsPattern(pattern);
   }
 
+  /**
+   * Creates a TabsPattern with the specified number and size of tabs distributed evenly
+   * over the specified length.
+   */
   static distributed({
     length,
-    numTabs,
+    tabEveryLen,
+    minNumTabs = 2,
+    numTabs = tabEveryLen ? Math.ceil(length / tabEveryLen) : 0,
     tabToSkipRatio = 1,
     tabLength,
     startWithTab = false,
     endWithTab = false,
   }: {
     length: number,
-    numTabs: number,
+    tabEveryLen?: number,
+    minNumTabs?: number,
+    numTabs?: number,
     tabToSkipRatio?: number,
     tabLength?: number,
     startWithTab?: boolean,
     endWithTab?: boolean,
   }) {
+    numTabs = Math.floor(Math.max(numTabs, minNumTabs));
     const numSkips = numTabs + 1 - Number(startWithTab) - Number(endWithTab);
     if (numTabs < 0 || numSkips < 0)
       throw new Error(`Bad parameters (numTabs=${numTabs}, numSkips=${numSkips})`);
@@ -96,12 +123,12 @@ export class TabsPattern {
     let first = true;
     while (numTabs--) {
       if (!(first && startWithTab))
-        pattern = pattern.skip(skipLen);
+        pattern = pattern.base(skipLen);
       first = false;
       pattern = pattern.tab(tabLen);
     }
     if (!endWithTab)
-      pattern = pattern.skip(skipLen);
+      pattern = pattern.base(skipLen);
     return pattern;
   }
 
@@ -109,15 +136,15 @@ export class TabsPattern {
     return EMPTY_TABS_PATTERN.tab(tabLength);
   }
 
-  static skip(skipLength: number) {
-    return EMPTY_TABS_PATTERN.skip(skipLength);
+  static base(skipLength: number) {
+    return EMPTY_TABS_PATTERN.base(skipLength);
   }
 
   tab(tabLength: number) {
     return TabsPattern.create(this.pattern.add(true, tabLength));
   }
 
-  skip(skipLength: number) {
+  base(skipLength: number) {
     return TabsPattern.create(this.pattern.add(false, skipLength));
   }
 
@@ -129,12 +156,18 @@ export class TabsPattern {
     return TabsPattern.create(this.pattern.reverse());
   }
 
+  /** Returns a TabsPattern defining tabs that can be connected with these tabs at some angle. */
   matchingTabs() {
     return TabsPattern.create(this.pattern.invert());
   }
 
+  /** Returns a SlotsPattern defining slots that these tabs can be inserted into. */
   matchingSlots() {
     return SlotsPattern.create(this.pattern);
+  }
+
+  length() {
+    return this.pattern.length();
   }
 
   toString() {
@@ -143,36 +176,50 @@ export class TabsPattern {
 
 }
 
+/** A pattern of slots (holes), going through the material. */
 export class SlotsPattern {
 
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = InterlockPattern.create()) {
+  static create(pattern = EMPTY_PATTERN) {
     return new SlotsPattern(pattern);
   }
 
+  /** Creates a slide slot, going from the edge of the material, inside it. */
   static slide(length: number) {
     return SlotsPattern.slot(length).skip(1e-9 * length);
   }
 
+  /**
+   * Creates a pair of matching slide slots, each taking half of the specified length.
+   * The first pattern starts with a lot, the second start with a skip.
+   */
   static slidePair(length: number): [SlotsPattern, SlotsPattern];
+  /**
+   * Creates a pair of matching slide slots, each taking the specified length.
+   * The first pattern starts with a lot, the second start with a skip.
+   */
   static slidePair(slot1Length: number, slot2Length: number): [SlotsPattern, SlotsPattern];
+  /**
+   * Creates a pair of matching slide slots, taking together the specified length.
+   * The first pattern starts with a lot, the second start with a skip.
+   */
   static slidePair(args: {
     length: number,
     slotLengthsRatio?: number,
     slot1LengthFrac?: number,
   }): [SlotsPattern, SlotsPattern];
-  static slidePair(...args: [number] | [number, number] | [{
+  static slidePair(...params: [number] | [number, number] | [{
     length: number,
     slotLengthsRatio?: number,
     slot1LengthFrac?: number,
   }]) {
     let len1, len2;
-    if (args.length == 2)
-      [len1, len2] = args;
+    if (params.length == 2)
+      [len1, len2] = params;
     else {
-      const arg = args[0];
+      const arg = params[0];
       if (typeof arg === "number")
         len1 = len2 = arg / 2;
       else {
@@ -185,15 +232,21 @@ export class SlotsPattern {
         len2 = length - len1;
       }
     }
-    const pat1 = InterlockPattern.create().add(true, len1).add(false, len2);
+    const pat1 = EMPTY_PATTERN.add(true, len1).add(false, len2);
     return [
       SlotsPattern.create(pat1),
       SlotsPattern.create(pat1.invert()),
     ];
   }
 
+  /**
+   * Creates a SlotsPattern with the specified number and size of slots distributed evenly
+   * over the specified length.
+   */
   static distributed({
     length,
+    slotEveryLen,
+    minNumSlots,
     numSlots,
     slotToSkipRatio,
     slotLength,
@@ -201,7 +254,9 @@ export class SlotsPattern {
     endWithSlot,
   }: {
     length: number,
-    numSlots: number,
+    slotEveryLen?: number,
+    minNumSlots?: number,
+    numSlots?: number,
     slotToSkipRatio?: number,
     slotLength?: number,
     startWithSlot?: boolean,
@@ -209,6 +264,8 @@ export class SlotsPattern {
   }) {
     return TabsPattern.distributed({
       length,
+      tabEveryLen: slotEveryLen,
+      minNumTabs: minNumSlots,
       numTabs: numSlots,
       tabToSkipRatio: slotToSkipRatio,
       tabLength: slotLength,
@@ -241,6 +298,7 @@ export class SlotsPattern {
     return SlotsPattern.create(this.pattern.reverse());
   }
 
+  /** Returns a TabsPattern defining tabs that can be inserted into these slots. */
   matchingTabs() {
     return TabsPattern.create(this.pattern);
   }
@@ -251,6 +309,10 @@ export class SlotsPattern {
 
   endsWithSlot() {
     return this.pattern.last()?.active || false;
+  }
+
+  length() {
+    return this.pattern.length();
   }
 
   toString() {

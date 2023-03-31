@@ -14,52 +14,64 @@ class IdHelper {
 
 }
 
+/** A way to reference a Defs element. Different elements need to be refenced differently. */
 export type RefBy = "id" | "url" | "href";
 
 export function getRef(id: string, refBy: RefBy = "url") {
   return new IdHelper(id)[refBy];
 }
 
-export class DefTool extends IdHelper implements Defs {
+/**
+ * A GenericDefTool is a tool that can be used on a piece to change its properties by setting
+ * some (not yet known) attributes and attaching a Defs to it. It is typically used for things like
+ * gradient or pattern, which can then be used as fill or stroke.
+ */
+export class GenericDefTool extends IdHelper implements Defs {
 
   protected constructor(
-    private readonly defs: Defs,
+    protected readonly defs: Defs,
     id: string,
   ) {
     super(id);
   }
 
   static create(defs: Defs, id: string) {
-    return new DefTool(defs, id);
+    return new GenericDefTool(defs, id);
   }
 
   getDefs() {
     return this.defs.getDefs();
   }
 
+  /** Creates an AttributesDefTool that references the tool by href. */
   useByHref() {
-    return this.useByAttributes({href: this.href});
+    return this.useByAttribute("href", "href");
   }
 
+  /**
+   * Creates an AttributesDefTool that references the tool by the specified attribute
+   * or attributes.
+   */
   useByAttribute(attributeName: OrArray<string>, refBy?: RefBy) {
     const ref = getRef(this.id, refBy);
     const attributes: AttributesBuilder = {};
     for (const attrName of flatten(attributeName))
       attributes[attrName] = ref;
-    return this.useByAttributes(attributes);
-  }
-
-  useByAttributes(attributes: Attributes) {
     return AttributesDefTool.create(this.defs, attributes);
   }
 
 }
 
+/**
+ * An AttributesDefTool is a tool that can be used on a piece to change its properties by setting
+ * particular attributes and attaching a Defs to it. It is typically used for things like clip path,
+ * mask or font.
+ */
 export class AttributesDefTool implements Defs {
 
   protected constructor(
-    private readonly defs: Defs,
-    private readonly attributes: Attributes,
+    protected readonly defs: Defs,
+    protected readonly attributes: Attributes,
   ) {
   }
 
@@ -73,10 +85,6 @@ export class AttributesDefTool implements Defs {
 
   asAttributes() {
     return this.attributes;
-  }
-
-  addAttributes(attributes: Attributes) {
-    return new AttributesDefTool(this.defs, {...this.attributes, ...attributes});
   }
 
 }

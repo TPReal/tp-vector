@@ -1,25 +1,38 @@
 import {PartialBoxAlignment} from './alignment.ts';
-import {AttributesDefTool, DefTool, RefBy} from './def_tool.ts';
+import {AttributesDefTool, GenericDefTool, RefBy} from './def_tool.ts';
 import {Attributes, cloneElement, createElement, getElementsBoundingBox, setAttributes, uniqueElements} from './elements.ts';
-import * as figures from './figures.ts';
 import {generateId} from './ids.ts';
-import {Layerable, NO_LAYER, OptionalLayerName, inLayerString} from './layers.ts';
+import {LayerName, Layerable, NO_LAYER, OptionalLayerName, inLayerString} from './layers.ts';
 import {NormaliseArgs, getNormaliseTransform} from './normalise_transform.ts';
-import {parseSVG} from './parse_svg.ts';
+import {Point} from './point.ts';
 import {Tf, Transform, transformedToString} from './transform.ts';
 import {AbstractTransformableTo} from './transformable.ts';
 import {OrArray, OrArrayRest, flatten, flattenFilter} from './util.ts';
-import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMargin, viewBoxMarginFromPartial} from './view_box.ts';
+import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMargin, viewBoxMarginFromPartial, viewBoxFromPartial} from './view_box.ts';
 
+/**
+ * A part of SVG that is not directly rendered, but rather is placed in the `<defs>` element,
+ * and is required for the main graphics to render properly. This might include gradients,
+ * masks, font definitions etc.
+ */
 export interface Defs {
 
   getDefs(): SVGElement[];
 
 }
 
+/**
+ * The most basic part of a project defining a geometry. It is Layerable, it can contain Defs,
+ * and it can produce SVGElement's. Additionally, its bounding box might be defined separately.
+ */
 export interface BasicPiece extends Layerable<BasicPiece>, Partial<Defs> {
 
   getElements(): SVGElement[];
+
+  /**
+   * If specified, returns the elements that should be used to calculate the bounding box of
+   * this Piece. Otherwise, `getElements()` is used.
+   */
   getBoundingBoxElements?(): SVGElement[];
 
 }
@@ -36,6 +49,7 @@ function isBasicPiece(arg: unknown): arg is BasicPiece {
   return hasMethods<BasicPiece>(arg, ["getElements", "setLayer", "selectLayers"]);
 }
 
+/** A Piece wrapping directly a single element. */
 class SVGElementWrapperPiece implements BasicPiece {
 
   protected constructor(
@@ -52,7 +66,7 @@ class SVGElementWrapperPiece implements BasicPiece {
     return [cloneElement(this.element)];
   }
 
-  setLayer(layer: OptionalLayerName) {
+  setLayer(layer: LayerName) {
     return SVGElementWrapperPiece.create(this.element, layer);
   }
 
@@ -62,6 +76,7 @@ class SVGElementWrapperPiece implements BasicPiece {
 
 }
 
+/** A Piece containing only Defs elements. */
 class DefsWrapperPiece implements BasicPiece {
 
   protected constructor(private readonly defs: Defs) {
@@ -92,17 +107,26 @@ class DefsWrapperPiece implements BasicPiece {
 export type PiecePartArg = SVGElement | BasicPiece | Defs;
 export type RestPieceCreateArgs = OrArrayRest<PiecePartArg | undefined>;
 
+function wrapPieceParts(parts: RestPieceCreateArgs): BasicPiece[] {
+  return flattenFilter(parts).map(part =>
+    part instanceof SVGElement ? SVGElementWrapperPiece.create(part) :
+      isBasicPiece(part) ? part : DefsWrapperPiece.create(part));
+}
+
 export type OptMargin = {
   margin?: PartialViewBoxMargin,
 };
 
-export interface PieceFunc<Args extends unknown[] = []> {
-  (piece: Piece, ...args: Args): Piece;
+export interface PieceFunc<P extends Piece = Piece, R = Piece, Args extends unknown[] = []> {
+  (piece: P, ...args: Args): R;
 }
 
-export class Piece extends AbstractTransformableTo<Piece>
-  implements BasicPiece, Layerable<Piece> {
+/** The main building block of the geometry. */
+export class Piece
+  extends AbstractTransformableTo<Piece>
+  implements BasicPiece, Layerable<Piece>, Defs {
 
+  /** Cached bounding box of the Piece. */
   protected boundingBox?: ViewBox;
 
   protected constructor(
@@ -119,16 +143,7 @@ export class Piece extends AbstractTransformableTo<Piece>
   static readonly EMPTY = Piece.create();
 
   static create(...parts: RestPieceCreateArgs): Piece {
-    return new Piece(
-      flattenFilter(parts).map(part =>
-        part instanceof SVGElement ? SVGElementWrapperPiece.create(part) :
-          isBasicPiece(part) ? part : DefsWrapperPiece.create(part),
-      ),
-      Tf, NO_LAYER, [], {}, undefined);
-  }
-
-  static parse(svgElements: string) {
-    return Piece.create(parseSVG(svgElements));
+    return new Piece(wrapPieceParts(parts), Tf, NO_LAYER, [], {}, undefined);
   }
 
   static createElement({
@@ -175,11 +190,14 @@ export class Piece extends AbstractTransformableTo<Piece>
       return this;
     const defsPiece = Piece.create(flatDefs);
     return new Piece(
-      this.parts, this.tf, this.layer, [
-      ...this.defs,
-      ...defsPiece.getDefs(),
-      ...defsPiece.getElements(),
-    ], this.attributes, this.boundingBoxPiece);
+      this.parts, this.tf, this.layer,
+      [
+        ...this.defs,
+        ...defsPiece.getDefs(),
+        ...defsPiece.getElements(),
+      ],
+      this.attributes,
+      this.boundingBoxPiece);
   }
 
   setAttributes(attributes: Attributes) {
@@ -196,7 +214,7 @@ export class Piece extends AbstractTransformableTo<Piece>
       this.boundingBoxPiece);
   }
 
-  then<Args extends unknown[]>(func: PieceFunc<Args>, ...args: Args) {
+  andThen<R, Args extends unknown[]>(func: PieceFunc<this, R, Args>, ...args: Args) {
     return func(this, ...args);
   }
 
@@ -205,23 +223,28 @@ export class Piece extends AbstractTransformableTo<Piece>
   }
 
   asDefTool(id = generateId()) {
-    return DefTool.create(this.setAttributes({id}).asDefs(), id);
+    return GenericDefTool.create(this.setAttributes({id}).asDefs(), id);
   }
 
-  useDefTool(defTool: DefTool, attributeName: OrArray<string>, refBy?: RefBy): Piece;
+  /**
+   * Applies the specified GenericDefTool to this Piece, using the specified attributes
+   * and reference method.
+   */
+  useDefTool(defTool: GenericDefTool, attributeName: OrArray<string>, refBy?: RefBy): Piece;
+  /** Applies the specified AttributesDefTool to this Piece. */
   useDefTool(defTool: AttributesDefTool): Piece;
-  useDefTool(...args: [DefTool, OrArray<string>, RefBy?] | [AttributesDefTool]) {
+  useDefTool(...params: [GenericDefTool, OrArray<string>, RefBy?] | [AttributesDefTool]) {
     let attrDefTools;
-    if (args.length === 1)
-      [attrDefTools] = args;
+    if (params.length === 1)
+      [attrDefTools] = params;
     else {
-      const [defTools, attributeName, refBy] = args;
+      const [defTools, attributeName, refBy] = params;
       attrDefTools = defTools.useByAttribute(attributeName, refBy);
     }
     return this.setAttributes(attrDefTools.asAttributes()).addDefs(attrDefTools);
   }
 
-  setLayer(layer: OptionalLayerName) {
+  setLayer(layer: LayerName) {
     return new Piece(this.parts, this.tf, layer, this.defs, this.attributes,
       this.boundingBoxPiece);
   }
@@ -238,14 +261,15 @@ export class Piece extends AbstractTransformableTo<Piece>
   }
 
   getElements() {
+    // TODO: Consider detecting multiple calls inside the same SVG object, and reusing a single
+    // definition of the element (with `<use>`) instead of including multiple copies.
     return this.withTransformAndAttributes(this.parts.flatMap(part => part.getElements()));
   }
 
   getBoundingBoxElements(): SVGElement[] {
     return this.withTransformAndAttributes(this.boundingBoxPiece ?
       this.boundingBoxPiece.getBoundingBoxElements() :
-      this.parts.flatMap(part =>
-        part.getBoundingBoxElements ? part.getBoundingBoxElements() : part.getElements()));
+      this.parts.flatMap(part => part.getBoundingBoxElements?.() || part.getElements()));
   }
 
   private withTransformAndAttributes(children: SVGElement[]): SVGElement[] {
@@ -290,18 +314,27 @@ export class Piece extends AbstractTransformableTo<Piece>
     });
   }
 
-  asG(attributes: Attributes = {}) {
+  /** Returns a `<g>` element containing the elements defined in this Piece. */
+  asG(attributes?: Attributes) {
+    const elements = this.getElements();
+    if (!attributes && elements.length === 1 && elements[0] instanceof SVGGElement)
+      return elements[0];
     return createElement({
       tagName: "g",
       attributes,
-      children: this.getElements(),
+      children: elements,
     });
   }
 
+  /** Returns a Piece with the same contents as this, but wrapped in a `<g>` element. */
   wrapInG(attributes: Attributes = {}) {
     return Piece.create(this.asG(attributes)).addDefs(this.getDefs());
   }
 
+  /**
+   * Returns this Piece's bounding box, plus the optional margin.
+   * Note that this operation might be slow because it requires the browser to compute layout.
+   */
   getBoundingBox(margin?: PartialViewBoxMargin): ViewBox {
     if (!this.boundingBox) {
       const defs = this.getDefsElement();
@@ -314,40 +347,51 @@ export class Piece extends AbstractTransformableTo<Piece>
   setBoundingBox(boundingBox: SVGElement | BasicPiece | PartialViewBox): Piece {
     if (!this.tf.svgTransform)
       return new Piece(this.parts, this.tf, this.layer, this.defs, this.attributes,
-        (boundingBox instanceof SVGElement) || isBasicPiece(boundingBox) ?
-          Piece.create(boundingBox) :
-          figures.rectangle(boundingBox));
+        Piece.create(
+          (boundingBox instanceof SVGElement) || isBasicPiece(boundingBox) ?
+            boundingBox : boundingBoxRect(boundingBox))
+      );
     return Piece.create(this).setBoundingBox(boundingBox);
   }
 
-  mirrorX() {
-    return gather(this, this.flipX());
+  extendBoundingBox(margin: PartialViewBoxMargin) {
+    return this.setBoundingBox(extendViewBox(this.getBoundingBox(), margin));
   }
 
-  mirrorY() {
-    return gather(this, this.flipY());
+  /** Returns this together with a flipped copy. */
+  mirrorX(centerX?: number) {
+    return gather(this, this.flipX(centerX));
   }
 
-  mirrorXY() {
-    return this.mirrorX().mirrorY();
+  mirrorY(centerY?: number) {
+    return gather(this, this.flipY(centerY));
   }
 
+  mirrorXY(center?: Point) {
+    return this.mirrorX(center?.[0]).mirrorY(center?.[1]);
+  }
+
+  /** Normalises (i.e. scales and/or translates) the piece to match the specified params. */
   normalise(params: NormaliseArgs, {margin}: OptMargin = {}) {
     return this.transform(getNormaliseTransform(this.getBoundingBox(margin), params));
   }
 
+  /** Centers the piece around the origin point. */
   center() {
     return this.normalise("center");
   }
 
+  /** Centers the piece inside the specified target area. */
   centerIn(target: PartialViewBox, marginParams?: OptMargin) {
     return this.normalise({target, align: "center"}, marginParams)
   }
 
+  /** Centers the piece around the origin point and scales so that the larger size has length 1. */
   centerAndFitTo1By1(marginParams?: OptMargin) {
     return this.centerIn({centered: true}, marginParams);
   }
 
+  /** Pads the Piece, relative to its current bounding box. */
   pad(padding: PartialViewBoxMargin, align?: PartialBoxAlignment) {
     return this.normalise({
       target: extendViewBox(
@@ -365,6 +409,24 @@ export class Piece extends AbstractTransformableTo<Piece>
 
 }
 
+/** A helper superclass for subclasses of Piece. */
+export abstract class DefaultPiece extends Piece {
+
+  protected constructor(...parts: RestPieceCreateArgs) {
+    super(wrapPieceParts(parts), Tf, NO_LAYER, [], {}, undefined);
+  }
+
+}
+
+/** Gathers multiple objects into a single Piece. */
 export function gather(...parts: RestPieceCreateArgs) {
   return Piece.create(...parts);
+}
+
+function boundingBoxRect(boundingBox: PartialViewBox) {
+  const {minX, minY, width, height} = viewBoxFromPartial(boundingBox);
+  return createElement({
+    tagName: "rect",
+    attributes: {x: minX, y: minY, width, height},
+  });
 }

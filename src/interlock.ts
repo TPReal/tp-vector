@@ -2,34 +2,54 @@ import {InterlockPattern, SlotsPattern, TabsPattern} from './interlock_patterns.
 import * as kerfUtil from './kerf_util.ts';
 import {Kerf} from './kerf_util.ts';
 import {Turtle, TurtleFunc} from './turtle.ts';
-import {hasOwnProperty} from './util.ts';
 
 export interface PartialTabsOptions {
+  /** Kerf correction, affecting connection tightness. */
   kerf: Kerf;
+  /** Thickness of the material, corresponding with the width of the tabs. */
   thickness: number;
-  innerCornersRadius?: number;
+  /** To which side should the tabs go from the base line; or the edge of the material. */
+  tabsDir: "right" | "left";
+  /** Radius of the corners of the tabs, to make them slide in easier. */
   outerCornersRadius?: number;
+  /**
+   * Concave radius of the inner corners. It is recommended for materials that might break easily
+   * due to tension, like acrylic.
+   */
+  innerCornersRadius?: number;
 }
 export interface TabsOptions extends Readonly<Required<PartialTabsOptions>> {
 }
 export function tabsOptionsFromPartial({
   kerf,
   thickness,
-  innerCornersRadius = 0,
+  tabsDir,
   outerCornersRadius = 0,
+  innerCornersRadius = 0,
 }: PartialTabsOptions): TabsOptions {
   return {
     kerf,
     thickness,
-    innerCornersRadius,
+    tabsDir,
     outerCornersRadius,
+    innerCornersRadius,
   };
 }
 
 export interface PartialSlotsOptions {
+  /** Kerf correction, affecting connection tightness. */
   kerf: Kerf;
+  /** Thickness of the material, corresponding with the width of the slots. */
   thickness: number;
+  /**
+   * Kerf correction applied to thickness, or false to disable. By default true, which means
+   * same as kerf.
+   */
   slotWidthKerf?: boolean | Kerf;
+  /**
+   * Concave radius of the corners. It is recommended for materials that might break easily
+   * due to tension, like acrylic.
+   */
   innerCornersRadius?: number;
 }
 export interface SlotsOptions extends Readonly<Required<PartialSlotsOptions>> {
@@ -41,10 +61,10 @@ export interface SlotsOptions extends Readonly<Required<PartialSlotsOptions>> {
 export function slotsOptionsFromPartial({
   kerf,
   thickness,
-  slotWidthKerf: swkInput = true,
+  slotWidthKerf: wKerfInput = true,
   innerCornersRadius = 0,
 }: PartialSlotsOptions): SlotsOptions {
-  const slotWidthKerf = swkInput === true ? kerf : swkInput || kerfUtil.ZERO;
+  const slotWidthKerf = wKerfInput === true ? kerf : wKerfInput || kerfUtil.ZERO;
   return {
     kerf,
     thickness,
@@ -53,31 +73,35 @@ export function slotsOptionsFromPartial({
   };
 }
 
-export interface PartialInterlockOptions
-  extends PartialTabsOptions, PartialSlotsOptions {
-}
-
 interface TabsArgs {
   pattern: TabsPattern;
-  dir: "right" | "left";
+  /** Override for `options.tabsDir`. */
+  dir?: "right" | "left";
+  /** Whether the edge starts and ends at the level of the tab (and not the base line). */
   onTabLevel?: boolean;
+  /** Whether the edge starts at the level of the tab (and not the base line). */
   startOnTab?: boolean;
+  /** Whether the edge ends at the level of the tab (and not the base line). */
   endOnTab?: boolean;
   options: PartialTabsOptions;
 }
 
 interface SlotsArgs {
   pattern: SlotsPattern;
+  /** To which side of the base line should the slots go. */
   dir?: "right" | "left" | "center";
   options: PartialSlotsOptions;
 }
 
-type ArgsWithOptionsSupplement<Args extends TabsArgs | SlotsArgs> =
+type ArgsWithOptionsSupplementInterface<Args extends TabsArgs | SlotsArgs> =
   Omit<Args, "options"> & {options?: Partial<Args["options"]>};
 
-interface ExportedFunc<Args extends TabsArgs | SlotsArgs> extends TurtleFunc<[Args]> {
-  (args: Args): TurtleFunc;
-  (options: Args["options"]): TurtleFunc<[ArgsWithOptionsSupplement<Args>]>;
+type ArgsWithOptionsSupplement<Args extends TabsArgs | SlotsArgs> =
+  Args["pattern"] | ArgsWithOptionsSupplementInterface<Args>;
+
+function isPattern<Args extends TabsArgs | SlotsArgs>(object: ArgsWithOptionsSupplement<Args>):
+  object is Args["pattern"] {
+  return object instanceof TabsPattern || object instanceof SlotsPattern;
 }
 
 function makeExportedFunc<Args extends TabsArgs | SlotsArgs>(base: TurtleFunc<[Args]>):
@@ -88,11 +112,14 @@ function makeExportedFunc<Args extends TabsArgs | SlotsArgs>(base: TurtleFunc<[A
   function funcFromOpts(options: Args["options"]):
     TurtleFunc<[ArgsWithOptionsSupplement<Args>]> {
     return (t, argsSupplement) => {
+      const argsSuppl: ArgsWithOptionsSupplementInterface<Args> = isPattern(argsSupplement) ?
+        {pattern: argsSupplement} as ArgsWithOptionsSupplementInterface<Args> :
+        argsSupplement;
       return base(t, {
-        ...argsSupplement,
+        ...argsSuppl,
         options: {
           ...options,
-          ...argsSupplement.options,
+          ...argsSuppl.options,
         } satisfies Args["options"],
       } as Args);
     };
@@ -104,8 +131,7 @@ function makeExportedFunc<Args extends TabsArgs | SlotsArgs>(base: TurtleFunc<[A
   function isArgsParams(args: Parameters<typeof funcFromArgs | typeof funcFromOpts>):
     args is Parameters<typeof funcFromArgs> {
     const [arg] = args;
-    return hasOwnProperty(arg, "pattern") && hasOwnProperty(arg, "dir") &&
-      hasOwnProperty(arg, "options");
+    return Object.hasOwn(arg, "pattern") && Object.hasOwn(arg, "options");
   }
   function func(...args: Parameters<typeof base>): ReturnType<typeof base>;
   function func(...args: Parameters<typeof funcFromArgs>): ReturnType<typeof funcFromArgs>;
@@ -205,13 +231,15 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
   endOnTab: endActive = onTabLevel,
   options,
 }) => {
-  const {kerf, thickness, innerCornersRadius, outerCornersRadius} =
+  const {kerf, thickness, outerCornersRadius, innerCornersRadius} =
     tabsOptionsFromPartial(options);
   const progression = patternProgression({
     pattern: pattern.pattern,
     startActive,
     endActive,
   });
+  dir ||= options.tabsDir;
+  const dirNum = dir === "right" ? 1 : dir === "left" ? -1 : dir satisfies never;
   for (let i = 0; i + 2 < progression.length; i++) {
     const [prev, curr, next] = progression.slice(i, i + 3);
     if (curr.kind === "forward") {
@@ -232,11 +260,11 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
       const neighs = [prev, next];
       const [[r1Sign, r1Val], [r2Sign, r2Val]] = radii.map((r, ri) =>
         signAbs(neighs[ri].kind === "boundary" ? 0 : r));
-      const d = (dir === "right" ? 1 : -1) * (curr.newActive ? 1 : -1);
+      const d = dirNum * (curr.newActive ? 1 : -1);
       t = t.forward(preLen - r1Val)
-        .then(arcTurn, r1Sign, r1Val, d)
+        .andThen(arcTurn, r1Sign, r1Val, d)
         .forward(thickness - r1Val - r2Val)
-        .then(arcTurn, r2Sign, r2Val, -d)
+        .andThen(arcTurn, r2Sign, r2Val, -d)
         .forward(postLen - r2Val);
     }
   }
@@ -275,9 +303,9 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
           const [prev, curr, next] = progression.slice(i, i + 3);
           if (curr.kind === "forward") {
             if (prev.kind === "boundary")
-              t = t.then(fwd, curr.active, curr.length / 2);
+              t = t.andThen(fwd, curr.active, curr.length / 2);
             if (next.kind === "boundary")
-              t = t.then(fwd, curr.active, curr.length / 2);
+              t = t.andThen(fwd, curr.active, curr.length / 2);
           } else if (curr.kind === "activeEdge") {
             const kerfCorrection = curr.useKerf ?
               kerf.oneSideInUnits * (curr.newActive ? 1 : -1) : 0;
@@ -287,17 +315,17 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
               throw new Error(`Kerf too big, negative edge`);
             const [rSign, rVal] = signAbs(-innerCornersRadius);
             if (curr.newActive)
-              t = t.then(fwd, false, preLen)
+              t = t.andThen(fwd, false, preLen)
                 .right(90 * d)
                 .forward(halfWid - rVal)
-                .then(arcTurn, rSign, rVal, -d)
+                .andThen(arcTurn, rSign, rVal, -d)
                 .forward(postLen - rVal);
             else
               t = t.forward(preLen - rVal)
-                .then(arcTurn, rSign, rVal, -d)
+                .andThen(arcTurn, rSign, rVal, -d)
                 .forward(halfWid - rVal)
                 .right(90 * d)
-                .then(fwd, false, postLen);
+                .andThen(fwd, false, postLen);
           }
         }
         return t;
@@ -308,9 +336,27 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   );
 }
 
+/**
+ * A TurtleFunc that produces tabs or slots. It can also be used as a regular function taking
+ * the args object, or only options, and returning a TurtleFunc that doesn't require specifying
+ * the already specified parts.
+ */
+interface ExportedFunc<Args extends TabsArgs | SlotsArgs>
+  extends TurtleFunc<[Args]> {
+  (args: Args): TurtleFunc;
+  (options: Args["options"]): TurtleFunc<[ArgsWithOptionsSupplement<Args>]>;
+}
+
+/** A turtle function that can produce tabs. */
 export const turtleTabs: ExportedFunc<TabsArgs> = makeExportedFunc(TURTLE_TABS_BASE_FUNC);
+/** A turtle function that can produce slots. */
 export const turtleSlots: ExportedFunc<SlotsArgs> = makeExportedFunc(TURTLE_SLOTS_BASE_FUNC);
 
+export interface PartialInterlockOptions
+  extends PartialTabsOptions, PartialSlotsOptions {
+}
+
+/** Returns a pair of TurtleFunc's for tabs and for slots, given the options. */
 export function turtleInterlock(options: PartialInterlockOptions) {
   return {
     tabs: turtleTabs(options),
@@ -319,9 +365,9 @@ export function turtleInterlock(options: PartialInterlockOptions) {
 }
 
 export function tabsPiece(args: TabsArgs) {
-  return Turtle.create().then(TURTLE_TABS_BASE_FUNC, args).asPath();
+  return Turtle.create().andThen(TURTLE_TABS_BASE_FUNC, args).asPath();
 }
 
 export function slotsPiece(args: SlotsArgs) {
-  return Turtle.create().then(TURTLE_SLOTS_BASE_FUNC, args).asPath();
+  return Turtle.create().andThen(TURTLE_SLOTS_BASE_FUNC, args).asPath();
 }

@@ -3,30 +3,40 @@ import {lazyPiece} from './lazy_piece.ts';
 import {Point, pointsToString} from './point.ts';
 import {OrArrayRest, flatten} from './util.ts';
 
-export interface QuadraticArgs {
-  point1: Point;
-  target: Point;
-}
-
+/**
+ * Parameters of a quadratic Bézier curve drawn directly after another quadratic curve.
+ * If the control point is not specified, it is a reflection of the previous control point.
+ */
 export interface NextQuadraticArgs {
   point1?: Point;
   target: Point;
 }
-
-export interface BezierArgs extends QuadraticArgs {
-  point2: Point;
+/** Parameters of a quadratic Bézier curve. */
+export interface QuadraticArgs extends Required<Readonly<NextQuadraticArgs>> {
 }
 
-export interface NextBezierArgs extends NextQuadraticArgs {
+/**
+ * Parameters of a cubic Bézier curve drawn directly after another cubic curve.
+ * If the first control point is not specified, it is a reflection of the previous control point.
+ */
+export interface NextCubicArgs extends NextQuadraticArgs {
   point2: Point;
 }
+/** Parameters of a cubic Bézier curve. */
+export interface CubicArgs extends Required<Readonly<NextCubicArgs>> {
+}
 
+
+/**
+ * Parameters of an arc.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#arcs
+ */
 export interface PartialArcArgs {
   radiusX: number;
   radiusY?: number;
   xAxisRotationDeg?: number;
   largeArc?: boolean;
-  clockwiseSweep: boolean;
+  clockwise: boolean;
   target: Point;
 }
 interface ArcArgs extends Required<PartialArcArgs> {
@@ -36,12 +46,13 @@ function arcArgsFromPartial({
   radiusY = radiusX,
   xAxisRotationDeg = 0,
   largeArc = false,
-  clockwiseSweep,
+  clockwise,
   target,
 }: PartialArcArgs): ArcArgs {
-  return {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwiseSweep, target};
+  return {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwise, target};
 }
 
+/** A builder for a `<path>` element. */
 export class Path extends lazyPiece<Path, [Point?]>() {
 
   protected constructor(private readonly commands: readonly string[]) {
@@ -52,6 +63,10 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     return new Path([]).moveTo(start);
   }
 
+  /**
+   * Creates a Path from the value of a d attribute.
+   * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
+   */
   static fromD(...commandsOrD: OrArrayRest<string>) {
     return new Path(flatten(commandsOrD));
   }
@@ -72,6 +87,7 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     return new pathClass([...this.commands, ...newElements]);
   }
 
+  /** Moves to the point, without drawing a line. */
   moveTo(target: Point, {relative = false} = {}) {
     return this.append([{
       command: "M",
@@ -100,6 +116,7 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     return this.appendLineTo(targets, true);
   }
 
+  /** Draws a horizontal line. */
   horizontal(x: number, {relative = false} = {}) {
     return this.append([{command: "H", args: String(x), relative}]);
   }
@@ -108,6 +125,7 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     return this.horizontal(dx, {relative: true});
   }
 
+  /** Draws a vertical line. */
   vertical(y: number, {relative = false} = {}) {
     return this.append([{command: "V", args: String(y), relative}]);
   }
@@ -116,6 +134,7 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     return this.vertical(dy, {relative: true});
   }
 
+  /** Closes the path by going back to the beginning. */
   closePath() {
     return this.append([{command: "Z"}]);
   }
@@ -136,6 +155,10 @@ export class Path extends lazyPiece<Path, [Point?]>() {
       }), LastQuadraticPath);
   }
 
+  /**
+   * Draws a quadratic Bézier curve.
+   * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#bézier_curves
+   */
   quadratic(args: QuadraticArgs, ...nextArgs: NextQuadraticArgs[]) {
     return this.appendQuadratic({args: [args, ...nextArgs]});
   }
@@ -144,10 +167,10 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     return this.appendQuadratic({args: [args, ...nextArgs], relative: true});
   }
 
-  protected appendBezier({args, relative = false}: {
-    args: NextBezierArgs[],
+  protected appendCubic({args, relative = false}: {
+    args: NextCubicArgs[],
     relative?: boolean,
-  }): LastBezierPath {
+  }): LastCubicPath {
     return this.append(args.map(({point1, point2, target}) =>
       point1 ? {
         command: "C",
@@ -157,15 +180,19 @@ export class Path extends lazyPiece<Path, [Point?]>() {
         command: "S",
         args: pointsToString([point2, target]),
         relative,
-      }), LastBezierPath);
+      }), LastCubicPath);
   }
 
-  bezier(args: BezierArgs, ...nextArgs: NextBezierArgs[]) {
-    return this.appendBezier({args: [args, ...nextArgs]});
+  /**
+   * Draws a cubic Bézier curve.
+   * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#b%C3%A9zier_curves
+   */
+  cubic(args: CubicArgs, ...nextArgs: NextCubicArgs[]) {
+    return this.appendCubic({args: [args, ...nextArgs]});
   }
 
-  relativeBezier(args: BezierArgs, ...nextArgs: NextBezierArgs[]) {
-    return this.appendBezier({args: [args, ...nextArgs], relative: true});
+  relativeCubic(args: CubicArgs, ...nextArgs: NextCubicArgs[]) {
+    return this.appendCubic({args: [args, ...nextArgs], relative: true});
   }
 
   private appendArc({args, relative = false}: {
@@ -173,16 +200,22 @@ export class Path extends lazyPiece<Path, [Point?]>() {
     relative?: boolean,
   }) {
     return this.append(args.map(arcArgs => {
-      const {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwiseSweep, target} =
+      const {radiusX, radiusY, xAxisRotationDeg, largeArc, clockwise, target} =
         arcArgsFromPartial(arcArgs);
       return {
         command: "A",
-        args: `${radiusX},${radiusY} ${xAxisRotationDeg} ${Number(largeArc)} ${Number(clockwiseSweep)} ${pointsToString([target])}`,
+        args: `${radiusX},${radiusY} ${xAxisRotationDeg} ` +
+          `${Number(largeArc)} ${Number(clockwise)} ` +
+          pointsToString([target]),
         relative,
       };
     }));
   }
 
+  /**
+   * Draws an arc.
+   * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#arcs
+   */
   arc(...args: PartialArcArgs[]) {
     return this.appendArc({args});
   }
@@ -213,14 +246,14 @@ class LastQuadraticPath extends Path {
 
 }
 
-class LastBezierPath extends Path {
+class LastCubicPath extends Path {
 
-  bezier(...args: NextBezierArgs[]) {
-    return this.appendBezier({args});
+  cubic(...args: NextCubicArgs[]) {
+    return this.appendCubic({args});
   }
 
-  relativeBezier(...args: NextBezierArgs[]) {
-    return this.appendBezier({args, relative: true});
+  relativeCubic(...args: NextCubicArgs[]) {
+    return this.appendCubic({args, relative: true});
   }
 
 }

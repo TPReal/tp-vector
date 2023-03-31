@@ -15,6 +15,7 @@ function download({name, url, onClickFunc}: {
   link.remove();
 }
 
+/** Triggers saving of the SVG as a file with the specified name. */
 export function saveSVG({name, svg}: {
   name: string,
   svg: SVGSVGElement,
@@ -23,7 +24,8 @@ export function saveSVG({name, svg}: {
   download({name, url, onClickFunc: cleanUpFunc});
 }
 
-export function saveSVGAsPNG({
+/** Triggers saving of the SVG as a PNG file with the specified name. */
+export async function saveSVGAsPNG({
   name,
   svg,
   conversionParams,
@@ -32,7 +34,5 @@ export function saveSVGAsPNG({
   svg: SVGSVGElement,
   conversionParams: PartialPNGConversionParams,
 }) {
-  getPNGDataURI(svg, conversionParams).then(dataURI => {
-    download({name, url: dataURI});
-  });
+  download({name, url: await getPNGDataURI(svg, conversionParams)});
 }

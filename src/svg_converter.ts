@@ -1,10 +1,10 @@
-import {PNGAllowTransparency, globalOptions} from './global_options.ts';
+import {PNGAllowTransparency, getGlobalOptions} from './global_options.ts';
 import {assert} from './util.ts';
 
 export function getSVGObjectURL(svg: SVGSVGElement) {
-  const url = URL.createObjectURL(
-    new Blob([new XMLSerializer().serializeToString(svg)],
-      {type: "image/svg+xml;charset=utf-8"}));
+  const url = URL.createObjectURL(new Blob(
+    [new XMLSerializer().serializeToString(svg)],
+    {type: "image/svg+xml;charset=utf-8"}));
   return {
     url,
     cleanUpFunc: () => {
@@ -25,7 +25,7 @@ interface PNGConversionParams {
 }
 function pngConversionParamsFromPartial({
   pixelsPerUnit,
-  allowTransparency = globalOptions().pngAllowTransparency,
+  allowTransparency = getGlobalOptions().pngAllowTransparency,
 }: PartialPNGConversionParams): PNGConversionParams {
   return {
     pixelsPerUnit,
@@ -33,6 +33,7 @@ function pngConversionParamsFromPartial({
   };
 }
 
+/** Converts the SVG to PNG, returned as a data URI, using the specified conversion params. */
 export async function getPNGDataURI(
   svg: SVGSVGElement, conversionParams: PartialPNGConversionParams): Promise<string> {
   const {

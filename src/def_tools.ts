@@ -1,34 +1,49 @@
+import {AttributesDefTool} from './def_tool.ts';
 import {Attributes} from './elements.ts';
 import {Piece, PiecePartArg} from './pieces.ts';
-import {Point} from './point.ts';
 import {Transform} from './transform.ts';
-import {OrArray, hasOwnProperty} from './util.ts';
+import {OrArray} from './util.ts';
 
 interface AttributesAndId {
   attributes?: Attributes;
   id?: string;
 }
 
+type PiecesArg = OrArray<PiecePartArg | undefined>;
 type PiecesAttributesAndId<P extends string = "pieces"> = AttributesAndId & {
-  [key in P]: OrArray<PiecePartArg | undefined>;
+  [key in P]: PiecesArg;
 }
 type PartialPieceAttributesAndId<P extends string> =
-  PiecePartArg | PiecesAttributesAndId<P>;
+  PiecesArg | PiecesAttributesAndId<P>;
 
-function isPiecePartArg<P extends string>(
-  arg: PartialPieceAttributesAndId<P>, piecesPath: P): arg is PiecePartArg {
-  return !(Object.getPrototypeOf(arg) === Object.prototype &&
-    hasOwnProperty(arg, piecesPath));
+function isPiecesArg<P extends string>(
+  arg: PartialPieceAttributesAndId<P>, piecesPath: P): arg is PiecesArg {
+  return !(arg && Object.getPrototypeOf(arg) === Object.prototype &&
+    Object.hasOwn(arg, piecesPath));
 }
 
 function piecesAttributesAndIdFromPartial<P extends string>(
   arg: PartialPieceAttributesAndId<P>, piecesPath: P): PiecesAttributesAndId {
-  if (isPiecePartArg(arg, piecesPath))
+  if (isPiecesArg(arg, piecesPath))
     return {pieces: arg};
   const {attributes, id, [piecesPath]: pieces} = arg;
   return {attributes, id, pieces};
 }
 
+/**
+ * Creates a clip path AttributesDefTool, used to restrict the painting region of a Piece.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
+ */
+export function createClipPath(path: PiecesArg): AttributesDefTool;
+/**
+ * Creates a clip path AttributesDefTool, used to restrict the painting region of a Piece.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath
+ */
+export function createClipPath(args: {
+  paths: PiecePartArg,
+  attributes?: Attributes,
+  id?: string,
+}): AttributesDefTool;
 export function createClipPath(arg: PartialPieceAttributesAndId<"paths">) {
   const {pieces, attributes, id} = piecesAttributesAndIdFromPartial(arg, "paths");
   return Piece.createElement({
@@ -38,6 +53,20 @@ export function createClipPath(arg: PartialPieceAttributesAndId<"paths">) {
   }).asDefTool(id).useByAttribute("clip-path");
 }
 
+/**
+ * Creates an alpha mask AttributesDefTool.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
+ */
+export function createMask(mask: PiecesArg): AttributesDefTool;
+/**
+ * Creates an alpha mask AttributesDefTool.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask
+ */
+export function createMask(args: {
+  mask: PiecePartArg,
+  attributes?: Attributes,
+  id?: string,
+}): AttributesDefTool;
 export function createMask(arg: PartialPieceAttributesAndId<"mask">) {
   const {pieces, attributes, id} = piecesAttributesAndIdFromPartial(arg, "mask");
   return Piece.createElement({
@@ -47,16 +76,21 @@ export function createMask(arg: PartialPieceAttributesAndId<"mask">) {
   }).asDefTool(id).useByAttribute("mask");
 }
 
-type AttributeValue = number | string;
-type AttributePoint = Point | [AttributeValue | undefined, AttributeValue | undefined];
+/**
+ * Value of a coordinate, expressed as the fraction of size.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/linearGradient
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/radialGradient
+ */
+export type GradientCoordFrac = number;
+export type GradientFracPoint = readonly [GradientCoordFrac | undefined, GradientCoordFrac | undefined];
 
 export interface GradientStopValue {
   readonly color?: string;
-  readonly opacity?: number | string;
+  readonly opacity?: number;
 }
 
 export interface GradientStop extends GradientStopValue {
-  readonly offset: number | string;
+  readonly offset: number;
 }
 
 export type GradientStops = GradientStop[];
@@ -64,6 +98,8 @@ export type GradientStops = GradientStop[];
 export interface GradientStopFunc {
   (offset: number): GradientStopValue | undefined;
 }
+
+const DEFAULT_NUM_STOPS_FOR_FUNC = 11;
 
 export interface GradientStopsFuncWithRange {
   startOffset?: number;
@@ -83,7 +119,7 @@ export function gradientStopsFromPartial(arg: PartialGradientStops): GradientSto
   if (Array.isArray(arg)) {
     function isGradientStops(arg: GradientStops | [GradientStopValue, GradientStopValue]):
       arg is GradientStops {
-      return arg.length !== 2 || hasOwnProperty(arg[0], "offset");
+      return arg.length !== 2 || Object.hasOwn(arg[0], "offset");
     }
     if (isGradientStops(arg))
       return arg;
@@ -92,7 +128,7 @@ export function gradientStopsFromPartial(arg: PartialGradientStops): GradientSto
   const {
     startOffset = 0,
     endOffset = 1,
-    numStops = 11,
+    numStops = DEFAULT_NUM_STOPS_FOR_FUNC,
     offsetStep = (endOffset - startOffset) / (numStops - 1),
     func,
   } = typeof arg === "function" ? {func: arg} satisfies GradientStopsFuncWithRange : arg;
@@ -107,12 +143,7 @@ export function gradientStopsFromPartial(arg: PartialGradientStops): GradientSto
   return stops;
 }
 
-export interface RadialGradientEnd {
-  readonly center?: AttributePoint;
-  readonly radius?: AttributeValue;
-}
-
-const NO_POINT: AttributePoint = [undefined, undefined];
+const NO_POINT: GradientFracPoint = [undefined, undefined];
 
 function createStopElement({offset, color, opacity}: GradientStop) {
   return Piece.createElement({
@@ -125,6 +156,10 @@ function createStopElement({offset, color, opacity}: GradientStop) {
   });
 }
 
+/**
+ * Creates a linear gradient GenericDefTool, usable as fill or stroke.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/linearGradient
+ */
 export function createLinearGradient({
   stops,
   spread,
@@ -136,8 +171,8 @@ export function createLinearGradient({
 }: {
   stops: PartialGradientStops,
   spread?: "pad" | "reflect" | "repeat",
-  from?: AttributePoint,
-  to?: AttributePoint,
+  from?: GradientFracPoint,
+  to?: GradientFracPoint,
   transform?: Transform,
 } & AttributesAndId) {
   return Piece.createElement({
@@ -155,6 +190,15 @@ export function createLinearGradient({
   }).asDefTool(id);
 }
 
+export interface RadialGradientEnd {
+  readonly center?: GradientFracPoint;
+  readonly radius?: GradientCoordFrac;
+}
+
+/**
+ * Creates a radial gradient GenericDefTool, usable as fill or stroke.
+ * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/radialGradient
+ */
 export function createRadialGradient({
   stops,
   spread,
@@ -175,13 +219,13 @@ export function createRadialGradient({
     children: gradientStopsFromPartial(stops).map(createStopElement),
     attributes: {
       spreadMethod: spread,
-      cx: circle.center && circle.center[0],
-      cy: circle.center && circle.center[1],
+      cx: circle.center?.[0],
+      cy: circle.center?.[1],
       r: circle.radius,
-      fx: from.center && from.center[0],
-      fy: from.center && from.center[1],
+      fx: from.center?.[0],
+      fy: from.center?.[1],
       fr: from.radius,
-      gradientTransform: transform && transform.svgTransform,
+      gradientTransform: transform?.svgTransform,
       ...attributes,
     },
   }).asDefTool(id);

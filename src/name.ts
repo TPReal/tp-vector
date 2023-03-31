@@ -10,6 +10,16 @@ export function getNameSizeSuffix({width}: {width: number}, millimetersPerUnit?:
   return `__w${getSizeString(width, millimetersPerUnit).replace(".", "_")}`;
 }
 
-export function getSuffixedName(name: string, nameSuffix: string | undefined) {
-  return nameSuffix ? name + nameSuffix : name;
+export function getSuffixedFileName(fileName: string, fileNameSuffix: string | undefined) {
+  return fileNameSuffix ? fileName + fileNameSuffix : fileName;
+}
+
+export function toFileName(name: string) {
+  return name
+    .replaceAll(/(\p{Lu}+)(?=\p{Lu}\p{Ll})/gu, "$1 ")
+    .replaceAll(/(\p{Ll})(\p{Lu})/gu, "$1 $2")
+    .split(/(?:\p{Z}|\p{P})+/gu)
+    .filter(Boolean)
+    .join("_")
+    .toLocaleLowerCase();
 }

@@ -1,21 +1,21 @@
 import {Attributes, createElement, createSVG, setAttributes} from './elements.ts';
 import * as figures from './figures.ts';
-import {RasterImage} from './images.ts';
-import {getNameSizeSuffix, getSizeString, getSuffixedName} from './name.ts';
+import {Image} from './images.ts';
+import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Piece, gather} from './pieces.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
-import {OrArray, assert, flatten, flattenFilter} from './util.ts';
+import {OrArray, flatten, flattenFilter, assert} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, viewBoxFromPartial, viewBoxMarginFromPartial, viewBoxToString} from './view_box.ts';
 
 const DEFAULT_SVG_BORDER_STYLE = "solid #00f4 1px";
 
-type BorderParams = string | boolean;
+type SVGBorderStyle = string | boolean;
 
 function addBorder(
-  element: HTMLElement | SVGSVGElement, border: BorderParams) {
+  element: HTMLElement | SVGSVGElement, border: SVGBorderStyle) {
   if (border)
     element.style.border = border === true ? DEFAULT_SVG_BORDER_STYLE : border;
 }
@@ -38,7 +38,7 @@ interface PartialRunsSelectorInterface {
   cornersMarker?: boolean | "auto";
   reversingFrame?: boolean | "auto";
 }
-type PartialRunsSelector = PartialRunsSelectorInterface | string[];
+export type PartialRunsSelector = PartialRunsSelectorInterface | string[];
 export interface RunsSelector {
   runs: string[] | "all";
   cornersMarker: boolean;
@@ -59,8 +59,6 @@ export interface LaserSVGParams {
 }
 
 export type ButtonSaveFormat = SaveFormat | "both";
-
-const DEFAULT_SHEET_NAME = "sheet";
 
 const DEFAULT_RUNS: PartialRunOptions[] = [{type: "print"}, {type: "cut"}];
 
@@ -279,8 +277,9 @@ export class Sheet {
       const runOptions = this.getRunOptions(id);
       let group;
       if (runOptions.type === "print" && printsAsImages)
-        group = RasterImage.fromDataURI({
-          dataURI: await getPNGDataURI(
+        // TODO: Consider converting pieces to PNG separately, at declared levels.
+        group = (await Image.fromURL({
+          url: await getPNGDataURI(
             await this.getRawSVG({
               medium,
               printsAsImages: false,
@@ -294,7 +293,8 @@ export class Sheet {
             width: this.viewBox.width,
             height: this.viewBox.height,
           },
-        }).translate(this.viewBox.minX, this.viewBox.minY)
+        }))
+          .translate(this.viewBox.minX, this.viewBox.minY)
           .asG({id: runOptions.id});
       else
         group = this.getRunPiece({runOptions, medium});
@@ -340,39 +340,49 @@ export class Sheet {
     const {handles} = this.options.laserRunsOptions;
     if (!handles)
       return undefined;
-    const ids = this.getAllRunIdsInNaturalOrder();
+    const ids = this.getHandleRuns();
+    if (ids.length < 2)
+      return undefined;
     const wid = this.viewBox.width / ids.length;
     const baseWid = 100;
     const handleViewBox = extendViewBox(viewBoxFromPartial({
       width: baseWid,
       height: 15,
-      ...handles === "above" ? {maxY: 0} : handles === "below" ? {minY: 0} : handles satisfies never,
+      ...handles === "above" ? {maxY: 0} :
+        handles === "below" ? {minY: 0} :
+          handles satisfies never,
     }), -2);
-    return new Map(ids.map((id, index) => [
-      id,
-      gather(
-        figures.rectangle(handleViewBox).setAttributes({
-          stroke: "none",
-          fill: this.options.laserRunsOptions.colorCodes ? undefined : "black",
-        }),
-        createText(id, {
-          size: 5,
-          font: "monospace",
-        }).normalise({
-          target: handleViewBox,
-          align: {y: "center"},
-        }, {margin: 1}).setAttributes({fill: "white"}),
-      ).setAttributes({stroke: "none"})
-        .moveRight(index * baseWid)
-        .scale(wid / baseWid)
-        .translate(this.viewBox.minX, this.viewBox.minY)
-        .moveDown(handles === "below" ? this.viewBox.height : 0)
-        .asG({id: `${id}-handle`}),
-    ]));
+    const textAttribs = {size: 5, font: "monospace"};
+    return new Map(ids.map(({runId, type}, index) => {
+      const typeText = createText(type, textAttribs).normalise({
+        target: handleViewBox,
+        align: {x: "right", y: "center"},
+      }, {margin: 1}).setAttributes({fill: "white"});
+      const idText = createText(runId, textAttribs).normalise({
+        target: extendViewBox(handleViewBox, {right: -typeText.getBoundingBox().width}),
+        align: {y: "center"},
+      }, {margin: 1}).setAttributes({fill: "white"});
+      return [
+        runId,
+        gather(
+          figures.rectangle(handleViewBox).setAttributes({
+            fill: this.options.laserRunsOptions.colorCodes ? undefined : "black",
+          }),
+          idText,
+          typeText,
+        ).setAttributes({stroke: "none"})
+          .moveRight(index * baseWid)
+          .scale(wid / baseWid)
+          .translate(this.viewBox.minX, this.viewBox.minY)
+          .moveDown(handles === "below" ? this.viewBox.height : 0)
+          .setAttributes({id: `${runId}-handle`})
+          .asG(),
+      ];
+    }));
   }
 
-  private getAllRunIdsInNaturalOrder() {
-    const idsSet = new Set<string>();
+  private getHandleRuns() {
+    const result = [];
     for (const partialRunsSelector of this.getRunsInNaturalOrder()) {
       const runsSelector = this.runsSelectorFromPartial({
         medium: "laser",
@@ -380,17 +390,27 @@ export class Sheet {
       });
       if (runsSelector.runs !== "all") {
         if (runsSelector.runs.length)
-          for (const run of runsSelector.runs)
-            idsSet.add(run);
-        else if (runsSelector.reversingFrame)
-          idsSet.add(this.options.reversingFrame.id);
+          for (const run of runsSelector.runs) {
+            const runOptions = assert(this.runOptions.get(run));
+            result.push({
+              runId: run,
+              type: (runOptions.side === "back" ? "-" : "") + runOptions.type[0],
+            });
+          }
+        if (runsSelector.reversingFrame)
+          result.push({
+            runId: this.options.reversingFrame.id,
+            type: "#",
+          });
       }
     }
-    for (const runId of this.runOptions.keys())
-      idsSet.add(runId);
-    return [...idsSet];
+    return result;
   }
 
+  /**
+   * Generates an `<svg>` element with the preview of this Sheet.
+   * If the runs selector is specified, the SVG will only contain the specified runs.
+   */
   async getPreviewSVG({
     runsSelector,
     saveOnClick = true,
@@ -399,7 +419,7 @@ export class Sheet {
   }: {
     runsSelector?: PartialRunsSelector,
     saveOnClick?: boolean,
-    border?: BorderParams,
+    border?: SVGBorderStyle,
     hoverTitle?: boolean,
   } = {}) {
     const fullRunsSelector = this.runsSelectorFromPartial({medium: "preview", runsSelector});
@@ -417,24 +437,10 @@ export class Sheet {
     return svg;
   }
 
-  async getDefaultPreview() {
-    const div = document.createElement("div");
-    div.style.display = "flex";
-    div.style.flexDirection = "column";
-    div.style.gap = "0.2em";
-    const svgContainer = document.createElement("div");
-    div.appendChild(svgContainer);
-    const svg = await this.getPreviewSVG();
-    svgContainer.appendChild(svg)
-    div.appendChild(getSVGRunsController(svg));
-    div.appendChild(this.getSaveLaserSVGButtons());
-    return div;
-  }
-
   private getPreviewHoverTitle({runsSelector: {runs, reversingFrame}}: {
     runsSelector: RunsSelector,
   }) {
-    const text = [this.name || DEFAULT_SHEET_NAME];
+    const text = [this.options.fileName];
     if (runs !== "all") {
       text.push(" (");
       text.push([
@@ -448,11 +454,17 @@ export class Sheet {
     return text.join("");
   }
 
-  getLaserSVG({printsAsImages, runsSelector}: {
+  /**
+   * Generates an `<svg>` element suitable for loading in the laser cutter software.
+   * If the runs selector is specified, the SVG will only contain the specified runs.
+   * If `printsAsImages` is specified, all the print layers are actually pre-rendered images,
+   * which is helpful if the laser cutter software doesn't implement all the features of SVG.
+   */
+  async getLaserSVG({printsAsImages, runsSelector}: {
     printsAsImages?: boolean,
     runsSelector?: PartialRunsSelector,
   } = {}) {
-    return this.getRawSVG({medium: "laser", printsAsImages, runsSelector});
+    return await this.getRawSVG({medium: "laser", printsAsImages, runsSelector});
   }
 
   private getSVGName({
@@ -462,16 +474,20 @@ export class Sheet {
     runsSelector: RunsSelector,
     printsAsImages: boolean,
   }) {
-    const name = [
-      this.name,
+    const fileName = [
+      this.options.fileName,
       ...runs === "all" ? [] : [...runs, reversingFrame && this.options.reversingFrame.id],
       printsAsImages && "p_img",
     ].filter(Boolean).join("__");
     const suffix = this.options.includeSizeInName ?
       getNameSizeSuffix(this.viewBox, this.options.millimetersPerUnit) : undefined;
-    return getSuffixedName(name || DEFAULT_SHEET_NAME, suffix);
+    return getSuffixedFileName(fileName, suffix);
   }
 
+  /**
+   * Saves the laser SVG file as a file.
+   * @see {@link Sheet.getLaserSVG}
+   */
   async saveLaserSVG(params: PartialLaserSVGParams = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
     const svg = await this.getLaserSVG({printsAsImages, runsSelector});
@@ -482,7 +498,7 @@ export class Sheet {
     if (format === "SVG")
       saveSVG({name, svg});
     else if (format === "PNG")
-      saveSVGAsPNG({
+      await saveSVGAsPNG({
         name,
         svg,
         conversionParams: this.options.resolution,
@@ -500,7 +516,7 @@ export class Sheet {
     format: SaveFormat,
     runsSelector: RunsSelector,
   }) {
-    const text = [this.name || DEFAULT_SHEET_NAME];
+    const text = [this.options.fileName];
     if (runs !== "all") {
       text.push(" (");
       text.push([
@@ -514,24 +530,37 @@ export class Sheet {
     return text.join("");
   }
 
-  getLaserSVGSaveButton({params = {}, label, hintSuffix}: {
+  /**
+   * Returns a `<button>` element which saves the SVG suitable for the laser cutter software
+   * on click.
+   * @see {@link Sheet.saveLaserSVG}
+   */
+  getLaserSVGSaveButton({params = {}, label, hintLines = []}: {
     params?: PartialLaserSVGParams,
     label?: string,
-    hintSuffix?: string,
+    hintLines?: string[],
   } = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
-    let hint = this.getSVGName({runsSelector, printsAsImages});
-    if (hintSuffix)
-      hint += " " + hintSuffix;
     return createSaveButton({
       label: label || this.getSaveButtonLabel({format, runsSelector}),
-      hint,
+      hint: [
+        this.getSVGName({runsSelector, printsAsImages}),
+        ...hintLines,
+      ].join("\n"),
       save: () => {
         this.saveLaserSVG({format, printsAsImages, runsSelector});
       },
     });
   }
 
+  /**
+   * Returns all the runs defined in this Sheet in their natural order. The order is:
+   *  - prints on the back side,
+   *  - cuts on the back side (for scoring, as the main cut needs to be done on the front side),
+   *  - the reversing frame - if there were any runs on the back,
+   *  - prints on the front,
+   *  - cuts on the front.
+   */
   getRunsInNaturalOrder(): PartialRunsSelector[] {
     const allOptions = [...this.runOptions.values()];
     const hasReverseSide = allOptions.some(({side}) => side === "back");
@@ -557,6 +586,11 @@ export class Sheet {
       return runsOnSide("front");
   }
 
+  /**
+   * Returns a `<div>` element with buttons for saving the laser SVG files, one per each
+   * runs selector, or a complete set of buttons if `"all"` is specified (the default).
+   * @see {@link Sheet.saveLaserSVG}
+   */
   getSaveLaserSVGButtons({
     format = "SVG",
     printsFormat = "both",
@@ -569,8 +603,11 @@ export class Sheet {
     runsSelectors?: (PartialRunsSelector | "separator")[] | "all",
   } = {}) {
     const container = document.createElement("div");
-    container.style.display = "flex";
-    container.style.flexWrap = "wrap";
+    container.textContent = `Files for the laser software:`;
+    const buttonsContainer = document.createElement("div");
+    container.appendChild(buttonsContainer);
+    buttonsContainer.style.display = "flex";
+    buttonsContainer.style.flexWrap = "wrap";
     function addItems(items: OrArray<HTMLElement>) {
       const span = document.createElement("span");
       span.style.margin = "2px";
@@ -580,15 +617,15 @@ export class Sheet {
           first = false;
         else
           item.style.marginLeft = "-1px";
-        item.style.height = "2.2em";
+        item.style.minHeight = "2.2em";
         span.appendChild(item);
       }
-      container.appendChild(span);
+      buttonsContainer.appendChild(span);
     }
     function addSep() {
       const sep = document.createElement("hr");
       sep.style.margin = "2px";
-      container.appendChild(sep);
+      buttonsContainer.appendChild(sep);
     }
     if (runsSelectors === "all") {
       const naturalOrder = this.getRunsInNaturalOrder();
@@ -605,21 +642,35 @@ export class Sheet {
         const {cut, print} = this.getRunsTypes(fullRunsSelector);
         const fullFormat = print && !cut ? printsFormat : format;
         const mainFormat = fullFormat === "both" ? "SVG" : fullFormat;
+        const hintLines = [];
+        if (fullRunsSelector.runs === "all")
+          hintLines.push(`All the laser runs`);
+        else {
+          if (fullRunsSelector.runs.length)
+            hintLines.push(`Laser runs: ${fullRunsSelector.runs.map(
+              run => JSON.stringify(run)).join(", ")}`);
+          if (fullRunsSelector.reversingFrame)
+            hintLines.push(`Reversing frame`);
+        }
         buttons.push(this.getLaserSVGSaveButton({
           params: {format: mainFormat, runsSelector},
+          hintLines: hintLines,
         }));
         if (includePrintsAsImages && print && mainFormat === "SVG")
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "SVG", printsAsImages: true, runsSelector},
-            label: "[p.img]",
-            hintSuffix: "(print layers embedded as raster images)",
+            label: `[PNG prints]`,
+            hintLines: [`Print layers embedded as raster images`, ...hintLines],
           }));
         if (fullFormat === "both")
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "PNG", runsSelector},
             label: this.getFormatLabel("PNG"),
-            hintSuffix: "(raster image)",
+            hintLines: [`Raster image`, ...hintLines],
           }));
+        if (fullRunsSelector.runs === "all")
+          for (const button of buttons)
+            button.style.fontWeight = "bold";
         addItems(buttons);
       }
     }
@@ -627,49 +678,8 @@ export class Sheet {
   }
 
   toString() {
-    return `Sheet[${this.name}, options = ${JSON.stringify(this.options)
-      }, ${this.pieces}, viewBox = "${viewBoxToString(this.viewBox)}", runs = ${JSON.stringify(this.runOptions)}]`;
+    return `Sheet[${this.name}, options = ${JSON.stringify(this.options)}, ${this.pieces}, ` +
+      `viewBox = "${viewBoxToString(this.viewBox)}", runs = ${JSON.stringify(this.runOptions)}]`;
   }
 
-}
-
-export function getSVGRunsController(svg: SVGSVGElement) {
-  const runsController = document.createElement("div");
-  runsController.style.display = "flex";
-  runsController.style.gap = ".5em";
-  runsController.style.alignItems = "center";
-  const blinkTimers: number[] = [];
-  for (const g of svg.querySelectorAll(":scope > g[id]")) {
-    const id = assert(g.getAttribute("id"));
-    const span = document.createElement("span");
-    runsController.appendChild(span);
-    const checkbox = document.createElement("input");
-    span.appendChild(checkbox);
-    checkbox.setAttribute("type", "checkbox");
-    checkbox.checked = true;
-    const label = document.createElement("label");
-    span.appendChild(label);
-    label.appendChild(document.createTextNode(id));
-    label.addEventListener("click", () => {
-      checkbox.click();
-    });
-    checkbox.addEventListener("click", () => {
-      (g as HTMLElement).style.display = checkbox.checked ? "" : "none";
-    });
-    for (const el of [label, checkbox])
-      el.addEventListener("contextmenu", e => {
-        e.preventDefault();
-        for (const timer of blinkTimers)
-          clearTimeout(timer);
-        blinkTimers.length = 0;
-        for (let i = 0; i < 5; i++)
-          blinkTimers.push(setTimeout(() => {
-            checkbox.click();
-            setTimeout(() => {
-              checkbox.click();
-            }, 120);
-          }, i * 240));
-      });
-  }
-  return runsController;
 }

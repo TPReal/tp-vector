@@ -1,5 +1,6 @@
 import {almostEqual} from './util.ts';
 
+/** A rectangle defining bounding box of an element, or the view box of the SVG. */
 export interface ViewBox {
   readonly minX: number;
   readonly minY: number;
@@ -184,13 +185,16 @@ function partialViewBoxToSeparate(viewBox: PartialViewBox = {}): PartialViewBoxS
   return {x, y, margin};
 }
 
+/**
+ * Margin around a ViewBox. Positive values point outside of the rectangle, enlarging it,
+ * negative values point inside, shrinking it.
+ */
 export interface ViewBoxMargin {
   readonly left: number;
   readonly right: number;
   readonly top: number;
   readonly bottom: number;
 }
-
 export interface PartialViewBoxMarginInterface {
   value?: number;
   x?: number;
@@ -201,7 +205,6 @@ export interface PartialViewBoxMarginInterface {
   bottom?: number;
 }
 export type PartialViewBoxMargin = PartialViewBoxMarginInterface | number;
-
 export function viewBoxMarginFromPartial(partial: PartialViewBoxMargin = {}, defaultValue = 0):
   ViewBoxMargin {
   return (({
@@ -216,15 +219,21 @@ export function viewBoxMarginFromPartial(partial: PartialViewBoxMargin = {}, def
     typeof partial === "number" ? {value: partial} : partial);
 }
 
+/** Returns the ViewBox created from `element.getBBox()`. */
 export function viewBoxFromBBox(element: SVGGraphicsElement): ViewBox {
   const {x: minX, y: minY, width, height} = element.getBBox();
   return {minX, minY, width, height};
 }
 
-export function multiplyMargin({left, right, top, bottom}: ViewBoxMargin,
-  multiplicator: PartialViewBoxMargin): ViewBoxMargin {
+/**
+ * Multiplies the specified margin by the specified multiplier. The multiplier can specify
+ * different values for different sides, and defaults to 1 for the unspecified values.
+ */
+export function multiplyMargin(
+  {left, right, top, bottom}: ViewBoxMargin,
+  multiplier: PartialViewBoxMargin): ViewBoxMargin {
   const {left: leftMult, right: rightMult, top: topMult, bottom: bottomMult} =
-    viewBoxMarginFromPartial(multiplicator, 1);
+    viewBoxMarginFromPartial(multiplier, 1);
   return {
     left: left * leftMult,
     right: right * rightMult,
@@ -233,6 +242,7 @@ export function multiplyMargin({left, right, top, bottom}: ViewBoxMargin,
   };
 }
 
+/** Extends the ViewBox by the specified margin, or shrinks in case of negative margin. */
 export function extendViewBox(
   {minX, minY, width, height}: ViewBox,
   margin?: PartialViewBoxMargin): ViewBox {
@@ -245,6 +255,7 @@ export function extendViewBox(
   };
 }
 
+/** Returns the actual margin between the bounding box and the view box. */
 export function getMargin({boundingBox, viewBox}: {
   boundingBox: ViewBox,
   viewBox: ViewBox,
@@ -263,7 +274,7 @@ interface FitsInViewBoxArgs {
   minMargin?: PartialViewBoxMargin;
 }
 
-const MARGIN_EPSILON_TO_SIZE_RATIO = 1e-8;
+const MARGIN_EPSILON_TO_SIZE_RATIO = 1e-9;
 
 const MARGIN_SIDES: (keyof ViewBoxMargin)[] = ["left", "right", "top", "bottom"];
 
@@ -283,6 +294,10 @@ function getSidesFit({boundingBox, viewBox, minMargin = 0}: FitsInViewBoxArgs) {
   });
 }
 
+/**
+ * Calculates whether the specified bounding box fits in the specified view box with at least
+ * the specified minimum margin.
+ */
 export function fitsInViewBox(args: FitsInViewBoxArgs) {
   return getSidesFit(args).every(({fits}) => fits);
 }

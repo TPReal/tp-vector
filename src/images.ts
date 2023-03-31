@@ -1,11 +1,10 @@
 import {AxisOriginAlignment, Fitting, PartialOriginAlignment, RequiredOriginAlignment, alignmentToNumber, requiredOriginAlignmentFromPartial} from './alignment.ts';
 import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
-import {cloneElement, createElement, getElementsBoundingBox, setAttributes} from './elements.ts';
-import {globalOptions} from './global_options.ts';
-import {lazyPiece} from './lazy_piece.ts';
-
-// Image to data URI converter: https://www.base64-image.de/
+import {cloneElement, createElement, getElementsBoundingBox, getLoadedPromise, setAttributes} from './elements.ts';
+import {getGlobalOptions} from './global_options.ts';
+import {assets} from './index.ts';
+import {DefaultPiece} from './pieces.ts';
 
 export type ImageType = "png" | "jpeg" | "gif";
 
@@ -39,10 +38,11 @@ function imageScalingFromPartial(partialScaling: PartialImageScaling = "auto"): 
 }
 
 function mimeType(type: ImageType) {
-  return `image/${type}`;
+  return dataURIConv.mimeTypeFromExt(type);
 }
 
-export class RasterImage extends lazyPiece<RasterImage>() {
+/** A class representing an image, usually referenced by URL or data URI. */
+export class Image extends DefaultPiece {
 
   protected constructor(
     private readonly image: SVGImageElement,
@@ -51,73 +51,102 @@ export class RasterImage extends lazyPiece<RasterImage>() {
     super(image);
   }
 
-  static fromBinary({type = DEFAULT_IMAGE_TYPE, binData, scaling}: {
+  static async fromBinary({type = DEFAULT_IMAGE_TYPE, binData, scaling}: {
     type?: ImageType,
     binData: string,
     scaling?: PartialImageScaling,
   }) {
-    return RasterImage.fromDataURI({
-      dataURI: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
+    return await Image.fromURL({
+      url: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
       scaling,
     });
   }
 
-  static fromBase64({type = DEFAULT_IMAGE_TYPE, base64Data, scaling}: {
+  static async fromBase64({type = DEFAULT_IMAGE_TYPE, base64Data, scaling}: {
     type?: ImageType,
     base64Data: string,
     scaling?: PartialImageScaling,
   }) {
-    return RasterImage.fromDataURI({
-      dataURI: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
+    return await Image.fromURL({
+      url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
       scaling,
     });
   }
 
-  static fromEncoded({type, base64Data}: {
-    type: ImageType,
-    base64Data: string,
-  }, scaling?: PartialImageScaling) {
-    return RasterImage.fromBase64({type, base64Data, scaling});
-  }
-
-  static fromDataURI({dataURI, scaling}: {
-    dataURI: string,
+  /**
+   * Loads an image from a URL.
+   * If it's an external URL, the image is fetched and encoded as a data URI instead.
+   */
+  static async fromURL(url: string): Promise<Image>;
+  /**
+   * Loads an image from a URL, with the specified scaling.
+   * If it's an external URL, the image is fetched and encoded as a data URI instead.
+   */
+  static async fromURL(args: {
+    url: string,
+    scaling?: PartialImageScaling,
+  }): Promise<Image>;
+  static async fromURL(arg: string | {
+    url: string,
     scaling?: PartialImageScaling,
   }) {
-    return RasterImage.fromImage({
-      image: createElement({
-        tagName: "image",
-        attributes: {
-          "xlink:href": globalOptions().includeXlinkHref ? dataURI : undefined,
-          href: dataURI,
-        },
-      }),
+    const {url, scaling = undefined} = typeof arg === "string" ? {url: arg} : arg;
+    const image = createElement({tagName: "image"});
+    const loaded = getLoadedPromise(image);
+    setAttributes(image, {href: await dataURIConv.urlToDataURI(url)});
+    await loaded;
+    return Image.fromImage({
+      image,
       canModifyImage: true,
       scaling,
     });
   }
 
-  static fromImage({image, canModifyImage = false, scaling}: {
+  static async fromAsset(urlAsset: assets.ModuleImport<string>): Promise<Image>;
+  static async fromAsset(args: {
+    urlAsset: assets.ModuleImport<string>,
+    scaling?: PartialImageScaling,
+  }): Promise<Image>;
+  static async fromAsset(arg: assets.ModuleImport<string> | {
+    urlAsset: assets.ModuleImport<string>,
+    scaling?: PartialImageScaling,
+  }) {
+    const {urlAsset, scaling = undefined} = arg instanceof Promise ? {urlAsset: arg} : arg;
+    return await Image.fromURL({
+      url: await assets.url(urlAsset),
+      scaling,
+    });
+  }
+
+  static fromImage(image: SVGImageElement): Image;
+  static fromImage(args: {
+    image: SVGImageElement,
+    canModifyImage?: boolean,
+    scaling?: PartialImageScaling,
+  }): Image;
+  static fromImage(arg: SVGImageElement | {
     image: SVGImageElement,
     canModifyImage?: boolean,
     scaling?: PartialImageScaling,
   }) {
+    const {image, canModifyImage = false, scaling = undefined} =
+      arg instanceof SVGImageElement ? {image: arg} : arg;
     const imageClone = canModifyImage ? image : cloneElement(image);
     const fullScaling = imageScalingFromPartial(scaling);
     applyImageScalingAttributes(imageClone, fullScaling);
-    return new RasterImage(imageClone, fullScaling);
+    return new Image(imageClone, fullScaling);
   }
 
   setScaling(scaling: PartialImageScaling) {
-    return RasterImage.fromImage({image: this.image, scaling});
+    return Image.fromImage({image: this.image, scaling});
   }
 
 }
 
 function applyImageScalingAttributes(image: SVGImageElement, scaling: ImageScaling) {
   if (scaling === "auto") {
-    const {imageAutoSizeLogic} = globalOptions();
-    if (imageAutoSizeLogic.widthAndHeight === `"auto"`)
+    const {imageAutoSizeLogic} = getGlobalOptions();
+    if (imageAutoSizeLogic.widthAndHeight === "auto")
       setAttributes(image, {width: "auto", height: "auto"});
     if (imageAutoSizeLogic.measure) {
       const box = getElementsBoundingBox([image]);

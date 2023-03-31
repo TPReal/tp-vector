@@ -1,12 +1,14 @@
 export type Id = string | undefined;
 export type Color = string;
 
+/** ColorsDistributor assigns a color to each (abstract) id. */
 export interface ColorsDistributor {
 
   get(id?: Id): Color;
 
 }
 
+/** A ColorsDistributor returning one color for all ids. */
 export class ConstColorsDistributor implements ColorsDistributor {
 
   protected constructor(readonly color: Color) {
@@ -24,6 +26,10 @@ export class ConstColorsDistributor implements ColorsDistributor {
 
 export const ALL_BLACK = ConstColorsDistributor.create("black");
 
+/**
+ * A ColorsDistributor returning colors according to a map, or using fallback distributor
+ * for missing ids.
+ */
 export class MapColorsDistributor implements ColorsDistributor {
 
   protected constructor(
@@ -45,6 +51,12 @@ export class MapColorsDistributor implements ColorsDistributor {
 
 }
 
+export type InitialColorsAssignment = [id: Id, index: number][];
+
+/**
+ * A ColorsDistributor assigning colors from a given pool, possibly with some predefined colors.
+ * When it runs out of colors, it cycles over the pool again.
+ */
 export class CyclicColorsDistributor implements ColorsDistributor {
 
   private usedIndices: Set<number> | undefined = new Set();
@@ -52,7 +64,7 @@ export class CyclicColorsDistributor implements ColorsDistributor {
 
   protected constructor(
     private readonly pool: Color[],
-    initial: [id: Id, index: number][],
+    initial: InitialColorsAssignment,
     private nextIndex: number,
   ) {
     for (const [id, index] of initial)
@@ -65,7 +77,7 @@ export class CyclicColorsDistributor implements ColorsDistributor {
     nextIndex = 0,
   }: {
     pool: Color[],
-    initial?: [id: Id, index: number][],
+    initial?: InitialColorsAssignment,
     nextIndex?: number,
   }) {
     return new CyclicColorsDistributor(pool, initial, nextIndex);

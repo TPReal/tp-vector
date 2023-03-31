@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+    ],
+    "module": "esnext",
+    "target": "esnext",
+    "allowImportingTsExtensions": true,
+  },
+}
