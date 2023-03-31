@@ -31,14 +31,10 @@ export {DefaultPiece, Piece, gather} from './pieces.ts';
 export type {BasicPiece} from './pieces.ts';
 export type {Point} from './point.ts';
 export {Project} from './project.ts';
-<<<<<<< HEAD
 export {Sheet} from './sheet.ts';
 export type {LaserSVGParams, PartialLaserSVGParams, PartialRunsSelector, RunsSelector} from './sheet.ts';
 export {getPNGDataURI} from './svg_converter.ts';
 export type {PartialPNGConversionParams} from './svg_converter.ts';
-=======
-export {Sheet, getSVGRunsController} from './sheet.ts';
->>>>>>> 4acf69196acc8add8c6552ff47128f47edda9146
 export {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 export {PathForText, createText} from './text.ts';
 export {Tf, Transform, transformedToString} from './transform.ts';
