@@ -1,11 +1,12 @@
 import * as calibration from '../calibration/index.ts';
 import * as coins from '../demos/coins.ts';
-import * as imagesDemo from '../demos/images_demo.ts';
+import * as images from '../demos/images.ts';
 import * as jigsawPuzzle from '../demos/jigsaw_puzzle.ts';
 import * as normaliseExplainer from '../demos/normalise_explainer.ts';
+import * as tabsAndSlots from '../demos/tabs_and_slots.ts';
 import * as tpVectorIcon from '../demos/tpvector_icon.ts';
 import * as transformExplainer from '../demos/transform_explainer.ts';
-import * as turtleDemo from '../demos/turtle_demo.ts';
+import * as turtle from '../demos/turtle.ts';
 import {Viewer} from './viewer_tools.ts';
 
 export const DEMOS_VIEWER = Viewer.create()
@@ -14,10 +15,11 @@ export const DEMOS_VIEWER = Viewer.create()
   .add(tpVectorIcon)
 
   // Demos
-  .add(imagesDemo)
+  .add(turtle)
   .add(coins)
   .add(jigsawPuzzle)
-  .add(turtleDemo)
+  .add(tabsAndSlots)
+  .add(images)
 
   // Calibration utilities
   .add(calibration.kerf, {thickness: 3})

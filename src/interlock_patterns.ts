@@ -89,19 +89,24 @@ export class TabsPattern {
    */
   static distributed({
     length,
-    numTabs,
+    tabEveryLen,
+    minNumTabs = 2,
+    numTabs = tabEveryLen ? Math.ceil(length / tabEveryLen) : 0,
     tabToSkipRatio = 1,
     tabLength,
     startWithTab = false,
     endWithTab = false,
   }: {
     length: number,
-    numTabs: number,
+    tabEveryLen?: number,
+    minNumTabs?: number,
+    numTabs?: number,
     tabToSkipRatio?: number,
     tabLength?: number,
     startWithTab?: boolean,
     endWithTab?: boolean,
   }) {
+    numTabs = Math.floor(Math.max(numTabs, minNumTabs));
     const numSkips = numTabs + 1 - Number(startWithTab) - Number(endWithTab);
     if (numTabs < 0 || numSkips < 0)
       throw new Error(`Bad parameters (numTabs=${numTabs}, numSkips=${numSkips})`);
@@ -240,6 +245,8 @@ export class SlotsPattern {
    */
   static distributed({
     length,
+    slotEveryLen,
+    minNumSlots,
     numSlots,
     slotToSkipRatio,
     slotLength,
@@ -247,7 +254,9 @@ export class SlotsPattern {
     endWithSlot,
   }: {
     length: number,
-    numSlots: number,
+    slotEveryLen?: number,
+    minNumSlots?: number,
+    numSlots?: number,
     slotToSkipRatio?: number,
     slotLength?: number,
     startWithSlot?: boolean,
@@ -255,6 +264,8 @@ export class SlotsPattern {
   }) {
     return TabsPattern.distributed({
       length,
+      tabEveryLen: slotEveryLen,
+      minNumTabs: minNumSlots,
       numTabs: numSlots,
       tabToSkipRatio: slotToSkipRatio,
       tabLength: slotLength,

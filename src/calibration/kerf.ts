@@ -33,6 +33,7 @@ export function getSheet(params: KerfParams) {
   const {tabs, slots} = turtleInterlock({
     kerf: kerfUtil.ZERO,
     thickness: p.thickness,
+    tabsDir: "left",
     outerCornersRadius: 0.5,
   });
 
@@ -41,10 +42,7 @@ export function getSheet(params: KerfParams) {
     const pattern = TabsPattern.base(p.tabsSpace).tab(p.tabLen).base(p.tabsSpace);
     function makeTab(t: Turtle) {
       // Zero kerf is used here, double kerf is used on the frame instead.
-      return t.andThen(tabs, {
-        pattern,
-        dir: "left",
-      });
+      return t.andThen(tabs, pattern);
     }
     // Make the tabs for Y and X axes.
     for (let i = 0; i < 2; i++)
@@ -107,7 +105,6 @@ export function getSheet(params: KerfParams) {
           // Create the tab.
           .andThen(tabs, {
             pattern: tabPattern.matchingTabs(),
-            dir: "left",
             startOnTab: true,
             endOnTab: true,
             options,
@@ -147,7 +144,10 @@ export function getSheet(params: KerfParams) {
         [-innerCutToCenterDist, innerCutCornerCoord],
       ),
       // Probers inside the cut-out inner triangle.
-      layouts.column(layouts.row(prober, prober), prober)
+      layouts.pack([
+        [prober, prober],
+        prober,
+      ])
         .translate(-innerCutToCenterDist + 1, -innerCutToCenterDist + 1),
     );
   })();

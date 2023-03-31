@@ -3,7 +3,7 @@ import {Sheet, layouts, Image} from '../index.ts';
 export async function getSheet() {
 
   const [ts, js, esbuild, deno] = (await Promise.all([
-    Image.fromAsset(import(`./images_demo_ts.png`)),
+    Image.fromAsset(import(`./images_ts.png`)),
     Image.fromURL(
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/240px-JavaScript-logo.png"),
     Image.fromURL(
@@ -15,8 +15,11 @@ export async function getSheet() {
 
   return Sheet.create({
     options: {name: "Images demo", resolution: {pixelsPerInch: 2000}},
-    pieces: layouts.column({
-      pieces: [[ts, js], [esbuild, deno]].map(pieces => layouts.row({pieces, gap})),
+    pieces: layouts.pack({
+      outline: [[
+        [ts, js],
+        [esbuild, deno],
+      ]],
       gap,
     }).setLayer("print"),
     margin: 0,

@@ -8,6 +8,8 @@ export interface PartialTabsOptions {
   kerf: Kerf;
   /** Thickness of the material, corresponding with the width of the tabs. */
   thickness: number;
+  /** To which side should the tabs go from the base line; or the edge of the material. */
+  tabsDir: "right" | "left";
   /** Radius of the corners of the tabs, to make them slide in easier. */
   outerCornersRadius?: number;
   /**
@@ -21,12 +23,14 @@ export interface TabsOptions extends Readonly<Required<PartialTabsOptions>> {
 export function tabsOptionsFromPartial({
   kerf,
   thickness,
+  tabsDir,
   outerCornersRadius = 0,
   innerCornersRadius = 0,
 }: PartialTabsOptions): TabsOptions {
   return {
     kerf,
     thickness,
+    tabsDir,
     outerCornersRadius,
     innerCornersRadius,
   };
@@ -71,8 +75,8 @@ export function slotsOptionsFromPartial({
 
 interface TabsArgs {
   pattern: TabsPattern;
-  /** To which side should the tabs go from the base line; or the edge of the material. */
-  dir: "right" | "left";
+  /** Override for `options.tabsDir`. */
+  dir?: "right" | "left";
   /** Whether the edge starts and ends at the level of the tab (and not the base line). */
   onTabLevel?: boolean;
   /** Whether the edge starts at the level of the tab (and not the base line). */
@@ -89,8 +93,16 @@ interface SlotsArgs {
   options: PartialSlotsOptions;
 }
 
-type ArgsWithOptionsSupplement<Args extends TabsArgs | SlotsArgs> =
+type ArgsWithOptionsSupplementInterface<Args extends TabsArgs | SlotsArgs> =
   Omit<Args, "options"> & {options?: Partial<Args["options"]>};
+
+type ArgsWithOptionsSupplement<Args extends TabsArgs | SlotsArgs> =
+  Args["pattern"] | ArgsWithOptionsSupplementInterface<Args>;
+
+function isPattern<Args extends TabsArgs | SlotsArgs>(object: ArgsWithOptionsSupplement<Args>):
+  object is Args["pattern"] {
+  return object instanceof TabsPattern || object instanceof SlotsPattern;
+}
 
 function makeExportedFunc<Args extends TabsArgs | SlotsArgs>(base: TurtleFunc<[Args]>):
   ExportedFunc<Args> {
@@ -100,11 +112,14 @@ function makeExportedFunc<Args extends TabsArgs | SlotsArgs>(base: TurtleFunc<[A
   function funcFromOpts(options: Args["options"]):
     TurtleFunc<[ArgsWithOptionsSupplement<Args>]> {
     return (t, argsSupplement) => {
+      const argsSuppl: ArgsWithOptionsSupplementInterface<Args> = isPattern(argsSupplement) ?
+        {pattern: argsSupplement} as ArgsWithOptionsSupplementInterface<Args> :
+        argsSupplement;
       return base(t, {
-        ...argsSupplement,
+        ...argsSuppl,
         options: {
           ...options,
-          ...argsSupplement.options,
+          ...argsSuppl.options,
         } satisfies Args["options"],
       } as Args);
     };
@@ -116,8 +131,7 @@ function makeExportedFunc<Args extends TabsArgs | SlotsArgs>(base: TurtleFunc<[A
   function isArgsParams(args: Parameters<typeof funcFromArgs | typeof funcFromOpts>):
     args is Parameters<typeof funcFromArgs> {
     const [arg] = args;
-    return Object.hasOwn(arg, "pattern") && Object.hasOwn(arg, "dir") &&
-      Object.hasOwn(arg, "options");
+    return Object.hasOwn(arg, "pattern") && Object.hasOwn(arg, "options");
   }
   function func(...args: Parameters<typeof base>): ReturnType<typeof base>;
   function func(...args: Parameters<typeof funcFromArgs>): ReturnType<typeof funcFromArgs>;
@@ -224,6 +238,8 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
     startActive,
     endActive,
   });
+  dir ||= options.tabsDir;
+  const dirNum = dir === "right" ? 1 : dir === "left" ? -1 : dir satisfies never;
   for (let i = 0; i + 2 < progression.length; i++) {
     const [prev, curr, next] = progression.slice(i, i + 3);
     if (curr.kind === "forward") {
@@ -244,7 +260,7 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
       const neighs = [prev, next];
       const [[r1Sign, r1Val], [r2Sign, r2Val]] = radii.map((r, ri) =>
         signAbs(neighs[ri].kind === "boundary" ? 0 : r));
-      const d = (dir === "right" ? 1 : -1) * (curr.newActive ? 1 : -1);
+      const d = dirNum * (curr.newActive ? 1 : -1);
       t = t.forward(preLen - r1Val)
         .andThen(arcTurn, r1Sign, r1Val, d)
         .forward(thickness - r1Val - r2Val)

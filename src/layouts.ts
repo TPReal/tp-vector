@@ -1,4 +1,5 @@
-import {Axis} from './axis.ts';
+import {Axis, otherAxis} from './axis.ts';
+import {NormaliseArgs} from './normalise_transform.ts';
 import {BasicPiece, Piece, gather} from './pieces.ts';
 import {OrArray, OrArrayRest, flatten, flattenFilter} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, viewBoxFromPartial, viewBoxMarginFromPartial} from './view_box.ts';
@@ -151,8 +152,61 @@ export function row(...args: OrArrayRest<Piece | undefined> | [{
   return column({...parseArgs(args), axis: Axis.X});
 }
 
+export type OutlinePiece = Piece | OutlinePiece[];
+
+const DEFAULT_PACK_NORMALISE_ITEMS: NormaliseArgs = "default";
+
 /**
- * Packs the specifed pieces roughly into a collection of boxes. The pieces are not reordered or
+ * Packs the arguments in a row, similar to what the `row` function does. Each item that is
+ * an array, is first packed in a column, similar to what the `column` function does - and so on,
+ * recursively.
+ */
+export function pack(...outlineX: OutlinePiece[]): Piece;
+/**
+ * Packs the outline items in a row (or column, if the Y axis is specified), similar to
+ * what the `row` (or `column`) function does. Each item that is an array, is first packed
+ * in the opposite direction  - and so on, recursively.
+ *
+ * At every level, each item is normalised using the specified normalisation args, `"default"`
+ * by default.
+ */
+export function pack(args: {
+  outline: OutlinePiece[],
+  axis?: Axis,
+  normaliseItems?: NormaliseArgs | "none",
+  gap?: number,
+}): Piece;
+export function pack(...params: OutlinePiece[] | [{
+  outline: OutlinePiece[],
+  axis?: Axis,
+  normaliseItems?: NormaliseArgs | "none",
+  gap?: number,
+}]) {
+  function isOutlinePieces(params: OutlinePiece[] | [{}]): params is OutlinePiece[] {
+    return params.length !== 1 || params[0] instanceof Piece || Array.isArray(params[0]);
+  }
+  const {
+    outline,
+    axis = Axis.X,
+    normaliseItems = DEFAULT_PACK_NORMALISE_ITEMS,
+    gap = 1,
+  } = isOutlinePieces(params) ? {outline: params} : params[0];
+  function norm(pc: Piece) {
+    return normaliseItems === "none" ? pc : pc.normalise(normaliseItems);
+  }
+  function subPack(outline: OutlinePiece[], axis: Axis): Piece {
+    return column({
+      pieces: outline.map(o =>
+        (o instanceof Piece ? o : subPack(o, otherAxis(axis))).andThen(norm)),
+      gap,
+      axis,
+    });
+  }
+  return subPack(outline, axis);
+}
+
+/**
+ * Packs the specified pieces roughly into a collection of boxes. The pieces are not reordered or
  * or rotated, they are collected into rows and placed, row by row, into the boxes, switching
  * to the next box when the next row doesn't fit.
  */

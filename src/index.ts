@@ -1,4 +1,4 @@
-export {Axis} from './axis.ts';
+export {Axis, otherAxis} from './axis.ts';
 export * as assets from './assets.ts';
 export {darkness} from './colors.ts';
 export {ALL_BLACK, ConstColorsDistributor, CyclicColorsDistributor, MapColorsDistributor} from './colors_distributor.ts';

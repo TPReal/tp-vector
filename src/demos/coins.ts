@@ -60,18 +60,20 @@ export async function getSheet() {
       dentAngle: 50,
       dentSpeed: 3,
     };
-    const t = Turtle.create()
-      .circle(p.outerR + 0.2)
-      .left(360 / p.numDents / 4)
-      .withPenUp(t => t.strafeLeft(p.dentsR))
-      .repeat(p.numDents, t => t
-        .right(p.dentAngle)
-        .curveTo(
-          t.arcRight(360 / p.numDents, p.dentsR).right(p.dentAngle),
-          {speed: p.dentSpeed},
+    const innerShapeT = Turtle.create()
+      .branch(t => t
+        .left(360 / p.numDents / 4)
+        .withPenUp(t => t.strafeLeft(p.dentsR))
+        .repeat(p.numDents, t => t
+          .right(p.dentAngle)
+          .curveTo(
+            t.arcRight(360 / p.numDents, p.dentsR).right(p.dentAngle),
+            {speed: p.dentSpeed},
+          )
+          .left(p.dentAngle)
         )
-        .left(p.dentAngle)
       );
+    const t = innerShapeT.circle(p.outerR + 0.2);
     return gather(
       figures.circle({radius: p.coinR}),
       gather(
@@ -84,6 +86,9 @@ export async function getSheet() {
         pc.setLayer("print"),
         pc.flipX().setLayer("print_back"),
       )),
+      // Additionally score the inner shape.
+      innerShapeT.setLayer("score"),
+      innerShapeT.flipX().setLayer("score_back"),
     );
   })();
 
@@ -132,9 +137,13 @@ export async function getSheet() {
     }),
     runs: [
       {type: "print", id: "print_back", side: "back"},
+      {type: "cut", id: "score_back", side: "back"},
       {type: "print"},
+      {type: "cut", id: "score"},
       {type: "cut"},
     ],
   });
+
+  // See a photo: wiki/demos_coins.jpg
 
 }
