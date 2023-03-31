@@ -318,11 +318,17 @@ const pieces = layouts.row({
 
     // Block 2: Three rows of figures, collected in a column.
     // (Default gaps are 1.)
-    layouts.column(
-      layouts.row(a, b, c),
-      layouts.row(c, a, b),
-      layouts.row(b, c, a),
-    ),
+    layouts.pack([
+      [a, b, c],
+      [c, a, b],
+      [b, c, a],
+    ]),
+    // Or equivalent:
+    // layouts.column(
+    //   layouts.row(a, b, c),
+    //   layouts.row(c, a, b),
+    //   layouts.row(b, c, a),
+    // ),
 
     layouts.layout({
       // Iterate over the cells of a 3-dimensional cube.
@@ -380,7 +386,7 @@ Sheet.create({
 
 ![Interlock](wiki/feature_interlock.png)
 <br> The [kerf correction](https://en.wikipedia.org/wiki/Saw#Terminology) is
-applied. The leftmost item uses also optional inner corners radius that reduce
+applied. The rightmost item uses also optional inner corners radius that reduce
 material stress to prevent breaking (useful for materials like acrylic).
 
 <details><summary>Code</summary>
