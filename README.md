@@ -15,10 +15,9 @@ The library gives a high level of both compile-time safety, thanks to
 TypeScript, and runtime safety, thanks to immutability (see the
 [Immutability](wiki/immutability.md) document).
 
-<!-- TODO: Link to documentation using https://htmlpreview.github.io/. -->
-
-For the source code documentation, see [Documentation](docs/index.html), but
-note that it is neither ideal nor complete right now. It is recommended to
+For the source code documentation, see
+[Documentation](https://htmlpreview.github.io/?https://github.com/TPReal/tp-vector/blob/main/docs/index.html),
+but note that it is neither ideal nor complete right now. It is recommended to
 consult the source code of the library - the type system will provide a lot of
 additional information.
 

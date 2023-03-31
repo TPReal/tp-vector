@@ -33,5 +33,8 @@ generated using [typedoc](https://typedoc.org/), configured in
 [typedoc.json](../typedoc.json). However, it might be a good idea to read the
 code of the library, and not just the docs.
 
+The generated documentation is available here:
+[Documentation](https://htmlpreview.github.io/?https://github.com/TPReal/tp-vector/blob/main/docs/index.html).
+
 When writing JSDoc, there are no strict requirements on using the tags like
 `@param` etc. A free-form text explaining the entity is enough.
