@@ -16,6 +16,9 @@ export async function getSheetPreview(sheet: Sheet) {
   div.appendChild(svgContainer);
   const svg = await sheet.getPreviewSVG();
   svgContainer.appendChild(svg)
+  const unusedLayersWarning = sheet.getUnusedLayersWarning();
+  if (unusedLayersWarning)
+    div.appendChild(unusedLayersWarning);
   div.appendChild(getSVGRunsControllerCheckboxes(svg));
   div.appendChild(sheet.getSaveLaserSVGButtons());
   return div;

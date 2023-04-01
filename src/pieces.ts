@@ -70,6 +70,10 @@ class SVGElementWrapperPiece implements BasicPiece {
     return SVGElementWrapperPiece.create(this.element, layer);
   }
 
+  getLayers() {
+    return new Set([this.layer]);
+  }
+
   selectLayers(...layers: OrArrayRest<OptionalLayerName>) {
     return flatten(layers).includes(this.layer) ? this : Piece.EMPTY;
   }
@@ -96,6 +100,10 @@ class DefsWrapperPiece implements BasicPiece {
 
   setLayer() {
     return this;
+  }
+
+  getLayers() {
+    return new Set<OptionalLayerName>();
   }
 
   selectLayers() {
@@ -247,6 +255,17 @@ export class Piece
   setLayer(layer: LayerName) {
     return new Piece(this.parts, this.tf, layer, this.defs, this.attributes,
       this.boundingBoxPiece);
+  }
+
+  getLayers() {
+    if (this.layer === NO_LAYER) {
+      const result = new Set<OptionalLayerName>();
+      for (const part of this.parts)
+        for (const layer of part.getLayers())
+          result.add(layer);
+      return result;
+    }
+    return new Set([this.layer]);
   }
 
   selectLayers(...layers: OrArrayRest<OptionalLayerName>): Piece {

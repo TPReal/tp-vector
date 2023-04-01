@@ -33,6 +33,10 @@ class LazyWrapperPiece implements BasicPiece {
     return this.getWrapped().setLayer(layer);
   }
 
+  getLayers() {
+    return this.getWrapped().getLayers();
+  }
+
   selectLayers(...layers: OrArrayRest<OptionalLayerName>) {
     return this.getWrapped().selectLayers(...layers);
   }

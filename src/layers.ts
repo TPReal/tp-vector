@@ -12,6 +12,10 @@ export interface Layerable<T extends Layerable<T>> {
    * Any previous assignment is ignored.
    */
   setLayer(layer: LayerName): T;
+
+  /** Returns all the layers (optionally including `NO_LAYER`) present in this object. */
+  getLayers(): ReadonlySet<OptionalLayerName>;
+
   /**
    * Returns a subset of this object that is assigned to any of the specified layers.
    * If `NO_LAYER` is specified, includes any parts not assigned to any layer.

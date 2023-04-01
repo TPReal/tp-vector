@@ -1,6 +1,7 @@
 import {Attributes, createElement, createSVG, setAttributes} from './elements.ts';
 import * as figures from './figures.ts';
 import {Image} from './images.ts';
+import {NO_LAYER} from './layers.ts';
 import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Piece, gather} from './pieces.ts';
@@ -675,6 +676,42 @@ export class Sheet {
       }
     }
     return container;
+  }
+
+  getUnusedLayers() {
+    const unusedLayers = new Set(this.pieces.getLayers());
+    for (const runOptions of this.runOptions.values())
+      for (const layer of runOptions.layers)
+        unusedLayers.delete(layer);
+    return [
+      ...unusedLayers.delete(NO_LAYER) ? [NO_LAYER] : [],
+      ...[...unusedLayers].sort(),
+    ];
+  }
+
+  getUnusedLayersWarning() {
+    const unusedLayers = this.getUnusedLayers();
+    if (!unusedLayers.length)
+      return undefined;
+    function makeInlinePre(text: string) {
+      const span = document.createElement("span");
+      span.style.fontFamily = "monospace";
+      span.textContent = text;
+      return span;
+    }
+    const span = document.createElement("span");
+    span.style.color = "#9202ff";
+    span.textContent = `Warning: Some layers are not included in any runs: `;
+    let first = true;
+    for (const layer of unusedLayers) {
+      if (first)
+        first = false;
+      else
+        span.appendChild(document.createTextNode(`, `));
+      span.appendChild(makeInlinePre(layer === undefined ? `NO_LAYER` : JSON.stringify(layer)));
+    }
+    span.appendChild(document.createTextNode(`.`));
+    return span;
   }
 
   toString() {
