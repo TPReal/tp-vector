@@ -35,12 +35,13 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   runsController.style.flexWrap = "wrap";
   runsController.style.alignItems = "center";
   const blinkTimers: number[] = [];
-  const checkboxesInfo = document.createTextNode("Show runs:");
+  const checkboxesInfo = document.createTextNode(`Show runs:`);
   runsController.appendChild(checkboxesInfo);
   for (const g of svg.querySelectorAll(":scope > g[id]")) {
     const id = assert(g.getAttribute("id"));
     const span = document.createElement("span");
     runsController.appendChild(span);
+    span.title = `Right-click to blink`;
     span.style.whiteSpace = "nowrap";
     const checkbox = document.createElement("input");
     span.appendChild(checkbox);
