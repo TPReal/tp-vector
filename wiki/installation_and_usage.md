@@ -1,7 +1,15 @@
 # Installation
 
+To use TPVector, you will need to write, compile and bundle TypeScript code. If
+you have no experience with programming and the TypeScript development stack,
+this will require learning many new things. Unfortunately, I don't know any way
+around this.
+
 Install the tools necessary to work with the TPVector library:
 
+- If you're using Windows, it's best to configure
+  [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/)
+  and work in it.
 - Install [esbuild](https://esbuild.github.io/), used for bundling and serving
   the code (install [Node.js](https://nodejs.org/) first, if needed). It is
   recommended to install globally with `npm install -g esbuild`, because
@@ -14,12 +22,16 @@ Install the tools necessary to work with the TPVector library:
 - _Recommended:_ Install [Visual Studio Code](https://code.visualstudio.com/)
   and the
   [Deno extension](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno).
+  - If you're on WSL, you will also need the
+    [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl).
 
-Finally, fork the TPVector repository.
+Finally,
+[clone or fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+the TPVector repository on your machine.
 
 # Usage
 
-- Open the forked TPVector repository in Visual Studio Code.
+- Open the cloned TPVector repository in Visual Studio Code.
 - Launch the _Viewer_ debug session (from the menu select _Run | Start
   Debugging_). This will start the _Viewer_ task (an esbuild process that
   bundles and serves the code) and launch the browser with the Viewer page
