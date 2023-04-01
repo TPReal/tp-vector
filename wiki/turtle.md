@@ -255,10 +255,14 @@ Example:<br> ![Branches](turtle_branches.png)
 <!-- deno-fmt-ignore -->
 ```ts
 Turtle.create().right()
-  .repeat(5, (t, i) => t
-    .forward(1)
-    .branch(t => t.right().forward((i + 1) * 0.2))
-    .branches(5, (t, j) => t.left((j + 1) * 20).forward(0.8))
+  .repeat([2, 3, 5, 7], (t, numFeathers) => t
+    .forward(1.5)
+    .branch(t => t.right().forward((numFeathers + 1) * 0.2))
+    .branches(numFeathers, (t, j) => t
+      .left((j + 1) * 20)
+      .forward(0.8)
+      .circle(0.1)
+    )
   )
 
 ```

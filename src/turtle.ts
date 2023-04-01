@@ -232,24 +232,74 @@ export class Turtle extends DefaultPiece {
   /** Executes the function in a loop, each time in a separate branch. */
   branches<Args extends unknown[]>(
     count: number,
-    func: TurtleFunc<[...Args, number]>,
+    func: TurtleFunc<[...args: Args, index: number, count: number]>,
     ...args: Args
-  ) {
-    let t: Turtle = this;
-    for (let i = 0; i < count; i++)
-      t = t.branch(func, ...args, i);
-    return t;
+  ): Turtle;
+  /** Executes the function in a loop, each time in a separate branch. */
+  branches<Args extends unknown[], E>(
+    elements: E[],
+    func: TurtleFunc<[...args: Args, element: E, index: number, elements: E[]]>,
+    ...args: Args
+  ): Turtle;
+  branches<Args extends unknown[], E, Iter extends Iterable<E>>(
+    // deno-lint-ignore no-explicit-any
+    ...[countOrIterable, func, ...args]: any) {
+    return this.repeat(
+      // deno-lint-ignore no-explicit-any
+      countOrIterable as any,
+      // deno-lint-ignore no-explicit-any
+      (t, ...fullArgs) => t.branch(func as any, ...fullArgs),
+      ...args,
+    );
   }
 
   /** Executes the function in a loop, each time passing the result of the previous call. */
   repeat<Args extends unknown[]>(
     count: number,
-    func: TurtleFunc<[...Args, number]>,
+    func: TurtleFunc<[...args: Args, index: number, count: number]>,
     ...args: Args
-  ) {
+  ): Turtle;
+  /** Executes the function in a loop, each time passing the result of the previous call. */
+  repeat<Args extends unknown[], E>(
+    elements: E[],
+    func: TurtleFunc<[...args: Args, element: E, index: number, elements: E[]]>,
+    ...args: Args
+  ): Turtle;
+  repeat<Args extends unknown[], E, Iter extends Iterable<E>>(...params: [
+    number,
+    TurtleFunc<[...args: Args, index: number, count: number]>,
+    ...Args,
+  ] | [
+    E[],
+    TurtleFunc<[...args: Args, element: E, index: number, array: E[]]>,
+    ...Args,
+  ]) {
+    function isCountParams(params: [
+      number,
+      TurtleFunc<[...args: Args, index: number, count: number]>,
+      ...Args,
+    ] | [
+      E[],
+      TurtleFunc<[...args: Args, element: E, index: number, array: E[]]>,
+      ...Args,
+    ]): params is [
+      number,
+      TurtleFunc<[...args: Args, index: number, count: number]>,
+      ...Args,
+    ] {
+      return typeof params[0] === "number";
+    }
     let t: Turtle = this;
-    for (let i = 0; i < count; i++)
-      t = t.andThen(func, ...args, i);
+    if (isCountParams(params)) {
+      const [count, func, ...args] = params;
+      for (let i = 0; i < count; i++)
+        t = t.andThen(func, ...args, i, count);
+    } else {
+      const [iterable, func, ...args] = params;
+      let index = 0;
+      for (const element of iterable)
+        t = t.andThen(func, ...args, element, index++, iterable);
+    }
     return t;
   }
 
