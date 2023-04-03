@@ -76,12 +76,12 @@ export class InterlockPattern {
 /** A pattern of tabs at the edge of material. */
 export class TabsPattern {
 
-  static readonly EMPTY = TabsPattern.create();
+  static readonly EMPTY = TabsPattern.create(InterlockPattern.EMPTY);
 
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = InterlockPattern.EMPTY) {
+  static create(pattern: InterlockPattern) {
     return new TabsPattern(pattern);
   }
 
@@ -121,7 +121,7 @@ export class TabsPattern {
       tabLen = tabLength;
       skipLen = (length - numTabs * tabLen) / numSkips;
     }
-    let pattern = TabsPattern.create();
+    let pattern = TabsPattern.EMPTY;
     let first = true;
     while (numTabs--) {
       if (!(first && startWithTab))
@@ -181,18 +181,32 @@ export class TabsPattern {
 /** A pattern of slots (holes), going through the material. */
 export class SlotsPattern {
 
-  static readonly EMPTY = SlotsPattern.create();
+  static readonly EMPTY = SlotsPattern.create(InterlockPattern.EMPTY);
+  static readonly EMPTY_WITH_CLOSED_START = SlotsPattern.create(
+    InterlockPattern.EMPTY, {startOpen: false});
 
-  protected constructor(readonly pattern: InterlockPattern) {
+  protected constructor(
+    readonly pattern: InterlockPattern,
+    readonly startOpen: boolean,
+    readonly endOpen: boolean,
+  ) {
   }
 
-  static create(pattern = InterlockPattern.EMPTY) {
-    return new SlotsPattern(pattern);
+  static create(pattern: InterlockPattern, {
+    startOpen = pattern.first()?.active ?? true,
+    endOpen = pattern.last()?.active ?? true,
+  } = {}) {
+    return new SlotsPattern(pattern, startOpen, endOpen);
+  }
+
+  /** Creates a single slot inside material. */
+  static single(length: number) {
+    return SlotsPattern.closedStart().slot(length).closedEnd();
   }
 
   /** Creates a slide slot, going from the edge of the material, inside it. */
   static slide(length: number) {
-    return SlotsPattern.slot(length).skip(1e-9 * length);
+    return SlotsPattern.slot(length).closedEnd();
   }
 
   /**
@@ -278,6 +292,10 @@ export class SlotsPattern {
     }).matchingSlots();
   }
 
+  static closedStart(closeStart = true) {
+    return closeStart ? SlotsPattern.EMPTY_WITH_CLOSED_START : SlotsPattern.EMPTY;
+  }
+
   static slot(slotLength: number) {
     return SlotsPattern.EMPTY.slot(slotLength);
   }
@@ -287,19 +305,32 @@ export class SlotsPattern {
   }
 
   slot(slotLength: number) {
-    return SlotsPattern.create(this.pattern.add(true, slotLength));
+    return SlotsPattern.create(
+      this.pattern.add(true, slotLength), {startOpen: this.startOpen});
   }
 
   skip(skipLength: number) {
-    return SlotsPattern.create(this.pattern.add(false, skipLength));
+    return SlotsPattern.create(
+      this.pattern.add(false, skipLength), {startOpen: this.startOpen});
   }
 
   addPattern(other: SlotsPattern) {
-    return SlotsPattern.create(this.pattern.addPattern(other.pattern));
+    return SlotsPattern.create(
+      this.pattern.addPattern(other.pattern), {startOpen: this.startOpen});
   }
 
   reverse() {
-    return SlotsPattern.create(this.pattern.reverse());
+    return SlotsPattern.create(this.pattern.reverse(), {
+      startOpen: this.endOpen,
+      endOpen: this.startOpen,
+    });
+  }
+
+  closedEnd(closedEnd = true) {
+    return SlotsPattern.create(this.pattern, {
+      startOpen: this.startOpen,
+      endOpen: !closedEnd,
+    });
   }
 
   /** Returns a TabsPattern defining tabs that can be inserted into these slots. */
@@ -308,11 +339,19 @@ export class SlotsPattern {
   }
 
   startsWithSlot() {
-    return this.pattern.first()?.active || false;
+    return this.pattern.first()?.active ?? false;
   }
 
   endsWithSlot() {
-    return this.pattern.last()?.active || false;
+    return this.pattern.last()?.active ?? false;
+  }
+
+  startsWithOpenSlot() {
+    return this.startsWithSlot() && this.startOpen;
+  }
+
+  endsWithOpenSlot() {
+    return this.endsWithSlot() && this.endOpen;
   }
 
   length() {

@@ -90,6 +90,10 @@ interface SlotsArgs {
   pattern: SlotsPattern;
   /** To which side of the base line should the slots go. */
   dir?: "right" | "left" | "center";
+  /** Whether to start with an opened slot. */
+  startOpen?: boolean;
+  /** Whether to end with an opened slot. */
+  endOpen?: boolean;
   options: PartialSlotsOptions;
 }
 
@@ -280,21 +284,23 @@ const SLOT_DIR_VALUES = {
 const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   pattern,
   dir = "center",
+  startOpen = pattern.startsWithOpenSlot(),
+  endOpen = pattern.endsWithOpenSlot(),
   options,
 }) => {
   const {kerf, thickness, slotWidthKerf, innerCornersRadius} =
     slotsOptionsFromPartial(options);
   const progression = patternProgression({
     pattern: pattern.pattern,
-    startActive: pattern.startsWithSlot(),
-    endActive: pattern.endsWithSlot(),
+    startActive: startOpen,
+    endActive: endOpen,
   });
   return t.branch(t => {
     t = t.withPenUp(t => t.strafeRight(thickness / 2 * SLOT_DIR_VALUES[dir]));
     const halfWid = Math.max(0, thickness / 2 - slotWidthKerf.oneSideInUnits);
     for (const d of [1, -1])
       t = t.branch(t => {
-        if (pattern.startsWithSlot())
+        if (startOpen)
           t = t.withPenUp(t => t.strafeRight(halfWid * d));
         function fwd(t: Turtle, penDown: boolean, length: number) {
           return t.withPenDown(penDown, t => t.forward(length));
