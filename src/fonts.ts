@@ -1,6 +1,6 @@
 import * as assets from './assets.ts';
 import * as dataURIConv from './data_uri_conv.ts';
-import {AttributesDefTool} from './def_tool.ts';
+import {SimpleAttributesDefTool} from './def_tool.ts';
 import {Attributes, createElement} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
 import {assert, assertNumber} from './util.ts';
@@ -48,7 +48,7 @@ export function attributesFromFontAttributes(
   return attr;
 }
 
-export class Font extends AttributesDefTool {
+export class Font extends SimpleAttributesDefTool {
 
   protected constructor(
     readonly name: string,

@@ -258,7 +258,7 @@ const myFont = await Font.fromAsset({
 
 ### [Clipping, masking, gradients](src/def_tools.ts)
 
-![Clipping, masking, gradients](wiki/feature_def_tools.png)
+![Clipping, gradients](wiki/feature_clip_gradient.png)
 
 <details><summary>Code</summary>
 
@@ -285,6 +285,43 @@ figures.circle()
     figures.rectangle({centered: true, width: 3, height: 1}).rotateLeft(10)
   ))
   .setLayer("print")
+```
+
+</details>
+
+![Mask](wiki/feature_mask.png)
+
+<details><summary>Code</summary>
+
+<!-- deno-fmt-ignore -->
+```ts
+const circles = figures.circle().translate(1, 1).mirrorXY();
+const pieces = gather(
+  circles
+    .useDefTool(Mask
+      .excl(figures.circle({
+        center: [0.4, 0.4],
+        radius: 1.2,
+      }))
+      .incl(figures.circle({
+        center: [0.3, 0.3],
+        radius: 0.8,
+      }))),
+  gather(
+    circles
+      .setAttributes({fillOpacity: 0.3}),
+    circles
+      .useDefTool(Mask
+        .incl(
+          figures.rectangle({
+            centered: true,
+            width: 1,
+            height: 2.5,
+            cornerRadius: 0.3,
+          }).rotateRight(6),
+          {fill: false, stroke: 0.3})),
+  ).moveRight(4.1),
+).setLayer("print");
 ```
 
 </details>

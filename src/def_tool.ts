@@ -2,7 +2,7 @@ import {Attributes, AttributesBuilder} from './elements.ts';
 import {Defs} from './pieces.ts';
 import {OrArray, flatten} from './util.ts';
 
-class IdHelper {
+export class IdHelper {
 
   readonly href;
   readonly url;
@@ -14,7 +14,7 @@ class IdHelper {
 
 }
 
-/** A way to reference a Defs element. Different elements need to be refenced differently. */
+/** A way to reference a Defs element. Different elements need to be referenced differently. */
 export type RefBy = "id" | "url" | "href";
 
 export function getRef(id: string, refBy: RefBy = "url") {
@@ -57,7 +57,7 @@ export class GenericDefTool extends IdHelper implements Defs {
     const attributes: AttributesBuilder = {};
     for (const attrName of flatten(attributeName))
       attributes[attrName] = ref;
-    return AttributesDefTool.create(this.defs, attributes);
+    return SimpleAttributesDefTool.create(this.defs, attributes);
   }
 
 }
@@ -67,7 +67,13 @@ export class GenericDefTool extends IdHelper implements Defs {
  * particular attributes and attaching a Defs to it. It is typically used for things like clip path,
  * mask or font.
  */
-export class AttributesDefTool implements Defs {
+export interface AttributesDefTool extends Defs {
+
+  asAttributes(): Attributes;
+
+}
+
+export class SimpleAttributesDefTool implements AttributesDefTool {
 
   protected constructor(
     protected readonly defs: Defs,
@@ -76,7 +82,7 @@ export class AttributesDefTool implements Defs {
   }
 
   static create(defs: Defs, attributes: Attributes) {
-    return new AttributesDefTool(defs, attributes);
+    return new SimpleAttributesDefTool(defs, attributes);
   }
 
   getDefs() {

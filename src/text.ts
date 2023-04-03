@@ -1,4 +1,4 @@
-import {AttributesDefTool} from './def_tool.ts';
+import {AttributesDefTool, SimpleAttributesDefTool} from './def_tool.ts';
 import {Attributes, AttributesBuilder} from './elements.ts';
 import {attributesFromFontAttributes, Font, FontAttributes} from './fonts.ts';
 import {Defs, Piece} from './pieces.ts';
@@ -11,7 +11,7 @@ interface PathForTextArgs {
   id?: string;
 }
 
-export class PathForText extends AttributesDefTool {
+export class PathForText extends SimpleAttributesDefTool {
 
   protected constructor(
     defs: Defs,
@@ -42,7 +42,7 @@ export class PathForText extends AttributesDefTool {
     return new PathForText(
       pathDefTool,
       {...pathDefTool.asAttributes(), ...tpAttributes},
-      AttributesDefTool.create(Piece.EMPTY, tAttributes),
+      SimpleAttributesDefTool.create(Piece.EMPTY, tAttributes),
     );
   }
 
