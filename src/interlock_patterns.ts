@@ -9,6 +9,8 @@ export interface PatternItem {
  */
 export class InterlockPattern {
 
+  static readonly EMPTY = InterlockPattern.create();
+
   protected constructor(readonly items: readonly PatternItem[]) {
   }
 
@@ -71,15 +73,15 @@ export class InterlockPattern {
 
 }
 
-const EMPTY_PATTERN = InterlockPattern.create();
-
 /** A pattern of tabs at the edge of material. */
 export class TabsPattern {
+
+  static readonly EMPTY = TabsPattern.create();
 
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = EMPTY_PATTERN) {
+  static create(pattern = InterlockPattern.EMPTY) {
     return new TabsPattern(pattern);
   }
 
@@ -133,11 +135,11 @@ export class TabsPattern {
   }
 
   static tab(tabLength: number) {
-    return EMPTY_TABS_PATTERN.tab(tabLength);
+    return TabsPattern.EMPTY.tab(tabLength);
   }
 
   static base(skipLength: number) {
-    return EMPTY_TABS_PATTERN.base(skipLength);
+    return TabsPattern.EMPTY.base(skipLength);
   }
 
   tab(tabLength: number) {
@@ -179,10 +181,12 @@ export class TabsPattern {
 /** A pattern of slots (holes), going through the material. */
 export class SlotsPattern {
 
+  static readonly EMPTY = SlotsPattern.create();
+
   protected constructor(readonly pattern: InterlockPattern) {
   }
 
-  static create(pattern = EMPTY_PATTERN) {
+  static create(pattern = InterlockPattern.EMPTY) {
     return new SlotsPattern(pattern);
   }
 
@@ -232,7 +236,7 @@ export class SlotsPattern {
         len2 = length - len1;
       }
     }
-    const pat1 = EMPTY_PATTERN.add(true, len1).add(false, len2);
+    const pat1 = InterlockPattern.EMPTY.add(true, len1).add(false, len2);
     return [
       SlotsPattern.create(pat1),
       SlotsPattern.create(pat1.invert()),
@@ -275,11 +279,11 @@ export class SlotsPattern {
   }
 
   static slot(slotLength: number) {
-    return EMPTY_SLOTS_PATTERN.slot(slotLength);
+    return SlotsPattern.EMPTY.slot(slotLength);
   }
 
   static skip(skipLength: number) {
-    return EMPTY_SLOTS_PATTERN.skip(skipLength);
+    return SlotsPattern.EMPTY.skip(skipLength);
   }
 
   slot(slotLength: number) {
@@ -320,6 +324,3 @@ export class SlotsPattern {
   }
 
 }
-
-const EMPTY_TABS_PATTERN = TabsPattern.create();
-const EMPTY_SLOTS_PATTERN = SlotsPattern.create();

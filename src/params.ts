@@ -53,7 +53,7 @@ export function createInlineParams(init: Record<string, number> = {}): InlinePar
 }
 
 type ConstructedParams<P extends object> = P & {
-  <P2 extends object>(paramsFunc: (p: P) => P2): ConstructedParams<P & P2>,
+  <P2 extends object>(paramsFunc: P2 | ((p: P) => P2)): ConstructedParams<P & P2>,
 };
 
 function mergeValue(key: string, v1: unknown, v2: unknown) {
@@ -100,8 +100,11 @@ function mergeParams<P1 extends object, P2 extends object>(p1: P1, p2: P2): P1 &
  */
 export function createParams<P extends object>(params: P): ConstructedParams<P> {
   return Object.assign(
-    <P2 extends object>(paramsFunc: (p: P) => P2) =>
-      createParams(mergeParams(params, paramsFunc(params))),
+    <P2 extends object>(arg: P2 | ((p: P) => P2)) =>
+      createParams(mergeParams(
+        params,
+        typeof arg === "function" ? arg(params) : arg,
+      )),
     params,
   );
 }
