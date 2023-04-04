@@ -70,6 +70,10 @@ export async function showViewer({
   document.addEventListener("mouseup", () => {resizeHandleGrabbed = false;});
   document.addEventListener("mousemove", e => {
     if (resizeHandleGrabbed) {
+      e.preventDefault();
+      const anchorSection = [...sectionsContainer.children]
+        .find(el => el.getBoundingClientRect().top >= 0) || sectionsContainer.firstElementChild;
+      const anchorScroll = anchorSection?.getBoundingClientRect().top ?? 0;
       const width = e.clientX - resizeOffset;
       resizableArea.style.width = `${width}px`;
       if (resizableArea.clientWidth >= width)
@@ -78,7 +82,8 @@ export async function showViewer({
         resizableArea.style.width = "100%";
         localStorage.removeItem("width");
       }
-      e.preventDefault();
+      if (anchorSection)
+        window.scrollBy({top: anchorSection.getBoundingClientRect().top - anchorScroll});
     }
   });
 
