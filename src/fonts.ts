@@ -61,6 +61,7 @@ export class Font extends SimpleAttributesDefTool {
     });
   }
 
+  /** @deprecated */
   static async fromBinary({name, type = DEFAULT_FONT_TYPE, binData, fontAttributes}: {
     name: string,
     type?: FontType,
@@ -74,6 +75,7 @@ export class Font extends SimpleAttributesDefTool {
     });
   }
 
+  /** @deprecated */
   static async fromBase64({name, type = DEFAULT_FONT_TYPE, base64Data, fontAttributes}: {
     name: string,
     type?: FontType,
@@ -83,6 +85,18 @@ export class Font extends SimpleAttributesDefTool {
     return await Font.fromURL({
       name,
       url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
+      fontAttributes,
+    });
+  }
+
+  static async fromBlob({name, blob, fontAttributes}: {
+    name: string,
+    blob: Blob,
+    fontAttributes?: FontAttributes,
+  }) {
+    return await Font.fromURL({
+      name,
+      url: await dataURIConv.fromBlob(blob),
       fontAttributes,
     });
   }
@@ -191,14 +205,10 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
       throw new Error(`Failed to fetch: ${url}\n${e}`, {cause: e});
     }
     if (blob.type === "text/css" && mat.groups?.import)
+      // If it was an import of another style, just process and paste that style.
       return {mat, text: await changeToDataURIs(await blob.text()) + "\n"};
-    const dataURI = blob.type.startsWith("text/") ?
-      dataURIConv.fromBinary({
-        mimeType: blob.type,
-        binData: await changeToDataURIs(await blob.text()),
-      }) :
-      await dataURIConv.fromBlob(blob);
-    return {mat, text: `url(${JSON.stringify(dataURI)})${mat.groups?.semi || ""}`};
+    const dataURI = await dataURIConv.fromBlob(blob);
+    return {mat, text: `url(${JSON.stringify(dataURI)})${mat.groups?.semi ?? ""}`};
   });
   const out = []
   let ind = 0;

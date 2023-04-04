@@ -12,7 +12,7 @@ see the [Immutability doc](immutability.md).
 ## Constructors
 
 The constructors are always protected (or private), and classes are instantiated
-using static constructor methods, like `create(...)`, `fromBinary(...)` etc.
+using static constructor methods, like `create(...)`, `fromBlob(...)` etc.
 
 ## Formatting
 

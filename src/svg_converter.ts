@@ -53,7 +53,7 @@ export async function getPNGDataURI(
     ctx.fillRect(0, 0, w, h);
   }
   const img = new Image();
-  const dataURI = new Promise<string>(resolve => {
+  return await new Promise<string>(resolve => {
     img.onload = () => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       if (allowTransparency === "ifWhite" || allowTransparency === "iffWhite") {
@@ -84,7 +84,6 @@ export async function getPNGDataURI(
       cleanUpFunc();
       resolve(canvas.toDataURL("image/png"));
     };
+    img.src = svgURL;
   });
-  img.src = svgURL;
-  return await dataURI;
 }

@@ -1,10 +1,11 @@
 import {AxisOriginAlignment, Fitting, PartialOriginAlignment, RequiredOriginAlignment, alignmentToNumber, requiredOriginAlignmentFromPartial} from './alignment.ts';
 import {Axis} from './axis.ts';
 import * as dataURIConv from './data_uri_conv.ts';
-import {cloneElement, createElement, getElementsBoundingBox, getLoadedPromise, setAttributes} from './elements.ts';
+import {cloneElement, createElement, getElementsBoundingBox, setAttributes} from './elements.ts';
 import {getGlobalOptions} from './global_options.ts';
 import {assets} from './index.ts';
 import {DefaultPiece} from './pieces.ts';
+import {loadEvent} from './internal_util.ts';
 
 export type ImageType = "png" | "jpeg" | "gif";
 
@@ -51,6 +52,7 @@ export class Image extends DefaultPiece {
     super(image);
   }
 
+  /** @deprecated */
   static async fromBinary({type = DEFAULT_IMAGE_TYPE, binData, scaling}: {
     type?: ImageType,
     binData: string,
@@ -62,6 +64,7 @@ export class Image extends DefaultPiece {
     });
   }
 
+  /** @deprecated */
   static async fromBase64({type = DEFAULT_IMAGE_TYPE, base64Data, scaling}: {
     type?: ImageType,
     base64Data: string,
@@ -71,6 +74,10 @@ export class Image extends DefaultPiece {
       url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
       scaling,
     });
+  }
+
+  static async fromBlob(blob: Blob) {
+    return await Image.fromURL(await dataURIConv.fromBlob(blob));
   }
 
   /**
@@ -92,7 +99,7 @@ export class Image extends DefaultPiece {
   }) {
     const {url, scaling = undefined} = typeof arg === "string" ? {url: arg} : arg;
     const image = createElement({tagName: "image"});
-    const loaded = getLoadedPromise(image);
+    const loaded = loadEvent(image);
     setAttributes(image, {href: await dataURIConv.urlToDataURI(url)});
     await loaded;
     return Image.fromImage({

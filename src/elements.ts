@@ -213,16 +213,6 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
   }
 }
 
-export function getLoadedPromise(element: HTMLElement | SVGElement) {
-  return new Promise((resolve, reject) => {
-    element.addEventListener("load", resolve, false);
-    element.addEventListener("error", event => {
-      console.error(`Waiting for the "load" event, got "error"`, element, event);
-      reject(event);
-    }, false);
-  });
-}
-
 const utilSVG = createSVG({viewBox: viewBoxFromPartial()});
 
 /**

@@ -1,11 +1,18 @@
+import {loadEvent} from './internal_util.ts';
+
+/** @deprecated */
 export function fromBinary({mimeType, binData}: {
   mimeType: string,
-  binData: string | Uint8Array | readonly number[],
+  binData: string,
 }) {
-  if (typeof binData !== "string")
-    // TODO: Optimise.
-    binData = String.fromCharCode(...binData);
-  return fromBase64({base64Data: btoa(binData), mimeType});
+  return fromText({mimeType, text: binData});
+}
+
+export function fromText({mimeType, text}: {
+  mimeType: string,
+  text: string,
+}) {
+  return fromBase64({mimeType, base64Data: btoa(text)});
 }
 
 export function fromBase64({mimeType, base64Data}: {
@@ -16,10 +23,11 @@ export function fromBase64({mimeType, base64Data}: {
 }
 
 export async function fromBlob(blob: Blob) {
-  return fromBinary({
-    mimeType: blob.type,
-    binData: new Uint8Array(await blob.arrayBuffer()),
-  });
+  const fileReader = new FileReader();
+  const loaded = loadEvent(fileReader);
+  fileReader.readAsDataURL(blob);
+  await loaded;
+  return fileReader.result as string;
 }
 
 export function isDataURI(url: string) {

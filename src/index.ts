@@ -7,7 +7,7 @@ export {GenericDefTool, SimpleAttributesDefTool, getRef} from './def_tool.ts';
 export type {AttributesDefTool, RefBy} from './def_tool.ts';
 export {Mask, createClipPath, createLinearGradient, createMask, createRadialGradient} from './def_tools.ts';
 export type {GradientCoordFrac, GradientFracPoint, GradientStop, RadialGradientEnd} from './def_tools.ts';
-export {cloneElement, createElement, getLoadedPromise, setAttributes} from './elements.ts';
+export {cloneElement, createElement, setAttributes} from './elements.ts';
 export type {AttributeValue, Attributes, AttributesBuilder} from './elements.ts';
 export * as figures from './figures.ts';
 export {Font, attributesFromFontAttributes} from './fonts.ts';
