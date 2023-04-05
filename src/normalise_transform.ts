@@ -124,6 +124,8 @@ interface Anchor {
 
 function getAnchor<A extends Axis>(
   axis: A, bBoxDim: DimSpec, align: AxisAlignmentSpec<A>): Anchor {
+  if (!bBoxDim.len)
+    return {from: 0, to: 0, negotiateScale: false};
   if (align === "unchanged")
     return {from: 0, to: 0, scale: 1, negotiateScale: false};
   if (typeof align === "string")
