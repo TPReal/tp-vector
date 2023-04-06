@@ -24,6 +24,7 @@ export const DEMOS_VIEWER = Viewer.create()
   // Calibration utilities
   .add(calibration.kerf, {thickness: 3})
   .add(calibration.printPosCorrection)
+  .add(calibration.gradient)
 
   // Explainers
   .add(transformExplainer.getSection)
