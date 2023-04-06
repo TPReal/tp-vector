@@ -3,7 +3,6 @@ import {Attributes} from './elements.ts';
 import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, getGlobalOptions} from './global_options.ts';
 import {NO_LAYER, OptionalLayerName} from './layers.ts';
 import {toFileName} from './name.ts';
-import {Point} from './point.ts';
 
 /** The context for which an SVG is generated. */
 export type Medium = "preview" | "laser";
@@ -109,6 +108,7 @@ export interface CutOptions extends CommonRunOptions {
  * not specified, it is set to `"cut"` and two layers are included: `"cut"` and `NO_LAYER`.
  */
 export function cutOptionsFromPartial(
+  sheetOptions: SheetOptions,
   {
     id = "cut",
     layers = id === "cut" ? ["cut", NO_LAYER] : [id],
@@ -117,7 +117,6 @@ export function cutOptionsFromPartial(
     includeCornersMarker = false,
     posCorrectionMillimeters,
   }: PartialCutOptions,
-  sheetOptions: SheetOptions,
 ): CutOptions {
   return {
     type: "cut",
@@ -147,15 +146,15 @@ export interface PrintOptions extends CommonRunOptions {
  * if id is not specified.
  */
 export function printOptionsFromPartial(
+  sheetOptions: SheetOptions,
   {
     id = "print",
     layers = [id],
     styleAttributes,
     side = "front",
     includeCornersMarker = true,
-    posCorrectionMillimeters = getGlobalOptions().printPosCorrectionMillimeters,
+    posCorrectionMillimeters = sheetOptions.printPosCorrectionMillimeters,
   }: PartialPrintOptions,
-  sheetOptions: SheetOptions,
 ): PrintOptions {
   return {
     type: "print",
@@ -178,11 +177,11 @@ export type PartialRunOptions = PartialCutOptions | PartialPrintOptions;
 export type RunOptions = CutOptions | PrintOptions;
 
 export function runOptionsFromPartial(
-  options: PartialRunOptions, sheetOptions: SheetOptions): RunOptions {
+  sheetOptions: SheetOptions, options: PartialRunOptions): RunOptions {
   if (options.type === "cut")
-    return cutOptionsFromPartial(options, sheetOptions);
+    return cutOptionsFromPartial(sheetOptions, options);
   if (options.type === "print")
-    return printOptionsFromPartial(options, sheetOptions);
+    return printOptionsFromPartial(sheetOptions, options);
   return options satisfies never;
 }
 
@@ -201,12 +200,17 @@ export interface PartialCornersMarkerOptions {
 }
 export interface CornersMarkerOptions extends Required<Readonly<PartialCornersMarkerOptions>> {
 }
-export function cornersMarkerOptionsFromPartial({
-  type = getGlobalOptions().cornersMarkerType,
-  enable = !!type,
-  id = "corners_marker",
-  styleAttributes = {},
-}: PartialCornersMarkerOptions = {}): CornersMarkerOptions {
+export function cornersMarkerOptionsFromPartial(
+  cornersMarkerOptions: boolean | PartialCornersMarkerOptions = true): CornersMarkerOptions {
+  const {
+    type = getGlobalOptions().cornersMarkerType,
+    enable = !!type,
+    id = "corners_marker",
+    styleAttributes = {},
+  }: PartialCornersMarkerOptions =
+    cornersMarkerOptions === true ? {} :
+      cornersMarkerOptions === false ? {enable: false} :
+        cornersMarkerOptions;
   return {
     enable,
     type: type || "circles",
@@ -233,11 +237,15 @@ export interface PartialReversingFrameOptions {
  */
 export interface ReversingFrameOptions extends Required<Readonly<PartialReversingFrameOptions>> {
 }
-export function reversingFrameOptionsFromPartial({
-  enable = true,
-  id = "reversing_frame",
-  styleAttributes = {},
-}: PartialReversingFrameOptions = {}): ReversingFrameOptions {
+export function reversingFrameOptionsFromPartial(
+  reversingFrameOptions: boolean | PartialReversingFrameOptions = true): ReversingFrameOptions {
+  const {
+    enable = true,
+    id = "reversing_frame",
+    styleAttributes = {},
+  }: PartialReversingFrameOptions = reversingFrameOptions === true ? {} :
+      reversingFrameOptions === false ? {enable: false} :
+        reversingFrameOptions;
   return {
     enable,
     id,
@@ -320,6 +328,16 @@ export function laserRunsOptionsFromPartial({
   };
 }
 
+const NO_POS_CORRECTION: PosCorrectionMillimeters = [0, 0];
+
+function printPosCorrectionMillimetersFromPartial(
+  printPosCorrection: boolean | PosCorrectionMillimeters = true): PosCorrectionMillimeters {
+  return printPosCorrection === true ?
+    getGlobalOptions().printPosCorrectionMillimeters ?? NO_POS_CORRECTION :
+    printPosCorrection === false ? NO_POS_CORRECTION :
+      printPosCorrection;
+}
+
 export const DEFAULT_SHEET_FILE_NAME = "sheet";
 
 export interface PartialSheetOptions {
@@ -327,12 +345,12 @@ export interface PartialSheetOptions {
   fileName?: string;
   includeSizeInName?: boolean;
   millimetersPerUnit?: number;
-  cornersMarker?: PartialCornersMarkerOptions;
-  reversingFrame?: PartialReversingFrameOptions;
+  cornersMarker?: boolean | PartialCornersMarkerOptions;
+  reversingFrame?: boolean | PartialReversingFrameOptions;
   resolution?: PartialSheetResolution;
   previewColors?: PartialPreviewColors;
   laserRunsOptions?: PartialLaserRunsOptions;
-  printPosCorrection?: Point;
+  printPosCorrectionMillimeters?: boolean | PosCorrectionMillimeters;
 }
 export interface SheetOptions {
   readonly name?: string;
@@ -344,6 +362,7 @@ export interface SheetOptions {
   readonly resolution: SheetResolution;
   readonly previewColors: PreviewColors;
   readonly laserRunsOptions: LaserRunsOptions;
+  readonly printPosCorrectionMillimeters: PosCorrectionMillimeters;
 }
 export function sheetOptionsFromPartial({
   name,
@@ -355,6 +374,7 @@ export function sheetOptionsFromPartial({
   resolution,
   previewColors,
   laserRunsOptions,
+  printPosCorrectionMillimeters,
 }: PartialSheetOptions): SheetOptions {
   return {
     name,
@@ -366,5 +386,7 @@ export function sheetOptionsFromPartial({
     resolution: sheetResolutionFromPartial(resolution, millimetersPerUnit),
     previewColors: previewColorsFromPartial(previewColors),
     laserRunsOptions: laserRunsOptionsFromPartial(laserRunsOptions),
+    printPosCorrectionMillimeters:
+      printPosCorrectionMillimetersFromPartial(printPosCorrectionMillimeters),
   };
 }

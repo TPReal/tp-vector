@@ -101,7 +101,7 @@ export class Sheet {
     const runOptionsMap = new Map<string, RunOptions>();
     const emptyRuns = new Set<string>();
     for (const opts of allRuns) {
-      const runOptions = runOptionsFromPartial(opts, sheetOptions);
+      const runOptions = runOptionsFromPartial(sheetOptions, opts);
       if (runOptionsMap.has(runOptions.id))
         throw new Error(`Duplicate run id: ${JSON.stringify(runOptions.id)}`);
       runOptionsMap.set(runOptions.id, runOptions);

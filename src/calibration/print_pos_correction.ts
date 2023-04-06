@@ -79,15 +79,11 @@ export function getSheet(params: CorrectionParams = {}) {
     options: {
       name: "printPosCorrection calibrator",
       millimetersPerUnit: 1,
+      printPosCorrectionMillimeters: false,
     },
     pieces: [
       vernierScaleX.moveUp(p.max * p.unitDist - p.scoreLength + p.max),
       vernierScaleY.moveLeft(p.max * p.unitDist + p.scoreLength + 2),
-    ],
-    runs: [
-      // Disable pos correction for the calibration.
-      {type: "cut", posCorrectionMillimeters: [0, 0]},
-      {type: "print", posCorrectionMillimeters: [0, 0]},
     ],
   });
 
