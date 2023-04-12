@@ -38,16 +38,16 @@ src/viewer/viewer.ts \
     },
 
     {
-      "label": "Rebuild Demo Viewer",
+      "label": "Rebuild Static Demo Viewer",
       "detail": "Rebuild the static demo viewer code (the demo-viewer directory)",
       "type": "shell",
       "command":
         "\
 esbuild \
-src/viewer/demo_viewer.ts \
+src/viewer/static_demo_viewer.ts \
 --bundle \
 --minify \
---outdir=demo-viewer \
+--outdir=static-demo-viewer \
 --charset=utf8 \
 --loader:.png=dataurl \
         ",
