@@ -47,10 +47,8 @@ esbuild \
 src/viewer/demo_viewer.ts \
 --bundle \
 --minify \
---format=esm \
 --outdir=demo-viewer \
 --charset=utf8 \
---out-extension:.js=.mjs \
 --loader:.png=dataurl \
         ",
       "problemMatcher": [],
