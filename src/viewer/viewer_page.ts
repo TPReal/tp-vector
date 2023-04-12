@@ -53,7 +53,8 @@ export async function showViewer({
   container.appendChild(resizableArea);
   resizableArea.style.flex = "0 1 auto";
   resizableArea.style.minWidth = "100px";
-  const resizeWidth = localStorage.getItem("width");
+  const resizeWidth =
+    localStorage.getItem("width") || new URLSearchParams(location.search).get("width");
   resizableArea.style.width = resizeWidth ? `${resizeWidth}px` : "100%";
   const resizeHandle = document.createElement("div");
   container.appendChild(resizeHandle);
