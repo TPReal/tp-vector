@@ -3,4 +3,6 @@ import {Viewer} from './viewer_tools.ts';
 
 // The static demo viewer.
 
-await Viewer.create().addAll(DEMOS_VIEWER).show();
+(async () => {
+  await Viewer.create().addAll(DEMOS_VIEWER).show();
+})();
