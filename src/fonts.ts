@@ -175,7 +175,7 @@ export class Font extends SimpleAttributesDefTool {
     return await Font.fromStyle({
       name,
       styleContent: `@import url(${JSON.stringify(
-        `http://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}` +
+        `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}` +
         (keys.length ? `:${keys.join(",")}@${vals.join(",")}` : "")
       )});`,
       fontAttributes,
