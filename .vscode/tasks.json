@@ -6,25 +6,7 @@
       "label": "Viewer",
       "detail": "Build and serve the Viewer app",
       "type": "shell",
-      "command":
-        // (See src/assets.ts for more information about the --loader options.)
-        "\
-esbuild \
-src/viewer/viewer.ts \
---watch \
---bundle \
---format=esm \
---sourcemap \
---outdir=src/viewer/static \
---serve=127.0.0.1:4327 \
---servedir=src/viewer/static \
---charset=utf8 \
---out-extension:.js=.mjs \
---loader:.jpg=file \
---loader:.png=file \
---loader:.svg=file \
---loader:.woff2=file \
-        ",
+      "command": "cmds/viewer",
       "isBackground": true,
       "group": {
         "kind": "build",
@@ -39,18 +21,8 @@ src/viewer/viewer.ts \
 
     {
       "label": "Rebuild Static Demo Viewer",
-      "detail": "Rebuild the static demo viewer code (the demo-viewer directory)",
       "type": "shell",
-      "command":
-        "\
-esbuild \
-src/viewer/static_demo_viewer.ts \
---bundle \
---minify \
---outdir=static-demo-viewer \
---charset=utf8 \
---loader:.png=dataurl \
-        ",
+      "command": "cmds/gen-static-demo-viewer",
       "problemMatcher": [],
       "presentation": {
         "panel": "dedicated",
@@ -60,7 +32,7 @@ src/viewer/static_demo_viewer.ts \
     {
       "label": "Type-check",
       "type": "shell",
-      "command": "deno check src/**/*.ts",
+      "command": "cmds/type-check",
       "group": {
         "kind": "build",
       },
@@ -74,7 +46,7 @@ src/viewer/static_demo_viewer.ts \
     {
       "label": "Lint",
       "type": "shell",
-      "command": "deno lint",
+      "command": "cmds/lint",
       "problemMatcher": ["$deno"],
       "presentation": {
         "focus": false,
@@ -86,7 +58,7 @@ src/viewer/static_demo_viewer.ts \
     {
       "label": "Generate docs",
       "type": "shell",
-      "command": "typedoc",
+      "command": "cmds/gen-docs",
       "problemMatcher": [],
       "presentation": {
         "focus": false,

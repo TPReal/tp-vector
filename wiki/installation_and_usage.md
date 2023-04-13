@@ -5,6 +5,8 @@ you have no experience with programming and the TypeScript development stack,
 this will require learning many new things. Unfortunately, I don't know any way
 around this.
 
+**TODO: Rewrite when docker is ready. Describe the cmds.**
+
 Install the tools necessary to work with the TPVector library:
 
 - If you're using Windows, it's best to configure

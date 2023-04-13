@@ -1,0 +1,8 @@
+# Rebuild the viewer in the static-demo-viewer directory.
+esbuild \
+  src/viewer/static_demo_viewer.ts \
+  --bundle \
+  --minify \
+  --outdir=static-demo-viewer \
+  --charset=utf8 \
+  --loader:.png=dataurl \
