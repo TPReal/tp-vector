@@ -6,11 +6,18 @@
   "configurations": [
 
     {
-      "name": "Viewer",
+      "name": "Viewer (docker)",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:4327/",
-      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "Docker",
+    },
+
+    {
+      "name": "Viewer (local)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4327/",
       "preLaunchTask": "${defaultBuildTask}",
     },
 

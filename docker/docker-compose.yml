@@ -1,0 +1,13 @@
+services:
+  tp-vector:
+    container_name: tp-vector
+    deploy:
+      resources:
+        limits:
+          memory: "100M"
+    volumes:
+      - "..:/var/app:ro"
+    build:
+      context: .
+    ports:
+      - "4327:4327"

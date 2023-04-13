@@ -3,12 +3,12 @@
 
 esbuild \
   src/viewer/viewer.ts \
-  --watch \
+  --watch=forever \
   --bundle \
   --format=esm \
   --sourcemap \
   --outdir=src/viewer/static \
-  --serve=127.0.0.1:4327 \
+  --serve=4327 \
   --servedir=src/viewer/static \
   --charset=utf8 \
   --out-extension:.js=.mjs \
