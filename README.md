@@ -9,14 +9,13 @@ both for cutting and engraving.
 
 ## Quick start
 
-<!-- deno-fmt-ignore -->
-<span style="font-size:1.5em">[Live demo](https://htmlpreview.github.io/?https://github.com/TPReal/tp-vector/blob/main/static-demo-viewer/index.html&width=500)</span> -
-a collection of demo projects (defined [here](src/viewer/demos_viewer.ts)),
+### [Live demo](https://htmlpreview.github.io/?https://github.com/TPReal/tp-vector/blob/main/static-demo-viewer/index.html&width=500)
+
+A collection of demo projects (defined [here](src/viewer/demos_viewer.ts)),
 where you can preview the files, as well as download SVG files suitable for the
 laser cutter software.
 
-<!-- deno-fmt-ignore -->
-<span style="font-size:1.5em">[Installation and usage](wiki/installation_and_usage.md)</span>
+### [Installation and usage](wiki/installation_and_usage.md)
 
 The library gives a high level of both compile-time safety, thanks to
 TypeScript, and runtime safety, thanks to immutability (see the
@@ -28,7 +27,9 @@ but note that it is neither ideal nor complete right now. It is recommended to
 consult the source code of the library - the type system will provide a lot of
 additional information.
 
-![Lines of code](https://img.shields.io/tokei/lines/github/TPReal/tp-vector?style=flat&label=total%20src%20lines)
+<!-- ![Lines of code](https://img.shields.io/tokei/lines/github/TPReal/tp-vector?style=flat&label=total%20src%20lines) -->
+
+![Lines of code](https://sloc.xyz/github/TPReal/tp-vector?category=code)
 
 ## Features
 
