@@ -23,11 +23,11 @@ mask or font.</p>
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><a href="AttributesDefTool.html" class="tsd-signature-type" data-tsd-kind="Class">AttributesDefTool</a>
+<li><a href="SimpleAttributesDefTool.html" class="tsd-signature-type" data-tsd-kind="Class">SimpleAttributesDefTool</a>
 <ul class="tsd-hierarchy">
 <li><span class="target">Font</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L51">fonts.ts:51</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L51">fonts.ts:51</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -38,6 +38,7 @@ mask or font.</p>
 <div class="tsd-index-list"><a href="Font.html#create" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-2048-path"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)" id="icon-2048-text"></path></svg><span>create</span></a>
 <a href="Font.html#fromBinary" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>from<wbr/>Binary</span></a>
 <a href="Font.html#fromBase64" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>from<wbr/>Base64</span></a>
+<a href="Font.html#fromBlob" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>from<wbr/>Blob</span></a>
 <a href="Font.html#fromURL" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>fromURL</span></a>
 <a href="Font.html#fromAsset" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>from<wbr/>Asset</span></a>
 <a href="Font.html#system" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>system</span></a>
@@ -55,7 +56,7 @@ mask or font.</p>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="create" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="create.create-1">create<span class="tsd-signature-symbol">(</span>defs<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Defs</span>, attributes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/AttributeValue.html" class="tsd-signature-type" data-tsd-kind="Type alias">AttributeValue</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="AttributesDefTool.html" class="tsd-signature-type" data-tsd-kind="Class">AttributesDefTool</a><a href="#create.create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="create.create-1">create<span class="tsd-signature-symbol">(</span>defs<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Defs</span>, attributes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/AttributeValue.html" class="tsd-signature-type" data-tsd-kind="Type alias">AttributeValue</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="SimpleAttributesDefTool.html" class="tsd-signature-type" data-tsd-kind="Class">SimpleAttributesDefTool</a><a href="#create.create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -64,15 +65,17 @@ mask or font.</p>
 <h5>defs: <span class="tsd-signature-type">Defs</span></h5></li>
 <li>
 <h5>attributes: <span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/AttributeValue.html" class="tsd-signature-type" data-tsd-kind="Type alias">AttributeValue</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="AttributesDefTool.html" class="tsd-signature-type" data-tsd-kind="Class">AttributesDefTool</a></h4><aside class="tsd-sources">
-<p>Inherited from <a href="AttributesDefTool.html">AttributesDefTool</a>.<a href="AttributesDefTool.html#create">create</a></p>
+<h4 class="tsd-returns-title">Returns <a href="SimpleAttributesDefTool.html" class="tsd-signature-type" data-tsd-kind="Class">SimpleAttributesDefTool</a></h4><aside class="tsd-sources">
+<p>Inherited from <a href="SimpleAttributesDefTool.html">SimpleAttributesDefTool</a>.<a href="SimpleAttributesDefTool.html#create">create</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/def_tool.ts#L78">def_tool.ts:78</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/def_tool.ts#L84">def_tool.ts:84</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromBinary" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from<wbr/>Binary</span><a href="#fromBinary" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
 <li class="tsd-signature tsd-anchor-link" id="fromBinary.fromBinary-1">from<wbr/>Binary<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>type<span class="tsd-signature-symbol">?: </span><a href="../types/FontType.html" class="tsd-signature-type" data-tsd-kind="Type alias">FontType</a><span class="tsd-signature-symbol">; </span><br/><span>    </span>binData<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>fontAttributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span><a href="#fromBinary.fromBinary-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography">
+<h3>Deprecated</h3></div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -89,12 +92,14 @@ mask or font.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> font<wbr/>Attributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L64">fonts.ts:64</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L65">fonts.ts:65</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromBase64" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from<wbr/>Base64</span><a href="#fromBase64" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
 <li class="tsd-signature tsd-anchor-link" id="fromBase64.fromBase64-1">from<wbr/>Base64<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>type<span class="tsd-signature-symbol">?: </span><a href="../types/FontType.html" class="tsd-signature-type" data-tsd-kind="Type alias">FontType</a><span class="tsd-signature-symbol">; </span><br/><span>    </span>base64Data<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>fontAttributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span><a href="#fromBase64.fromBase64-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography">
+<h3>Deprecated</h3></div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -111,7 +116,27 @@ mask or font.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> font<wbr/>Attributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L77">fonts.ts:77</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L79">fonts.ts:79</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromBlob" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from<wbr/>Blob</span><a href="#fromBlob" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="fromBlob.fromBlob-1">from<wbr/>Blob<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>blob<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>fontAttributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span><a href="#fromBlob.fromBlob-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span><br/><span>    </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>blob<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Blob</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>fontAttributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5></li>
+<li class="tsd-parameter">
+<h5>blob<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Blob</span></h5></li>
+<li class="tsd-parameter">
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> font<wbr/>Attributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L92">fonts.ts:92</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromURL" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>fromURL</span><a href="#fromURL" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -134,7 +159,7 @@ If it&#39;s an external URL, the font is fetched and encoded as a data URI inste
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> font<wbr/>Attributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L94">fonts.ts:94</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L108">fonts.ts:108</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="fromAsset" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from<wbr/>Asset</span><a href="#fromAsset" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -154,7 +179,7 @@ If it&#39;s an external URL, the font is fetched and encoded as a data URI inste
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> font<wbr/>Attributes<span class="tsd-signature-symbol">?: </span><a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L109">fonts.ts:109</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L123">fonts.ts:123</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="system" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>system</span><a href="#system" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -171,7 +196,7 @@ If it&#39;s an external URL, the font is fetched and encoded as a data URI inste
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> fontAttributes: <a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L134">fonts.ts:134</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L148">fonts.ts:148</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="googleFonts" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>google<wbr/>Fonts</span><a href="#googleFonts" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -195,25 +220,25 @@ with:</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> fontAttributes: <a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L149">fonts.ts:149</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L163">fonts.ts:163</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="getDefs" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Defs</span><a href="#getDefs" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="getDefs.getDefs-1">get<wbr/>Defs<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">SVGElement</span><span class="tsd-signature-symbol">[]</span><a href="#getDefs.getDefs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">SVGElement</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="AttributesDefTool.html">AttributesDefTool</a>.<a href="AttributesDefTool.html#getDefs">getDefs</a></p>
+<p>Inherited from <a href="SimpleAttributesDefTool.html">SimpleAttributesDefTool</a>.<a href="SimpleAttributesDefTool.html#getDefs">getDefs</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/def_tool.ts#L82">def_tool.ts:82</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/def_tool.ts#L88">def_tool.ts:88</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="asAttributes" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>as<wbr/>Attributes</span><a href="#asAttributes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="asAttributes.asAttributes-1">as<wbr/>Attributes<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/AttributeValue.html" class="tsd-signature-type" data-tsd-kind="Type alias">AttributeValue</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#asAttributes.asAttributes-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/AttributeValue.html" class="tsd-signature-type" data-tsd-kind="Type alias">AttributeValue</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="AttributesDefTool.html">AttributesDefTool</a>.<a href="AttributesDefTool.html#asAttributes">asAttributes</a></p>
+<p>Inherited from <a href="SimpleAttributesDefTool.html">SimpleAttributesDefTool</a>.<a href="SimpleAttributesDefTool.html#asAttributes">asAttributes</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/def_tool.ts#L86">def_tool.ts:86</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/def_tool.ts#L92">def_tool.ts:92</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setFontAttributes" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Font<wbr/>Attributes</span><a href="#setFontAttributes" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -226,14 +251,14 @@ with:</p>
 <h5>fontAttributes: <a href="../interfaces/FontAttributes.html" class="tsd-signature-type" data-tsd-kind="Interface">FontAttributes</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Font.html" class="tsd-signature-type" data-tsd-kind="Class">Font</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L171">fonts.ts:171</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L185">fonts.ts:185</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="name" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>name</span><a href="#name" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/b67dcea/src/fonts.ts#L54">fonts.ts:54</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/TPReal/tp-vector/blob/69c5e3d/src/fonts.ts#L54">fonts.ts:54</a></li></ul></aside></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -266,6 +291,7 @@ with:</p>
 <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="Font.html#create" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>create</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Font.html#fromBinary" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>from<wbr/>Binary</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Font.html#fromBase64" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>from<wbr/>Base64</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="Font.html#fromBlob" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>from<wbr/>Blob</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Font.html#fromURL" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>fromURL</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Font.html#fromAsset" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>from<wbr/>Asset</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="Font.html#system" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>system</a></li>
