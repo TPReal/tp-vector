@@ -1,103 +1,87 @@
 # Installation
 
-To use TPVector, you will need to write, compile and bundle TypeScript code. If
-you have no experience with programming and the TypeScript development stack,
-this will require learning many new things. Unfortunately, I don't know any way
-around this.
+To use TPVector, you need to write [TypeScript](https://www.typescriptlang.org/)
+code. Start by installing the necessary tools and launching the
+[Viewer](#viewer).
 
-**TODO: Rewrite when docker is ready. Describe the cmds.**
+## The tools
 
-Install the tools necessary to work with the TPVector library:
+It's easiest to obtain the necessary development tools using
+[Docker](https://www.docker.com/):
 
-- If you're using Windows, it's best to configure
-  [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/)
-  and work in it.
-- Install [esbuild](https://esbuild.github.io/), used for bundling and serving
-  the code (install [Node.js](https://nodejs.org/) first, if needed). It is
-  recommended to install globally with `npm install -g esbuild`, because
-  TPVector is not a Node.js project, and esbuild is treated just as an external
-  executable that needs to exist on the system.
-- Install [Deno](https://deno.land/)
-  ([instructions](https://deno.land/manual/getting_started/installation)) for
-  type-checking the code. Strictly speaking, this is optional, but extremely
-  useful for development, and required for full IDE support.
-- _Recommended:_ Install [Visual Studio Code](https://code.visualstudio.com/)
-  and the
-  [Deno extension](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno).
-  - If you're on WSL, you will also need the
-    [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl).
+- Install [Docker](https://www.docker.com/). Note that Docker on Windows
+  requires [WSL](https://learn.microsoft.com/en-us/windows/wsl/).
+- [Clone or fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+  the TPVector repository on your machine.
+- Build and start the Docker container defined in
+  [_docker-compose.yml_](../docker/docker-compose.yml). This can be done in
+  multiple ways, for example:
+  - from the Docker Desktop, or
+  - from the command line: `docker compose -f docker/docker-compose.yml up`.
+- Open the [Viewer](#viewer) in the browser, at http://localhost:4327/.
 
-Finally,
-[clone or fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-the TPVector repository on your machine.
+### Visual Studio Code
+
+If you're using [Visual Studio Code](https://code.visualstudio.com/), you still
+need to install Docker, but the remaining steps can be simplified even further:
+just launch the Run/Debug configuration _Viewer (docker)_ (defined in
+[_launch.json_](../.vscode/launch.json)). This starts the Docker container and
+opens the Viewer.
+
+Visual Studio Code extensions recommended for development:
+
+- [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
+- [Deno](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
+  (for type-checking)
+- [WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)
+  (if you're on Windows)
+
+### Without Docker
+
+You can also use TPVector without Docker, however you need to be on linux or
+WSL, and install the tools manually. You can treat the
+[_dockerfile_](../docker/dockerfile) as an instruction. Then launch the commands
+from the [_cmds_](../cmds/) directory.
 
 # Usage
 
-- Open the cloned TPVector repository in Visual Studio Code.
-- Launch the _Viewer_ debug session (from the menu select _Run | Start
-  Debugging_). This will start the _Viewer_ task (an esbuild process that
-  bundles and serves the code) and launch the browser with the Viewer page
-  opened (http://localhost:4327/). The Viewer shows some demo projects, defined
-  in [demos](../src/demos/).
+The TypeScript code of the library and the projects is bundled and served to the
+browser. All the logic is executed there: it's the browser that generates the
+SVGs, both for preview and for the laser software.
 
-(Alternatively, you can launch the esbuild server manually, or using a different
-IDE. You can find the esbuild command in
-[_.vscode/tasks.json_](../.vscode/tasks.json), in the definition of the _Viewer_
-task.)
+## Viewer
 
-The TypeScript code is bundled and served by esbuild. The main logic is executed
-in the browser - it generates the SVGs, both for preview and for the laser
-software.
+The Viewer is a part of the TPVector library. It is a web application for
+generating, previewing and saving SVG files.
 
-## Where to start
+It is launched using the command in [_cmds/viewer_](../cmds/viewer), which
+happens automatically if you start the Docker container as described above.
+
+The Viewer initially shows the demo projects, defined in
+[_demos_](../src/demos/). See below for how to add more projects.
+
+## Where to start in the code
 
 Take a look at the code entry point, which is
 [_src/viewer/viewer.ts_](../src/viewer/viewer.ts), browse the demo projects, try
-making changes. Changes in the code are immediately caught by esbuild, and the
-browser is refreshed to show the result.
+making changes. Changes in the code are immediately caught by the Viewer, and
+the browser is refreshed to show the result.
 
-_Note:_ The esbuild process does not perform type-checking. For TypeScript
-correctness you need to either rely on your IDE, or run the _Type-check_ task
-(configured in [_.vscode/tasks.json_](../.vscode/tasks.json)).
+_Note:_ The Viewer process (which uses esbuild under the hood) does not perform
+type-checking. For TypeScript type-checking you need to either rely on your IDE,
+or run the checker manually, using [_cmds/type-check_](../cmds/type-check), or
+the _Type-check_ task in VS Code.
 
 ## Creating your own projects
 
-### In a branch
+The easiest way to start working on your own projects is to put them in a branch
+of the TPVector repository:
 
-Starting your own repository in a branch is the easiest way to test out
-TPVector.
-
-- In the forked TPVector repository, create a new branch for your project(s).
+- In your fork of the TPVector repository, create a new branch for your
+  project(s).
 - Create a _my_proj.ts_ file in the [_src/demos_](../src/demos) directory (or
-  some other directory, e.g. _src/projects_) and include it in
-  [_src/viewer/viewer.ts_](../src/viewer/viewer.ts).
+  some other directory, e.g. _src/projects_), as a copy of one of the demo
+  projects, and include it in [_src/viewer/viewer.ts_](../src/viewer/viewer.ts).
 
-### In a separate repository
-
-- Create a repository for your projects.
-- Add TPVector as a
-  [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules), e.g. in the
-  _tp-vector_ subdirectory of your repository.
-- Copy [_.vscode_](../.vscode) and [_deno.jsonc_](../deno.jsonc) to your
-  repository's root, and make the necessary changes:
-  - Add a section to _deno.jsonc_:
-
-    ```
-    "imports": {
-      "tp-vector/": "./tp-vector/src/",
-    },
-    ```
-
-    This will allow referencing the library from your files as:
-
-    <!-- deno-fmt-ignore -->
-    ```ts
-    import {Piece} from 'tp-vector/index.ts';
-    ```
-
-  - In _.vscode/tasks.json_ change the esbuild command:
-    - Add `--alias:tp-vector=./tp-vector/src`
-    - Change the `--outdir` and `--servedir` from _src/viewer/static_ to
-      _tp-vector/src/viewer/static_.
-- Create a copy of [_src/viewer/viewer.ts_](../src/viewer/viewer.ts) in your own
-  repository and modify it to add your projects.
+The change should be immediately caught by the Viewer. You can now work on your
+project, and, when ready, submit it to your fork of the repository.
