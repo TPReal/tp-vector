@@ -1,7 +1,13 @@
 services:
   tp-vector:
-    container_name: tp-vector-esbuild
-    deploy: { resources: { limits: { memory: "160M" } } }
-    build: { context: ., dockerfile: esbuild.dockerfile }
-    volumes: [ "..:/var/app" ]
-    ports: [ "4327:80" ]
+    container_name: tp-vector
+    deploy:
+      resources:
+        limits:
+          memory: "160M"
+    volumes:
+      - "..:/var/app:ro"
+    build:
+      context: .
+    ports:
+      - "4327:4327"

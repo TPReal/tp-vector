@@ -3,7 +3,19 @@
   "tasks": [
 
     {
-      "label": "Viewer",
+      "label": "Docker",
+      "detail": "Build and serve the Viewer app in a Docker container",
+      "type": "shell",
+      "command": "docker compose -f docker/docker-compose.yml up --build --detach",
+      "problemMatcher": [],
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated",
+      },
+    },
+
+    {
+      "label": "Viewer (local)",
       "detail": "Build and serve the Viewer app",
       "type": "shell",
       "command": "cmds/viewer",
@@ -15,16 +27,6 @@
       "problemMatcher": [],
       "presentation": {
         "focus": false,
-        "panel": "dedicated",
-      },
-    },
-
-    {
-      "label": "Rebuild Static Demo Viewer",
-      "type": "shell",
-      "command": "cmds/gen-static-demo-viewer",
-      "problemMatcher": [],
-      "presentation": {
         "panel": "dedicated",
       },
     },
@@ -47,22 +49,11 @@
       "label": "Lint",
       "type": "shell",
       "command": "cmds/lint",
-      "problemMatcher": ["$deno"],
+      "problemMatcher": ["$deno-lint"],
       "presentation": {
         "focus": false,
         "panel": "dedicated",
         "showReuseMessage": false,
-      },
-    },
-
-    {
-      "label": "Generate docs",
-      "type": "shell",
-      "command": "cmds/gen-docs",
-      "problemMatcher": [],
-      "presentation": {
-        "focus": false,
-        "panel": "dedicated",
       },
     },
 

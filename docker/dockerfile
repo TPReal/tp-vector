@@ -1,0 +1,10 @@
+FROM node:latest
+
+RUN npm install -g esbuild
+RUN curl -fsSL https://deno.land/x/install/install.sh | sh
+ENV PATH="$PATH:/root/.deno/bin"
+
+RUN mkdir /var/app
+WORKDIR /var/app
+
+CMD cmds/viewer
