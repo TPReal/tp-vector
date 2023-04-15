@@ -9,7 +9,7 @@ both for cutting and engraving.
 
 ## Quick start
 
-### [Live demo](https://htmlpreview.github.io/?https://github.com/TPReal/tp-vector/blob/main/static-demo-viewer/index.html&width=500)
+### [Live demo](https://htmlpreview.github.io/?https://github.com/TPReal/tp-vector/blob/main/static-demos-viewer/index.html&width=500)
 
 A collection of demo projects (defined [here](src/viewer/demos_viewer.ts)),
 where you can preview the files, as well as download SVG files suitable for the

@@ -1,0 +1,9 @@
+# Rebuild the viewer in the static-demos-viewer directory.
+esbuild \
+  src/viewer/static_demos_viewer.ts \
+  --alias:tp-vector=./src \
+  --bundle \
+  --minify \
+  --outdir=static-demos-viewer \
+  --charset=utf8 \
+  --loader:.png=dataurl \

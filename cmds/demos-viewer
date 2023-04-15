@@ -3,8 +3,8 @@
 
 esbuild \
   src/viewer/viewer.ts \
-  --alias:tp-vector=./src \
   --watch=forever \
+  --alias:tp-vector=./src \
   --bundle \
   --format=esm \
   --sourcemap \
