@@ -1,4 +1,4 @@
-import {Sheet, Turtle, gather, layouts} from '../index.ts';
+import {Sheet, Turtle, gather, layouts} from 'tp-vector/index.ts';
 
 export function getSheet() {
 

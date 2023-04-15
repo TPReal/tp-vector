@@ -1,4 +1,4 @@
-import {Piece, Sheet, createText, figures, gather, layouts, createParams} from '../index.ts';
+import {Piece, Sheet, createParams, createText, figures, gather, layouts} from 'tp-vector/index.ts';
 
 export interface CorrectionParams {
   max?: number;

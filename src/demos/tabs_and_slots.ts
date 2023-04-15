@@ -1,5 +1,5 @@
-import {kerfUtil, layouts, Sheet, TabsPattern, Turtle} from '../index.ts';
-import {turtleInterlock} from '../interlock.ts';
+import {kerfUtil, layouts, Sheet, TabsPattern, Turtle} from 'tp-vector/index.ts';
+import {turtleInterlock} from 'tp-vector/interlock.ts';
 
 export function getSheet() {
 

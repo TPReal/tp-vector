@@ -1,4 +1,4 @@
-import {Sheet, createText, figures, gather, layouts, Turtle, Font} from '../index.ts';
+import {Font, Sheet, Turtle, createText, figures, gather, layouts} from 'tp-vector/index.ts';
 
 export async function getSheet() {
 

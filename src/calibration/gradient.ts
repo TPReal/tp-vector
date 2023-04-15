@@ -1,4 +1,4 @@
-import {Sheet, Turtle, figures, createLinearGradient, gather, layouts, createParams} from '../index.ts';
+import {Sheet, Turtle, createLinearGradient, createParams, figures, gather, layouts} from 'tp-vector/index.ts';
 
 /** Returns a calibrator Sheet for testing gradients. */
 export function getSheet() {

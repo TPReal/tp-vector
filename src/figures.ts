@@ -1,8 +1,8 @@
 import {getGlobalOptions} from './global_options.ts';
-import {Path} from "./path.ts";
+import {Path} from './path.ts';
 import {Piece} from './pieces.ts';
 import {Point, pointsToString} from './point.ts';
-import {flattenPoints, OrArrayRest} from './util.ts';
+import {OrArrayRest, flattenPoints} from './util.ts';
 import {PartialViewBox, viewBoxFromPartial} from './view_box.ts';
 
 export function circle({

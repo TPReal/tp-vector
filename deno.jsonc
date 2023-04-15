@@ -6,6 +6,10 @@
       "dom.iterable",
     ],
   },
+  "imports": {
+    // To allow importing from tp-vector in custom projects.
+    "tp-vector/": "./src/",
+  },
   "lint": {
     "files": {
       "include": [
@@ -24,6 +28,8 @@
         "no-inner-declarations",
         "no-namespace",
         "no-this-alias",
+        // For importing from tp-vector in custom projects.
+        "import-prefix-missing",
       ],
     },
   },

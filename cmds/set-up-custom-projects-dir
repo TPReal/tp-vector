@@ -1,0 +1,23 @@
+# Set up a directory for custom projects.
+# Call with "dirname" to set up the directory as src/dirname.
+# The script is non-destructive - it skips copying files that already exist.
+
+if [ $# -ne 1 ]; then
+  echo "Error: Call with argument dirname to set up custom projects in src/dirname"
+  exit 1
+fi
+
+mkdir -p src/$1
+# Create a copy of viewer.ts in your directory.
+cp -n src/viewer/viewer.ts src/$1
+# Create a copy of cmds/demos_viewer in your directory, pointing to your copy of viewer.ts,
+# so that it starts the viewer with your projects once you add them.
+if [ ! -f "src/$1/projects-viewer" ]; then
+  sed "s/\bsrc\/viewer\/viewer.ts\b/src\/$1\/viewer.ts/" cmds/demos-viewer > src/$1/projects-viewer
+fi
+chmod a+x src/$1/projects-viewer
+# Creates cmds/projects-viewer as a symlink to your projects-viewer.
+# It will be detected and ran by cmds/viewer.
+ln -sf ../src/$1/projects-viewer cmds
+
+echo "Custom projects directory set up in src/$1"

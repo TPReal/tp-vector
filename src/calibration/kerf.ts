@@ -1,4 +1,4 @@
-import {Sheet, TabsPattern, Turtle, createText, figures, gather, kerfUtil, layouts, turtleInterlock, createParams, Piece} from '../index.ts';
+import {Piece, Sheet, TabsPattern, Turtle, createParams, createText, figures, gather, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
 
 export interface KerfParams {
   min?: number;

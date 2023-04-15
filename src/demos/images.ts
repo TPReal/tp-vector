@@ -1,4 +1,4 @@
-import {Sheet, layouts, Image} from '../index.ts';
+import {Image, Sheet, layouts} from 'tp-vector/index.ts';
 
 export async function getSheet() {
 

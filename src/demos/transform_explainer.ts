@@ -1,4 +1,4 @@
-import {PartialCutOptions, Sheet, Tf, Transform, gather, PartialViewBox} from '../index.ts';
+import {PartialCutOptions, PartialViewBox, Sheet, Tf, Transform, gather} from 'tp-vector/index.ts';
 import {getAxes, getExplainerObject, getExplainerSection} from './explainer_helper.ts';
 
 export async function getSection() {

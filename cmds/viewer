@@ -1,19 +1,12 @@
-# Start the Viewer. The process watches source files
-# and serves the Viewer app on http:/localhost:4327/.
+# Start the demos-viewer, or the projects-viewer if it exists. The projects-viewer file
+# is git-ignored which allows to launch the viewer for user projects instead of demo projects,
+# without modifying this repository.
 
-esbuild \
-  src/viewer/viewer.ts \
-  --watch=forever \
-  --bundle \
-  --format=esm \
-  --sourcemap \
-  --outdir=src/viewer/static \
-  --serve=4327 \
-  --servedir=src/viewer/static \
-  --charset=utf8 \
-  --out-extension:.js=.mjs \
-  --loader:.jpg=file \
-  --loader:.png=file \
-  --loader:.svg=file \
-  --loader:.woff2=file \
-# See src/assets.ts for more information about the --loader options.
+
+if [ -f "cmds/projects-viewer" ]; then
+    echo "Running projects-viewer:"
+    "cmds/projects-viewer"
+else
+    echo "Running demos-viewer:"
+    "cmds/demos-viewer"
+fi
