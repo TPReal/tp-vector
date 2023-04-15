@@ -1,4 +1,4 @@
-import {PartialCutOptions, PartialViewBox, Sheet, Tf, Transform, gather} from 'tp-vector/index.ts';
+import {PartialViewBox, Sheet, Tf, Transform, gather} from 'tp-vector/index.ts';
 import {getAxes, getExplainerObject, getExplainerSection} from './explainer_helper.ts';
 
 export async function getSection() {
@@ -33,17 +33,29 @@ export async function getSection() {
   }
 
   const viewBox = {minX: -2, maxX: 6, minY: -2, maxY: 5} satisfies PartialViewBox;
+  const axes = getAxes(viewBox);
   const demoObject = getExplainerObject({width: 3, height: 2});
   return await getExplainerSection(Sheet.create({
     options: {name: "Transform explainer"},
     viewBox,
     margin: 0.1,
     pieces: gather(
-      getAxes(viewBox).setLayer("axes"),
-      ...transforms.map(tfString => demoObject.transform(parseTf(tfString)).setLayer(tfString)),
-    ).setAttributes({stroke: "black"}),
-    runs: transforms.map((tfString): PartialCutOptions =>
-      ({type: "cut", id: tfString || "(identity)", layers: ["axes", tfString]})),
+      demoObject
+        .setLayer("orig_object")
+        .setAttributes({stroke: "#ccc"}),
+      gather(
+        axes.setLayer("axes"),
+        ...transforms.map(tfString =>
+          demoObject.transform(parseTf(tfString))
+            .setLayer(tfString)),
+      )
+        .setAttributes({stroke: "black"}),
+    ),
+    runs: transforms.map(tfString => ({
+      type: "cut",
+      id: tfString || "(identity)",
+      layers: ["axes", "orig_object", tfString],
+    })),
   }));
 
 }
