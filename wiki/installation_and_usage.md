@@ -103,7 +103,7 @@ Code.
 
 There are two main ways to start developing your own projects:
 
-### Directly in the TPVector repository (easiest) <a name="custom-projects-directly"></a>
+### Directly in the TPVector repository (easiest)
 
 - In your fork of the TPVector repository, create a new branch for your
   project(s).
@@ -114,7 +114,7 @@ There are two main ways to start developing your own projects:
 - [Start the Viewer](#starting-the-viewer). Your projects will be shown along
   with the demo projects.
 
-### In a separate repository <a name="custom-projects-separate"></a>
+### In a separate repository
 
 - Pick a directory for your projects under [_src_](../src). If you want it to be
   git-ignored, pick _src/proj_, otherwise pick a different name (whether you

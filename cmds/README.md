@@ -17,5 +17,5 @@ projects (plus and any custom projects that have been added to
 To start the viewer with custom projects defined separately in a directory, for
 example _src/my_projects_, run `cmds/set-up-custom-projects-dir my_projects`
 (works on linux or [WSL](https://learn.microsoft.com/en-us/windows/wsl/)). See
-[Custom projects in a separate repository](../wiki/installation_and_usage.md#custom-projects-2)
+[Custom projects in a separate repository](../wiki/installation_and_usage.md#in-a-separate-repository)
 for more information.
