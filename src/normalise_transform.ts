@@ -1,9 +1,9 @@
-import {AlignmentNumber, AxisBoxAlignment, AxisBoxAlignmentValues, AxisOriginAlignment, Fitting, PartialBoxAlignment, alignmentToNumber, boxAlignmentFromPartial, originAlignmentFromPartial} from './alignment.ts';
+import {AlignmentNumber, AxisBoxAlignment, AxisOriginAlignment, Fitting, LowerAxisBoxVal, OriginAlignmentString, PartialBoxAlignment, UpperAxisBoxVal, alignmentToNumber, boxAlignmentFromPartial, originAlignmentFromPartial} from './alignment.ts';
 import {Axis} from './axis.ts';
 import {Tf, Transform} from './transform.ts';
 import {DefiniteDimSpec, DimSpec, IncompleteDimSpec, PartialViewBox, ViewBox, inferDimSpec, partialViewBoxToXY} from './view_box.ts';
 
-type StringArgs = "default" | "center";
+type StringArgs = OriginAlignmentString | "default";
 
 /** Parameters for normalising an object in the target, with the given fitting and alignment. */
 interface BoxArgs {
@@ -12,45 +12,49 @@ interface BoxArgs {
   align?: PartialBoxAlignment;
 }
 
-type DefiniteAxisBoxSpec<A extends Axis> = DefiniteDimSpec & {
-  align?: AxisBoxAlignment<A>,
+type DefiniteAxisBoxSpec = {
+  [A in Axis]: DefiniteDimSpec & {align?: AxisBoxAlignment[A]}
 };
-type LowerAxisBoxSpec<A extends Axis> = Pick<Required<IncompleteDimSpec>, "min"> & {
-  align?: AxisBoxAlignmentValues<A>["lower"],
+type LowerAxisBoxSpec = {
+  [A in Axis]: Pick<Required<IncompleteDimSpec>, "min"> & {align?: LowerAxisBoxVal[A]}
 };
-type UpperAxisBoxSpec<A extends Axis> = Pick<Required<IncompleteDimSpec>, "max"> & {
-  align?: AxisBoxAlignmentValues<A>["upper"],
+type UpperAxisBoxSpec = {
+  [A in Axis]: Pick<Required<IncompleteDimSpec>, "max"> & {align?: UpperAxisBoxVal[A]}
 };
-type AxisBoxSpec<A extends Axis> =
-  DefiniteAxisBoxSpec<A> | LowerAxisBoxSpec<A> | UpperAxisBoxSpec<A>;
+type AxisBoxSpec = DefiniteAxisBoxSpec | LowerAxisBoxSpec | UpperAxisBoxSpec;
 
-interface AxisScaleHoldSpec<A extends Axis> {
-  hold: AxisBoxAlignment<A>;
-  scale: number;
-}
-interface AxisLenHoldSpec<A extends Axis> {
-  hold: AxisBoxAlignment<A>;
-  len?: number;
-}
-type AxisHoldSpec<A extends Axis> = AxisScaleHoldSpec<A> | AxisLenHoldSpec<A>;
+type AxisScaleHoldSpec = {
+  [A in Axis]: {
+    hold: AxisBoxAlignment[A],
+    scale: number,
+  }
+};
+type AxisLenHoldSpec = {
+  [A in Axis]: {
+    hold: AxisBoxAlignment[A],
+    len?: number,
+  }
+};
+type AxisHoldSpec = AxisScaleHoldSpec | AxisLenHoldSpec;
 
-type AxisAlignmentSpec<A extends Axis> =
-  AxisOriginAlignment<A> | AxisBoxSpec<A> | AxisHoldSpec<A> | "unchanged";
+type AxisAlignmentSpec = AxisOriginAlignment | AxisBoxSpec | AxisHoldSpec |
+  {[A in Axis]: "unchanged"};
 
 /** Parameters for normalising an object to constraints defined separately for the axes. */
 interface XYArgs {
-  x?: AxisAlignmentSpec<Axis.X>;
-  y?: AxisAlignmentSpec<Axis.Y>;
+  x?: AxisAlignmentSpec[Axis.X];
+  y?: AxisAlignmentSpec[Axis.Y];
   fitting?: Fitting;
 }
 
 export type NormaliseArgs = StringArgs | BoxArgs | XYArgs;
 
-function isAxisHoldSpec(spec: AxisBoxSpec<Axis> | AxisHoldSpec<Axis>):
-  spec is AxisHoldSpec<Axis> {
+function isAxisHoldSpec<A extends Axis>(spec: AxisBoxSpec[A] | AxisHoldSpec[A]):
+  spec is AxisHoldSpec[A] {
   return Object.hasOwn(spec, "hold");
 }
-function isAxisScaleHoldSpec(spec: AxisHoldSpec<Axis>): spec is AxisScaleHoldSpec<Axis> {
+function isAxisScaleHoldSpec<A extends Axis>(spec: AxisHoldSpec[A]):
+  spec is AxisScaleHoldSpec[A] {
   return Object.hasOwn(spec, "scale");
 }
 
@@ -66,8 +70,8 @@ export function getNormaliseTransform(
   boundingBox: ViewBox,
   args: NormaliseArgs,
 ): Transform {
-  let xAlign: AxisAlignmentSpec<Axis.X>;
-  let yAlign: AxisAlignmentSpec<Axis.Y>;
+  let xAlign: AxisAlignmentSpec[Axis.X];
+  let yAlign: AxisAlignmentSpec[Axis.Y];
   let fitting: Fitting;
   if (typeof args === "string") {
     const align = originAlignmentFromPartial(args);
@@ -123,19 +127,21 @@ interface Anchor {
 }
 
 function getAnchor<A extends Axis>(
-  axis: A, bBoxDim: DimSpec, align: AxisAlignmentSpec<A>): Anchor {
+  axis: A, bBoxDim: DimSpec, alignment: AxisAlignmentSpec[A]): Anchor {
+  // Help for the compiler not understanding the types.
+  const align: AxisAlignmentSpec[Axis] = alignment;
   if (!bBoxDim.len)
     return {from: 0, to: 0, negotiateScale: false};
   if (align === "unchanged")
     return {from: 0, to: 0, scale: 1, negotiateScale: false};
   if (typeof align === "string")
     return {
-      from: bBoxDim.min + alignmentToNumber(align) * bBoxDim.len,
+      from: bBoxDim.min + bBoxDim.len * (alignmentToNumber(align) + 1) / 2,
       to: 0,
       negotiateScale: true,
     };
   if (isAxisHoldSpec(align)) {
-    const holdPos = bBoxDim.min + alignmentToNumber(align.hold) * bBoxDim.len;
+    const holdPos = bBoxDim.min + bBoxDim.len * (alignmentToNumber(align.hold) + 1) / 2;
     const scale = isAxisScaleHoldSpec(align) ? align.scale :
       align.len !== undefined ? align.len / bBoxDim.len : undefined;
     return {
@@ -151,7 +157,7 @@ function getAnchor<A extends Axis>(
   if (boxAlign)
     boxAlignNum = alignmentToNumber(boxAlign);
   else if (min !== undefined)
-    boxAlignNum = 0;
+    boxAlignNum = -1;
   else if (max !== undefined)
     boxAlignNum = 1;
   else
@@ -160,7 +166,7 @@ function getAnchor<A extends Axis>(
     ...len !== undefined && {scale: len / bBoxDim.len},
     negotiateScale: true,
   };
-  if (boxAlignNum === 0) {
+  if (boxAlignNum === -1) {
     if (min === undefined)
       throw new Error(`Error for the ${axis} axis: Expected known min for align ${boxAlign}`);
     return {from: bBoxDim.min, to: min, ...scaleParams};
@@ -170,7 +176,7 @@ function getAnchor<A extends Axis>(
       throw new Error(`Error for the ${axis} axis: Expected known max for align ${boxAlign}`);
     return {from: bBoxDim.min + bBoxDim.len, to: max, ...scaleParams};
   }
-  if (boxAlignNum === 0.5) {
+  if (boxAlignNum === 0) {
     if (min === undefined || max === undefined)
       throw new Error(
         `Error for the ${axis} axis: Expected a definite range for align ${boxAlign}`);

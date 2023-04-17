@@ -9,37 +9,35 @@ import {Axis} from './axis.ts';
  */
 export type Fitting = "fit" | "fill" | "stretch";
 
-interface AlignmentValues<Lower, Center, Upper> {
-  lower: Lower;
-  center: Center;
-  upper: Upper;
-}
-type AlignmentValuesUnion<Values> =
-  Values extends AlignmentValues<infer L, infer C, infer U> ? L | C | U : never;
+const ORIGIN_ALIGNMENT_VALUES = {
+  [Axis.X]: {rightOfOrigin: -1, center: 0, leftOfOrigin: 1},
+  [Axis.Y]: {belowOrigin: -1, center: 0, aboveOrigin: 1},
+} satisfies Record<Axis, Record<string, AlignmentNumber>>;
 
-interface AxisOriginAlignmentValuesMap {
-  [Axis.X]: AlignmentValues<"rightOfOrigin", "center", "leftOfOrigin">;
-  [Axis.Y]: AlignmentValues<"belowOrigin", "center", "aboveOrigin">;
-}
+export type AxisOriginAlignment = {
+  [A in Axis]: keyof typeof ORIGIN_ALIGNMENT_VALUES[A]
+};
+export type OriginAlignment = {
+  readonly [A in Axis as Lowercase<A>]?: AxisOriginAlignment[A]
+};
+export type OriginAlignmentString = NonNullable<OriginAlignment[keyof OriginAlignment]>;
 
-export type AxisOriginAlignmentValues<A extends Axis> = AxisOriginAlignmentValuesMap[A];
-export type AxisOriginAlignment<A extends Axis> =
-  AlignmentValuesUnion<AxisOriginAlignmentValues<A>>;
-
-export interface OriginAlignment {
-  readonly x?: AxisOriginAlignment<Axis.X>;
-  readonly y?: AxisOriginAlignment<Axis.Y>;
-}
-export type RequiredOriginAlignment = Required<OriginAlignment>;
 /** Alignment of an object in relation to the origin. */
-export type PartialOriginAlignment = OriginAlignment | "default" | "center";
+export type PartialOriginAlignment = OriginAlignment | OriginAlignmentString | "default";
+export type RequiredOriginAlignment = Required<OriginAlignment>;
 
 export function originAlignmentFromPartial(alignment: PartialOriginAlignment = "default"):
   OriginAlignment {
   if (alignment === "default")
     return DEFAULT_ORIGIN_ALIGNMENT;
-  if (alignment === "center")
-    return CENTER_ALIGNMENT;
+  if (typeof alignment === "string") {
+    return {
+      x: Object.hasOwn(ORIGIN_ALIGNMENT_VALUES[Axis.X], alignment) ?
+        alignment as AxisOriginAlignment[Axis.X] : "center",
+      y: Object.hasOwn(ORIGIN_ALIGNMENT_VALUES[Axis.Y], alignment) ?
+        alignment as AxisOriginAlignment[Axis.Y] : "center",
+    };
+  }
   return alignment;
 }
 export function requiredOriginAlignmentFromPartial(alignment: PartialOriginAlignment = "default"):
@@ -47,28 +45,34 @@ export function requiredOriginAlignmentFromPartial(alignment: PartialOriginAlign
   return {...DEFAULT_ORIGIN_ALIGNMENT, ...originAlignmentFromPartial(alignment)};
 }
 
-interface AxisBoxAlignmentValuesMap {
-  [Axis.X]: AlignmentValues<"left", "center", "right">;
-  [Axis.Y]: AlignmentValues<"top", "center", "bottom">;
-}
+const BOX_ALIGNMENT_VALUES = {
+  [Axis.X]: {left: -1, center: 0, right: 1},
+  [Axis.Y]: {top: -1, center: 0, bottom: 1},
+} satisfies Record<Axis, Record<string, AlignmentNumber>>;
 
-export type AxisBoxAlignmentValues<A extends Axis> = AxisBoxAlignmentValuesMap[A];
-export type AxisBoxAlignment<A extends Axis> =
-  AlignmentValuesUnion<AxisBoxAlignmentValues<A>>;
+export type AxisBoxAlignment = {
+  [A in Axis]: keyof typeof BOX_ALIGNMENT_VALUES[A]
+};
+export type BoxAlignment = {
+  readonly [A in Axis as Lowercase<A>]?: AxisBoxAlignment[A]
+};
+export type BoxAlignmentString = NonNullable<BoxAlignment[keyof BoxAlignment]>;
 
-export interface BoxAlignment {
-  readonly x?: AxisBoxAlignment<Axis.X>;
-  readonly y?: AxisBoxAlignment<Axis.Y>;
-}
-export type RequiredBoxAlignment = Required<BoxAlignment>;
 /** Alignment of an object in relation to a ViewBox. */
-export type PartialBoxAlignment = BoxAlignment | "default" | "center";
+export type PartialBoxAlignment = BoxAlignment | BoxAlignmentString | "default";
+export type RequiredBoxAlignment = Required<BoxAlignment>;
 
 export function boxAlignmentFromPartial(alignment: PartialBoxAlignment = "default"): BoxAlignment {
   if (alignment === "default")
     return DEFAULT_BOX_ALIGNMENT;
-  if (alignment === "center")
-    return CENTER_ALIGNMENT;
+  if (typeof alignment === "string") {
+    return {
+      x: Object.hasOwn(BOX_ALIGNMENT_VALUES[Axis.X], alignment) ?
+        alignment as AxisBoxAlignment[Axis.X] : "center",
+      y: Object.hasOwn(BOX_ALIGNMENT_VALUES[Axis.Y], alignment) ?
+        alignment as AxisBoxAlignment[Axis.Y] : "center",
+    };
+  }
   return alignment;
 }
 export function requiredBoxAlignmentFromPartial(alignment: PartialBoxAlignment = "default"):
@@ -78,20 +82,30 @@ export function requiredBoxAlignmentFromPartial(alignment: PartialBoxAlignment =
 
 const DEFAULT_ORIGIN_ALIGNMENT: RequiredOriginAlignment = {x: "rightOfOrigin", y: "belowOrigin"};
 const DEFAULT_BOX_ALIGNMENT: RequiredBoxAlignment = {x: "left", y: "top"};
-const CENTER_ALIGNMENT: RequiredOriginAlignment & RequiredBoxAlignment = {x: "center", y: "center"};
 
-export type AlignmentNumber = 0 | 0.5 | 1;
+type KeysWithValue<Obj extends {}, V> = {
+  [k in keyof Obj]: Obj[k] extends V ? k : never
+}[keyof Obj];
+
+export type LowerAxisBoxVal = {
+  [A in Axis]: KeysWithValue<typeof BOX_ALIGNMENT_VALUES[A], -1>
+};
+export type UpperAxisBoxVal = {
+  [A in Axis]: KeysWithValue<typeof BOX_ALIGNMENT_VALUES[A], 1>
+};
+
+export type AlignmentNumber = -1 | 0 | 1;
 
 export function alignmentToNumber(
-  alignment: AxisOriginAlignment<Axis> | AxisBoxAlignment<Axis>): AlignmentNumber {
+  alignment: OriginAlignmentString | BoxAlignmentString): AlignmentNumber {
   switch (alignment) {
     case "rightOfOrigin":
     case "belowOrigin":
     case "left":
     case "top":
-      return 0;
+      return -1;
     case "center":
-      return 0.5;
+      return 0;
     case "leftOfOrigin":
     case "aboveOrigin":
     case "right":

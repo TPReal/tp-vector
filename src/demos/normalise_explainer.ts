@@ -13,10 +13,11 @@ export async function getSection() {
       // StringArgs:
       {args: "default"},
       {args: "center"},
+      {args: "aboveOrigin"},
       // BoxArgs:
       {args: {target}, target},
       {args: {target, align: "center"}, target},
-      {args: {target, align: {y: "bottom"}}, target},
+      {args: {target, align: "bottom"}, target},
       {args: {target, fitting: "fill"}, target},
       {args: {target, fitting: "fill", align: "center"}, target},
       {args: {target, fitting: "stretch"}, target},

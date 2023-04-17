@@ -1,11 +1,10 @@
-import {AxisOriginAlignment, Fitting, PartialOriginAlignment, RequiredOriginAlignment, alignmentToNumber, requiredOriginAlignmentFromPartial} from './alignment.ts';
-import {Axis} from './axis.ts';
+import {AlignmentNumber, Fitting, PartialOriginAlignment, RequiredOriginAlignment, alignmentToNumber, requiredOriginAlignmentFromPartial} from './alignment.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {cloneElement, createElement, getElementsBoundingBox, setAttributes} from './elements.ts';
 import {getGlobalOptions} from './global_options.ts';
 import {assets} from './index.ts';
-import {DefaultPiece} from './pieces.ts';
 import {loadEvent} from './internal_util.ts';
+import {DefaultPiece} from './pieces.ts';
 
 export type ImageType = "png" | "jpeg" | "gif";
 
@@ -169,21 +168,19 @@ function applyImageScalingAttributes(image: SVGImageElement, scaling: ImageScali
     setAttributes(image, {
       width,
       height,
-      x: -width * alignmentToNumber(x),
-      y: -height * alignmentToNumber(y),
-      preserveAspectRatio: fitting === "stretch" ? "none" :
-        `x${getMinMidMax(x)}Y${getMinMidMax(y)} ${fitting === "fit" ? "meet" : "slice"}`,
+      x: -width * (alignmentToNumber(x) + 1) / 2,
+      y: -height * (alignmentToNumber(y) + 1) / 2,
+      preserveAspectRatio: fitting === "stretch" ? "none" : [
+        "x", MIN_MID_MAX.get(alignmentToNumber(x)),
+        "Y", MIN_MID_MAX.get(alignmentToNumber(y)),
+        fitting === "fit" ? "meet" : "slice",
+      ].join(""),
     });
   }
 }
 
-function getMinMidMax(alignment: AxisOriginAlignment<Axis>) {
-  const num = alignmentToNumber(alignment);
-  if (num === 0)
-    return "Min";
-  if (num === 0.5)
-    return "Mid";
-  if (num === 1)
-    return "Max";
-  return num satisfies never;
-}
+const MIN_MID_MAX = new Map<AlignmentNumber, string>([
+  [-1, "Min"],
+  [0, "Mid"],
+  [1, "Max"],
+]);
