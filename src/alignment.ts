@@ -26,18 +26,22 @@ export type OriginAlignmentString = NonNullable<OriginAlignment[keyof OriginAlig
 export type PartialOriginAlignment = OriginAlignment | OriginAlignmentString | "default";
 export type RequiredOriginAlignment = Required<OriginAlignment>;
 
-export function originAlignmentFromPartial(alignment: PartialOriginAlignment = "default"):
-  OriginAlignment {
+export function originAlignmentFromString(alignment: OriginAlignmentString | "default" = "default"):
+  RequiredOriginAlignment {
   if (alignment === "default")
     return DEFAULT_ORIGIN_ALIGNMENT;
-  if (typeof alignment === "string") {
-    return {
-      x: Object.hasOwn(ORIGIN_ALIGNMENT_VALUES[Axis.X], alignment) ?
-        alignment as AxisOriginAlignment[Axis.X] : "center",
-      y: Object.hasOwn(ORIGIN_ALIGNMENT_VALUES[Axis.Y], alignment) ?
-        alignment as AxisOriginAlignment[Axis.Y] : "center",
-    };
-  }
+  return {
+    x: Object.hasOwn(ORIGIN_ALIGNMENT_VALUES[Axis.X], alignment) ?
+      alignment as AxisOriginAlignment[Axis.X] : "center",
+    y: Object.hasOwn(ORIGIN_ALIGNMENT_VALUES[Axis.Y], alignment) ?
+      alignment as AxisOriginAlignment[Axis.Y] : "center",
+  };
+}
+
+export function originAlignmentFromPartial(alignment: PartialOriginAlignment = "default"):
+  OriginAlignment {
+  if (typeof alignment === "string")
+    return originAlignmentFromString(alignment);
   return alignment;
 }
 export function requiredOriginAlignmentFromPartial(alignment: PartialOriginAlignment = "default"):

@@ -24,13 +24,15 @@ export function getAxes(viewBox: PartialViewBox) {
   );
 }
 
-export function getExplainerObject(size: {width: number, height: number}) {
+export function getExplainerObject(box: PartialViewBox) {
+  const fullBox = viewBoxFromPartial(box);
   return gather(
-    figures.rectangle({...size, cornerRadius: 0.5}),
+    figures.rectangle({...fullBox, cornerRadius: 0.5}),
     Turtle.create().forward(1).right()
       .forward(0.15).arcRight(180, 0.2).branch(t => t.forward(0.15))
       .turnBack().forward(0.05).arcRight(180, 0.3).forward(0.2)
-      .scale(0.5, [0, -0.5]).moveRight(0.5 - 0.125).moveDown(1),
+      .scale(0.5, [0, -0.5]).moveRight(0.5 - 0.125).moveDown(1)
+      .translate(fullBox.minX, fullBox.minY),
   )
 }
 
