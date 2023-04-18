@@ -14,7 +14,7 @@ export async function showViewer({
 }) {
   const ERROR_SECTION_START = `/// `;
   const sectionSelectContainer = document.createElement("div");
-  document.body.appendChild(sectionSelectContainer);
+  parent.appendChild(sectionSelectContainer);
   sectionSelectContainer.style.display = "flex";
   sectionSelectContainer.style.gap = "0.5em";
   sectionSelectContainer.style.marginBottom = "1em";
