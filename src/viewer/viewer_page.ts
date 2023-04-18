@@ -13,30 +13,37 @@ export async function showViewer({
   section?: string,
 }) {
   const ERROR_SECTION_START = `/// `;
-  const sectionSelectContainer = document.createElement("div");
-  parent.appendChild(sectionSelectContainer);
-  sectionSelectContainer.style.display = "flex";
-  sectionSelectContainer.style.gap = "0.5em";
-  sectionSelectContainer.style.marginBottom = "1em";
+  const header = document.createElement("header");
+  parent.appendChild(header);
+  header.style.position = "fixed";
+  header.style.top = "0";
+  header.style.width = "100%";
+  header.style.background = "white";
+  header.style.padding = "0.5em";
+  header.style.display = "flex";
+  header.style.gap = "0.5em";
+  const headerPlaceholder = document.createElement("div");
+  parent.appendChild(headerPlaceholder);
+  headerPlaceholder.style.height = "2em";
   const sectionSelectLabel = document.createElement("span")
-  sectionSelectContainer.appendChild(sectionSelectLabel);
+  header.appendChild(sectionSelectLabel);
   sectionSelectLabel.textContent = "Show:";
   sectionSelectLabel.style.alignSelf = "center";
   const sectionSelect = document.createElement("select");
-  sectionSelectContainer.appendChild(sectionSelect);
+  header.appendChild(sectionSelect);
   sectionSelect.title = "Select section";
   sectionSelect.style.minWidth = "15em";
   sectionSelect.addEventListener("change", () => {
     showSection(sectionSelect.value);
   });
   const clearSectionButton = document.createElement("button");
-  sectionSelectContainer.appendChild(clearSectionButton);
+  header.appendChild(clearSectionButton);
   clearSectionButton.textContent = "⨯";
   clearSectionButton.addEventListener("click", () => {
     showSection(undefined);
   });
   const errorsInfo = document.createElement("a");
-  sectionSelectContainer.appendChild(errorsInfo);
+  header.appendChild(errorsInfo);
   errorsInfo.href = "#";
   errorsInfo.style.alignSelf = "center";
   errorsInfo.style.color = "red";
@@ -113,6 +120,7 @@ export async function showViewer({
     const funcId = typeof id === "function" ? id : (sectId: string) => sectId === id;
     for (const section of document.querySelectorAll<HTMLElement>(".section"))
       section.style.display = funcId(section.id) ? "unset" : "none";
+    (parent === document.body ? document.documentElement : parent).scrollTop = 0;
   }
 
   function addOption(name: string | undefined) {
