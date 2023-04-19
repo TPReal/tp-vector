@@ -297,7 +297,7 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   });
   return t.branch(t => {
     t = t.withPenUp(t => t.strafeRight(thickness / 2 * SLOT_DIR_VALUES[dir]));
-    const halfWid = Math.max(0, thickness / 2 - 2 * slotWidthKerf.oneSideInUnits);
+    const halfWid = Math.max(0, thickness / 2 - slotWidthKerf.oneSideInUnits);
     for (const d of [1, -1])
       t = t.branch(t => {
         if (startOpen)
