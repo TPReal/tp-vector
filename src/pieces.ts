@@ -55,8 +55,7 @@ class SVGElementWrapperPiece implements BasicPiece {
   protected constructor(
     private readonly element: SVGElement,
     private readonly layer: OptionalLayerName,
-  ) {
-  }
+  ) {}
 
   static create(element: SVGElement, layer: OptionalLayerName = NO_LAYER) {
     return new SVGElementWrapperPiece(element, layer);
@@ -83,8 +82,7 @@ class SVGElementWrapperPiece implements BasicPiece {
 /** A Piece containing only Defs elements. */
 class DefsWrapperPiece implements BasicPiece {
 
-  protected constructor(private readonly defs: Defs) {
-  }
+  protected constructor(private readonly defs: Defs) {}
 
   static create(defs: Defs) {
     return new DefsWrapperPiece(defs);

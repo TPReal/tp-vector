@@ -198,8 +198,7 @@ export interface PartialCornersMarkerOptions {
   id?: string;
   styleAttributes?: PartialMediaStyleAttributes;
 }
-export interface CornersMarkerOptions extends Required<Readonly<PartialCornersMarkerOptions>> {
-}
+export interface CornersMarkerOptions extends Required<Readonly<PartialCornersMarkerOptions>> {}
 export function cornersMarkerOptionsFromPartial(
   cornersMarkerOptions: boolean | PartialCornersMarkerOptions = true): CornersMarkerOptions {
   const {
@@ -235,8 +234,7 @@ export interface PartialReversingFrameOptions {
  * a single rectangle bounding the whole object. It allows cutting the whole work out of
  * the materia and reversing it in place.
  */
-export interface ReversingFrameOptions extends Required<Readonly<PartialReversingFrameOptions>> {
-}
+export interface ReversingFrameOptions extends Required<Readonly<PartialReversingFrameOptions>> {}
 export function reversingFrameOptionsFromPartial(
   reversingFrameOptions: boolean | PartialReversingFrameOptions = true): ReversingFrameOptions {
   const {
@@ -300,8 +298,7 @@ export interface PartialPreviewColors {
   cut?: ColorsDistributor;
   print?: ColorsDistributor;
 }
-export interface PreviewColors extends Required<Readonly<PartialPreviewColors>> {
-}
+export interface PreviewColors extends Required<Readonly<PartialPreviewColors>> {}
 export function previewColorsFromPartial({
   cut = defaultCutPreviewColors(),
   print = defaultPrintPreviewColors(),

@@ -11,8 +11,7 @@ export interface ColorsDistributor {
 /** A ColorsDistributor returning one color for all ids. */
 export class ConstColorsDistributor implements ColorsDistributor {
 
-  protected constructor(readonly color: Color) {
-  }
+  protected constructor(readonly color: Color) {}
 
   static create(color: Color) {
     return new ConstColorsDistributor(color);
@@ -35,8 +34,7 @@ export class MapColorsDistributor implements ColorsDistributor {
   protected constructor(
     private readonly colors: ReadonlyMap<Id, Color>,
     private readonly fallback: ColorsDistributor,
-  ) {
-  }
+  ) {}
 
   static create(colors: Map<Id, Color>, fallback: ColorsDistributor = ALL_BLACK) {
     return new MapColorsDistributor(colors, fallback);

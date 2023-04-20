@@ -88,8 +88,7 @@ export interface SheetModule<Args extends unknown[] = []> {
 
 export class Viewer {
 
-  protected constructor(private readonly sections: readonly SectionDef[]) {
-  }
+  protected constructor(private readonly sections: readonly SectionDef[]) {}
 
   static create() {
     return new Viewer([]);

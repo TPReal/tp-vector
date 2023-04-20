@@ -10,8 +10,7 @@ type LazyPieceArg = OrArray<PiecePartArg | undefined> | (() => OrArray<PiecePart
  */
 class LazyWrapperPiece implements BasicPiece {
 
-  protected constructor(private readonly getPiece: LazyPieceArg) {
-  }
+  protected constructor(private readonly getPiece: LazyPieceArg) {}
 
   static create(getPiece: LazyPieceArg) {
     return new LazyWrapperPiece(getPiece);

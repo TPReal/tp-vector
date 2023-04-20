@@ -78,8 +78,7 @@ export class SimpleAttributesDefTool implements AttributesDefTool {
   protected constructor(
     protected readonly defs: Defs,
     protected readonly attributes: Attributes,
-  ) {
-  }
+  ) {}
 
   static create(defs: Defs, attributes: Attributes) {
     return new SimpleAttributesDefTool(defs, attributes);

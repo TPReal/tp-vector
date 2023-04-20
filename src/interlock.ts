@@ -18,8 +18,7 @@ export interface PartialTabsOptions {
    */
   innerCornersRadius?: number;
 }
-export interface TabsOptions extends Readonly<Required<PartialTabsOptions>> {
-}
+export interface TabsOptions extends Readonly<Required<PartialTabsOptions>> {}
 export function tabsOptionsFromPartial({
   kerf,
   thickness,
@@ -359,8 +358,7 @@ export const turtleTabs: ExportedFunc<TabsArgs> = makeExportedFunc(TURTLE_TABS_B
 export const turtleSlots: ExportedFunc<SlotsArgs> = makeExportedFunc(TURTLE_SLOTS_BASE_FUNC);
 
 export interface PartialInterlockOptions
-  extends PartialTabsOptions, PartialSlotsOptions {
-}
+  extends PartialTabsOptions, PartialSlotsOptions {}
 
 /** Returns a pair of TurtleFunc's for tabs and for slots, given the options. */
 export function turtleInterlock(options: PartialInterlockOptions) {

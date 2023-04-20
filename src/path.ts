@@ -12,8 +12,7 @@ export interface NextQuadraticArgs {
   target: Point;
 }
 /** Parameters of a quadratic Bézier curve. */
-export interface QuadraticArgs extends Required<Readonly<NextQuadraticArgs>> {
-}
+export interface QuadraticArgs extends Required<Readonly<NextQuadraticArgs>> {}
 
 /**
  * Parameters of a cubic Bézier curve drawn directly after another cubic curve.
@@ -23,9 +22,7 @@ export interface NextCubicArgs extends NextQuadraticArgs {
   point2: Point;
 }
 /** Parameters of a cubic Bézier curve. */
-export interface CubicArgs extends Required<Readonly<NextCubicArgs>> {
-}
-
+export interface CubicArgs extends Required<Readonly<NextCubicArgs>> {}
 
 /**
  * Parameters of an arc.
@@ -39,8 +36,7 @@ export interface PartialArcArgs {
   clockwise: boolean;
   target: Point;
 }
-interface ArcArgs extends Required<PartialArcArgs> {
-}
+interface ArcArgs extends Required<PartialArcArgs> {}
 function arcArgsFromPartial({
   radiusX,
   radiusY = radiusX,

@@ -11,8 +11,7 @@ export class InterlockPattern {
 
   static readonly EMPTY = InterlockPattern.create();
 
-  protected constructor(readonly items: readonly PatternItem[]) {
-  }
+  protected constructor(readonly items: readonly PatternItem[]) {}
 
   static create() {
     return new InterlockPattern([]);
@@ -78,8 +77,7 @@ export class TabsPattern {
 
   static readonly EMPTY = TabsPattern.create(InterlockPattern.EMPTY);
 
-  protected constructor(readonly pattern: InterlockPattern) {
-  }
+  protected constructor(readonly pattern: InterlockPattern) {}
 
   static create(pattern: InterlockPattern) {
     return new TabsPattern(pattern);
@@ -189,8 +187,7 @@ export class SlotsPattern {
     readonly pattern: InterlockPattern,
     readonly startOpen: boolean,
     readonly endOpen: boolean,
-  ) {
-  }
+  ) {}
 
   static create(pattern: InterlockPattern, {
     startOpen = pattern.first()?.active ?? true,
