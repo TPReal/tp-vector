@@ -13,14 +13,14 @@ export async function getSheetPreview(sheet: Sheet) {
   div.style.flexDirection = "column";
   div.style.gap = "0.2em";
   const svgContainer = document.createElement("div");
-  div.appendChild(svgContainer);
+  div.append(svgContainer);
   const svg = await sheet.getPreviewSVG();
-  svgContainer.appendChild(svg)
+  svgContainer.append(svg)
   const unusedLayersWarning = sheet.getUnusedLayersWarning();
   if (unusedLayersWarning)
-    div.appendChild(unusedLayersWarning);
-  div.appendChild(getSVGRunsControllerCheckboxes(svg));
-  div.appendChild(sheet.getSaveLaserSVGButtons());
+    div.append(unusedLayersWarning);
+  div.append(getSVGRunsControllerCheckboxes(svg));
+  div.append(sheet.getSaveLaserSVGButtons());
   return div;
 }
 
@@ -35,21 +35,20 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   runsController.style.flexWrap = "wrap";
   runsController.style.alignItems = "center";
   const blinkTimers: number[] = [];
-  const checkboxesInfo = document.createTextNode(`Show runs:`);
-  runsController.appendChild(checkboxesInfo);
+  runsController.append(`Show runs:`);
   for (const g of svg.querySelectorAll(":scope > g[id]")) {
     const id = assert(g.getAttribute("id"));
     const span = document.createElement("span");
-    runsController.appendChild(span);
+    runsController.append(span);
     span.title = `Right-click to blink`;
     span.style.whiteSpace = "nowrap";
     const checkbox = document.createElement("input");
-    span.appendChild(checkbox);
+    span.append(checkbox);
     checkbox.type = "checkbox";
     checkbox.checked = true;
     const label = document.createElement("label");
-    span.appendChild(label);
-    label.appendChild(document.createTextNode(id));
+    span.append(label);
+    label.append(id);
     label.addEventListener("click", () => {
       checkbox.click();
     });

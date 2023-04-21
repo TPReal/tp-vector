@@ -79,8 +79,7 @@ export function createElement<TagName extends keyof SVGElementTagNameMap>({
   const element = document.createElementNS(SVG_NAMESPACE_URI, tagName);
   setAttributes(element, COMMON_ATTRIBUTES);
   setAttributes(element, attributes);
-  for (const child of flattenFilter(children))
-    element.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+  element.append(...flattenFilter(children));
   return element;
 }
 
@@ -181,7 +180,7 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
     while (svg.firstChild)
       svg.lastChild?.remove();
     for (const element of elements)
-      svg.appendChild(element);
+      svg.append(element);
   } else {
     svg = createSVG({
       viewBox,
@@ -189,7 +188,7 @@ export function getElementsBoundingBox(elements: SVGElement[]) {
     });
     svgForGetBoundingBox = svg;
   }
-  document.body.appendChild(svg);
+  document.body.append(svg);
   try {
     let boundingBox = viewBoxFromBBox(svg);
     let numMeasures = 1;
@@ -221,7 +220,7 @@ const utilSVG = createSVG({viewBox: viewBoxFromPartial()});
  */
 export function withUtilSVG<R>(func: (svg: SVGSVGElement) => R) {
   try {
-    document.body.appendChild(utilSVG);
+    document.body.append(utilSVG);
     return func(utilSVG);
   } finally {
     utilSVG.remove();

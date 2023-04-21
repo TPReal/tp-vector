@@ -3,6 +3,9 @@ import {SectionDef, unwrap} from './types.ts';
 
 // TODO: Consider improving the Viewer page.
 
+const ALL_SECTIONS_SYMBOL = `🞹`;
+const UP_SYMBOL = `⮝`;
+
 export async function showViewer({
   sectionDefs,
   parent = document.body,
@@ -14,7 +17,7 @@ export async function showViewer({
 }) {
   const ERROR_SECTION_START = `/// `;
   const header = document.createElement("header");
-  parent.appendChild(header);
+  parent.append(header);
   header.style.position = "fixed";
   header.style.top = "0";
   header.style.width = "100%";
@@ -23,27 +26,23 @@ export async function showViewer({
   header.style.display = "flex";
   header.style.gap = "0.5em";
   const headerPlaceholder = document.createElement("div");
-  parent.appendChild(headerPlaceholder);
+  parent.append(headerPlaceholder);
   headerPlaceholder.style.height = "2em";
-  const sectionSelectLabel = document.createElement("span")
-  header.appendChild(sectionSelectLabel);
-  sectionSelectLabel.textContent = "Show:";
-  sectionSelectLabel.style.alignSelf = "center";
   const sectionSelect = document.createElement("select");
-  header.appendChild(sectionSelect);
+  header.append(sectionSelect);
   sectionSelect.title = "Select section";
   sectionSelect.style.minWidth = "15em";
   sectionSelect.addEventListener("change", () => {
     showSection(sectionSelect.value);
   });
   const clearSectionButton = document.createElement("button");
-  header.appendChild(clearSectionButton);
-  clearSectionButton.textContent = "⨯";
+  header.append(clearSectionButton);
+  clearSectionButton.textContent = "⮝";
   clearSectionButton.addEventListener("click", () => {
     showSection(undefined);
   });
   const errorsInfo = document.createElement("a");
-  header.appendChild(errorsInfo);
+  header.append(errorsInfo);
   errorsInfo.href = "#";
   errorsInfo.style.alignSelf = "center";
   errorsInfo.style.color = "red";
@@ -53,20 +52,20 @@ export async function showViewer({
   });
 
   const container = document.createElement("div");
-  parent.appendChild(container);
+  parent.append(container);
   container.style.display = "flex";
   container.style.gap = "4px";
   const resizableArea = document.createElement("div");
-  container.appendChild(resizableArea);
+  container.append(resizableArea);
   resizableArea.style.flex = "0 1 auto";
   resizableArea.style.minWidth = "100px";
   const resizeWidth =
     localStorage.getItem("width") || new URLSearchParams(location.search).get("width");
   resizableArea.style.width = resizeWidth ? `${resizeWidth}px` : "100%";
   const resizeHandle = document.createElement("div");
-  container.appendChild(resizeHandle);
-  resizeHandle.style.flex = "0 0 8px";
-  resizeHandle.style.backgroundColor = "grey";
+  container.append(resizeHandle);
+  resizeHandle.style.flex = "0 0 6px";
+  resizeHandle.style.backgroundColor = "#444";
   resizeHandle.style.boxSizing = "border-box";
   resizeHandle.style.border = "2px solid white";
   resizeHandle.style.cursor = "ew-resize";
@@ -96,7 +95,7 @@ export async function showViewer({
   });
 
   const sectionsContainer = document.createElement("div");
-  resizableArea.appendChild(sectionsContainer);
+  resizableArea.append(sectionsContainer);
   sectionsContainer.style.display = "flex";
   sectionsContainer.style.flexDirection = "column";
   sectionsContainer.style.gap = "2em";
@@ -116,6 +115,9 @@ export async function showViewer({
         url.searchParams.delete("section");
       history.pushState({section: stringId}, "", url.toString());
     }
+    [clearSectionButton.textContent, clearSectionButton.title] = stringId ?
+      [ALL_SECTIONS_SYMBOL, `Show all sections`] :
+      [UP_SYMBOL, `Back to top`];
     sectionSelect.value = stringId || "";
     const funcId = typeof id === "function" ? id : (sectId: string) => sectId === id;
     for (const section of document.querySelectorAll<HTMLElement>(".section"))
@@ -125,25 +127,29 @@ export async function showViewer({
 
   function addOption(name: string | undefined) {
     const option = document.createElement("option");
-    option.text = name || "all sections";
+    option.text = name || `${ALL_SECTIONS_SYMBOL} all sections`;
     if (!name)
       option.style.fontWeight = "bold";
     option.value = name || "";
-    sectionSelect.appendChild(option);
+    sectionSelect.append(option);
   }
 
   function addSection(name: string) {
     const section = document.createElement("div");
-    sectionsContainer.appendChild(section);
+    sectionsContainer.append(section);
     section.style.display = "none";
     section.classList.add("section");
     section.id = name;
     addOption(name);
     const title = document.createElement("div");
-    section.appendChild(title);
-    title.textContent = name;
+    section.append(title);
     title.style.fontSize = "1.5em";
     title.style.cursor = "pointer";
+    const dot = document.createElement("span");
+    title.append(dot);
+    dot.style.fontWeight = "bold";
+    dot.textContent = `•`;
+    title.append(` ${name}`);
     title.addEventListener("click", () => {
       showSection(name);
     });
@@ -151,9 +157,10 @@ export async function showViewer({
   }
 
   addOption(undefined);
+  sectionSelect.append(document.createElement("hr"));
 
   const progress = document.createElement("progress");
-  sectionsContainer.appendChild(progress);
+  sectionsContainer.append(progress);
   progress.style.width = "100%";
   const results = await Promise.allSettled(sectionDefs.map(sect => unwrap(sect, [])));
   progress.remove();
@@ -161,13 +168,13 @@ export async function showViewer({
   for (const result of results)
     if (result.status === "fulfilled") {
       const {name, element} = result.value;
-      addSection(name).appendChild(element);
+      addSection(name).append(element);
     } else {
       numFailed++;
       const pre = document.createElement("pre");
       pre.style.color = "red";
       pre.textContent = result.reason?.stack || String(result.reason);
-      addSection(ERROR_SECTION_START + generateId("section_error")).appendChild(pre);
+      addSection(ERROR_SECTION_START + generateId("section_error")).append(pre);
     }
   if (numFailed)
     errorsInfo.textContent = `Failed sections: ${numFailed}`;

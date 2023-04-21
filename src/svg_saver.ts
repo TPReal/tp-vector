@@ -10,7 +10,7 @@ function download({name, url, onClickFunc}: {
   link.download = name;
   link.href = url;
   link.onclick = onClickFunc || null;
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
   link.remove();
 }

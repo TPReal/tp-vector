@@ -54,13 +54,13 @@ export async function getExplainerSection(
     const container = document.createElement("div");
     container.style.flex = "1 0 160px";
     container.style.maxWidth = "200px";
-    container.appendChild(await sheet.getPreviewSVG({runsSelector: runIds}));
+    container.append(await sheet.getPreviewSVG({runsSelector: runIds}));
     const descDiv = document.createElement("div");
     descDiv.style.font = "0.8em monospace";
     descDiv.style.paddingRight = "1em";
     descDiv.textContent = label;
-    container.appendChild(descDiv);
-    div.appendChild(container);
+    container.append(descDiv);
+    div.append(container);
   }
   return div;
 }

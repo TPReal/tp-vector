@@ -606,7 +606,7 @@ export class Sheet {
     const container = document.createElement("div");
     container.textContent = `Files for the laser software:`;
     const buttonsContainer = document.createElement("div");
-    container.appendChild(buttonsContainer);
+    container.append(buttonsContainer);
     buttonsContainer.style.display = "flex";
     buttonsContainer.style.flexWrap = "wrap";
     function addItems(items: OrArray<HTMLElement>) {
@@ -619,14 +619,14 @@ export class Sheet {
         else
           item.style.marginLeft = "-1px";
         item.style.minHeight = "2.2em";
-        span.appendChild(item);
+        span.append(item);
       }
-      buttonsContainer.appendChild(span);
+      buttonsContainer.append(span);
     }
     function addSep() {
       const sep = document.createElement("hr");
       sep.style.margin = "2px";
-      buttonsContainer.appendChild(sep);
+      buttonsContainer.append(sep);
     }
     if (runsSelectors === "all") {
       const naturalOrder = this.getRunsInNaturalOrder();
@@ -707,10 +707,10 @@ export class Sheet {
       if (first)
         first = false;
       else
-        span.appendChild(document.createTextNode(`, `));
-      span.appendChild(makeInlinePre(layer === undefined ? `NO_LAYER` : JSON.stringify(layer)));
+        span.append(`, `);
+      span.append(makeInlinePre(layer === undefined ? `NO_LAYER` : JSON.stringify(layer)));
     }
-    span.appendChild(document.createTextNode(`.`));
+    span.append(`.`);
     return span;
   }
 
