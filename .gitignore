@@ -3,7 +3,7 @@
 src/proj
 
 # The command to start the viewer of the custom projects.
-# You can use cmds/set-up-custom-projects-dir to create this script (as a symlink).
+# You can use cmds/set-up-custom-projects-dir to create this script.
 cmds/projects-viewer
 
 .idea

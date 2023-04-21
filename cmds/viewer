@@ -2,7 +2,6 @@
 # is git-ignored which allows to launch the viewer for user projects instead of demo projects,
 # without modifying this repository.
 
-
 if [ -f "cmds/projects-viewer" ]; then
     echo "Running projects-viewer:"
     "cmds/projects-viewer"

@@ -128,14 +128,14 @@ There are two main ways to start developing your own projects:
   - Create _src/my_projects_ directory (unless exists).
   - Create _src/my_projects/viewer.ts_ file (unless exists) as a copy of
     [_src/viewer/viewer.ts_](../src/viewer/viewer.ts).
-  - Create _src/my_projects/projects-viewer_ bash script (unless exists) which
+  - Create _src/my_projects/projects-viewer_ shell script (unless exists) which
     runs the Viewer with the previously created copy of _viewer.ts_ as the entry
     point.
-  - Create _cmds/projects-viewer_ file as a symlink to the previously created
+  - Create _cmds/projects-viewer_ shell script calling the previously created
     _projects-viewer_. This will cause the [_cmds/viewer_](../cmds/viewer) to
     run this file instead of [_cmds/demos-viewer_](../cmds/demos-viewer).
 - If the Docker container is running, stop it, as it will need to be recreated
-  after the change of the main script.
+  after the change of the script.
 - Add your projects to _src/my_projects/viewer.ts_.
 - [Start the Viewer](#starting-the-viewer). Your projects will be shown along
   with the demo projects (unless you delete them from

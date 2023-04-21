@@ -16,8 +16,10 @@ if [ ! -f "src/$1/projects-viewer" ]; then
   sed "s/\bsrc\/viewer\/viewer.ts\b/src\/$1\/viewer.ts/" cmds/demos-viewer > src/$1/projects-viewer
 fi
 chmod a+x src/$1/projects-viewer
-# Creates cmds/projects-viewer as a symlink to your projects-viewer.
+# Create cmds/projects-viewer calling your projects-viewer.
 # It will be detected and ran by cmds/viewer.
-ln -sf ../src/$1/projects-viewer cmds
+rm -f cmds/projects-viewer
+echo "src/$1/projects-viewer" > cmds/projects-viewer
+chmod a+x cmds/projects-viewer
 
 echo "Custom projects directory set up in src/$1"
