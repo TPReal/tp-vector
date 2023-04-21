@@ -1,5 +1,5 @@
 import {Path} from './path.ts';
-import {DefaultPiece} from './pieces.ts';
+import {DefaultPiece, LazyPieceFunc, PieceFunc, PieceFuncArg} from './pieces.ts';
 import {Point} from './point.ts';
 import {Tf} from './transform.ts';
 import {assert} from './util.ts';
@@ -50,9 +50,14 @@ function isStackKey(value: StackKey | {}): value is StackKey {
   return value === DEFAULT_STACK_KEY || typeof value === "string" || typeof value === "number";
 }
 
-export interface TurtleFunc<Args extends unknown[] = []> {
-  (t: Turtle, ...args: Args): Turtle;
-}
+export interface TurtleFunc<Args extends unknown[] = []>
+  extends PieceFunc<Turtle, Turtle, Args> {}
+
+export interface LazyTurtleFunc<Args extends unknown[] = []>
+  extends LazyPieceFunc<Turtle, Turtle, Args> {}
+
+export type TurtleFuncArg<Args extends unknown[] = []> =
+  PieceFuncArg<Turtle, Turtle, Args>;
 
 /**
  * A tool for creating [turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics).
@@ -225,20 +230,20 @@ export class Turtle extends DefaultPiece {
    *
    *     .push().andThen(func, ...args).pop()
    */
-  branch<Args extends unknown[]>(func: TurtleFunc<Args>, ...args: Args) {
+  branch<Args extends unknown[]>(func: TurtleFuncArg<Args>, ...args: Args) {
     return this.andThen(func, ...args).appendState(this.state);
   }
 
   /** Executes the function in a loop, each time in a separate branch. */
   branches<Args extends unknown[]>(
     count: number,
-    func: TurtleFunc<[...args: Args, index: number, count: number]>,
+    func: TurtleFuncArg<[...args: Args, index: number, count: number]>,
     ...args: Args
   ): Turtle;
   /** Executes the function in a loop, each time in a separate branch. */
   branches<Args extends unknown[], E>(
     elements: E[],
-    func: TurtleFunc<[...args: Args, element: E, index: number, elements: E[]]>,
+    func: TurtleFuncArg<[...args: Args, element: E, index: number, elements: E[]]>,
     ...args: Args
   ): Turtle;
   branches<Args extends unknown[], E, Iter extends Iterable<E>>(
@@ -256,35 +261,35 @@ export class Turtle extends DefaultPiece {
   /** Executes the function in a loop, each time passing the result of the previous call. */
   repeat<Args extends unknown[]>(
     count: number,
-    func: TurtleFunc<[...args: Args, index: number, count: number]>,
+    func: TurtleFuncArg<[...args: Args, index: number, count: number]>,
     ...args: Args
   ): Turtle;
   /** Executes the function in a loop, each time passing the result of the previous call. */
   repeat<Args extends unknown[], E>(
     elements: E[],
-    func: TurtleFunc<[...args: Args, element: E, index: number, elements: E[]]>,
+    func: TurtleFuncArg<[...args: Args, element: E, index: number, elements: E[]]>,
     ...args: Args
   ): Turtle;
   repeat<Args extends unknown[], E, Iter extends Iterable<E>>(...params: [
     number,
-    TurtleFunc<[...args: Args, index: number, count: number]>,
+    TurtleFuncArg<[...args: Args, index: number, count: number]>,
     ...Args,
   ] | [
     E[],
-    TurtleFunc<[...args: Args, element: E, index: number, array: E[]]>,
+    TurtleFuncArg<[...args: Args, element: E, index: number, array: E[]]>,
     ...Args,
   ]) {
     function isCountParams(params: [
       number,
-      TurtleFunc<[...args: Args, index: number, count: number]>,
+      TurtleFuncArg<[...args: Args, index: number, count: number]>,
       ...Args,
     ] | [
       E[],
-      TurtleFunc<[...args: Args, element: E, index: number, array: E[]]>,
+      TurtleFuncArg<[...args: Args, element: E, index: number, array: E[]]>,
       ...Args,
     ]): params is [
       number,
-      TurtleFunc<[...args: Args, index: number, count: number]>,
+      TurtleFuncArg<[...args: Args, index: number, count: number]>,
       ...Args,
     ] {
       return typeof params[0] === "number";
@@ -331,12 +336,12 @@ export class Turtle extends DefaultPiece {
   }
 
   withPenDown<Args extends unknown[]>(
-    down: boolean, func: TurtleFunc<Args>, ...args: Args): Turtle;
+    down: boolean, func: TurtleFuncArg<Args>, ...args: Args): Turtle;
   withPenDown<Args extends unknown[]>(
-    func: TurtleFunc<Args>, ...args: Args): Turtle;
+    func: TurtleFuncArg<Args>, ...args: Args): Turtle;
   withPenDown<Args extends unknown[]>(...params:
-    | [boolean, TurtleFunc<Args>, ...Args]
-    | [TurtleFunc<Args>, ...Args]) {
+    | [boolean, TurtleFuncArg<Args>, ...Args]
+    | [TurtleFuncArg<Args>, ...Args]) {
     const [down = true, func, ...args] = typeof params[0] === "boolean" ?
       params : [undefined, ...params];
     const prev = this.isPenDown;
@@ -344,12 +349,12 @@ export class Turtle extends DefaultPiece {
   }
 
   withPenUp<Args extends unknown[]>(
-    up: boolean, func: TurtleFunc<Args>, ...args: Args): Turtle;
+    up: boolean, func: TurtleFuncArg<Args>, ...args: Args): Turtle;
   withPenUp<Args extends unknown[]>(
-    func: TurtleFunc<Args>, ...args: Args): Turtle;
+    func: TurtleFuncArg<Args>, ...args: Args): Turtle;
   withPenUp<Args extends unknown[]>(...params:
-    | [boolean, TurtleFunc<Args>, ...Args]
-    | [TurtleFunc<Args>, ...Args]) {
+    | [boolean, TurtleFuncArg<Args>, ...Args]
+    | [TurtleFuncArg<Args>, ...Args]) {
     const [up = true, func, ...args] = typeof params[0] === "boolean" ?
       params : [undefined, ...params];
     return this.withPenDown(!up, func, ...args);
@@ -498,7 +503,7 @@ export class Turtle extends DefaultPiece {
    * by the function is discarded, only the final position is taken into account.
    * @see {@link Turtle.curveTo}
    */
-  curve(func: TurtleFunc, curveArgs?: PartialCurveArgs) {
+  curve(func: TurtleFuncArg, curveArgs?: PartialCurveArgs) {
     return this.curveTo(this.andThen(func), curveArgs);
   }
 

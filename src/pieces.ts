@@ -127,6 +127,13 @@ export interface PieceFunc<P extends Piece = Piece, R = Piece, Args extends unkn
   (piece: P, ...args: Args): R;
 }
 
+export interface LazyPieceFunc<P extends Piece = Piece, R = Piece, Args extends unknown[] = []> {
+  getFunc(): PieceFunc<P, R, Args>;
+}
+
+export type PieceFuncArg<P extends Piece = Piece, R = Piece, Args extends unknown[] = []> =
+  PieceFunc<P, R, Args> | LazyPieceFunc<P, R, Args>;
+
 /** The main building block of the geometry. */
 export class Piece
   extends AbstractTransformableTo<Piece>
@@ -220,7 +227,12 @@ export class Piece
       this.boundingBoxPiece);
   }
 
-  andThen<R, Args extends unknown[]>(func: PieceFunc<this, R, Args>, ...args: Args) {
+  andThen<R, Args extends unknown[]>(
+    func: PieceFuncArg<this, R, Args>,
+    ...args: Args
+  ) {
+    if (typeof func !== "function")
+      func = func.getFunc();
     return func(this, ...args);
   }
 
