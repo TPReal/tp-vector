@@ -457,7 +457,7 @@ const pieces = layouts.row(
     .andThen(tabs, {
       pattern: interlockPattern.matchingTabs(),
       // Override the direction.
-      dir: "right",
+      options: {tabsDir: "right"},
     })
     .left().forward(10).left().forward(interlockPattern.length())
     .closePath(),

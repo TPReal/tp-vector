@@ -74,8 +74,6 @@ export function slotsOptionsFromPartial({
 
 interface TabsArgs {
   pattern: TabsPattern;
-  /** Override for `options.tabsDir`. */
-  dir?: "right" | "left";
   /** Whether the edge starts and ends at the level of the tab (and not the base line). */
   onTabLevel?: boolean;
   /** Whether the edge starts at the level of the tab (and not the base line). */
@@ -228,7 +226,6 @@ function arcTurn(t: Turtle, rSign: number, rVal: number, d: number) {
 
 const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
   pattern,
-  dir,
   onTabLevel = false,
   startOnTab: startActive = onTabLevel,
   endOnTab: endActive = onTabLevel,
@@ -241,8 +238,9 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
     startActive,
     endActive,
   });
-  dir ||= options.tabsDir;
-  const dirNum = dir === "right" ? 1 : dir === "left" ? -1 : dir satisfies never;
+  const dirNum = options.tabsDir === "right" ? 1 :
+    options.tabsDir === "left" ? -1 :
+      options.tabsDir satisfies never;
   for (let i = 0; i + 2 < progression.length; i++) {
     const [prev, curr, next] = progression.slice(i, i + 3);
     if (curr.kind === "forward") {
