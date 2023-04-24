@@ -10,6 +10,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:4327/",
+      "webRoot": "${workspaceFolder}/src/viewer/static",
       "preLaunchTask": "Docker",
     },
 
@@ -18,6 +19,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:4327/",
+      "webRoot": "${workspaceFolder}/src/viewer/static",
       "preLaunchTask": "${defaultBuildTask}",
     },
 
