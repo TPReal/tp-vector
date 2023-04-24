@@ -339,6 +339,9 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   );
 }
 
+export interface TurtleInterlockFunc<Args extends TabsArgs | SlotsArgs>
+  extends TurtleFunc<[ArgsWithOptionsSupplement<Args>]> {}
+
 /**
  * A TurtleFunc that produces tabs or slots. It can also be used as a regular function taking
  * the args object, or only options, and returning a TurtleFunc that doesn't require specifying
@@ -347,13 +350,16 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
 interface ExportedFunc<Args extends TabsArgs | SlotsArgs>
   extends TurtleFunc<[Args]> {
   (args: Args): TurtleFunc;
-  (options: Args["options"]): TurtleFunc<[ArgsWithOptionsSupplement<Args>]>;
+  (options: Args["options"]): TurtleInterlockFunc<Args>;
 }
 
 /** A turtle function that can produce tabs. */
 export const turtleTabs: ExportedFunc<TabsArgs> = makeExportedFunc(TURTLE_TABS_BASE_FUNC);
 /** A turtle function that can produce slots. */
 export const turtleSlots: ExportedFunc<SlotsArgs> = makeExportedFunc(TURTLE_SLOTS_BASE_FUNC);
+
+export interface TurtleTabsFunc extends TurtleInterlockFunc<TabsArgs> {}
+export interface TurtleSlotsFunc extends TurtleInterlockFunc<SlotsArgs> {}
 
 export interface PartialInterlockOptions
   extends PartialTabsOptions, PartialSlotsOptions {}

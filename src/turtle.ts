@@ -571,6 +571,11 @@ export class Turtle extends DefaultPiece {
     return atTarget;
   }
 
+  /** Makes a turn over the specified angle, with the specified radius. */
+  arcLeft(angleDeg: number, radius: number) {
+    return this.arcRight(-angleDeg, -radius);
+  }
+
   /**
    * Draws an ellipse arc corresponding to the path:
    *
@@ -596,7 +601,7 @@ export class Turtle extends DefaultPiece {
    *
    *     .forward(forward).left().forward(left)
    */
-  roundCornerLeft(forward: number, left: number) {
+  roundCornerLeft(forward: number, left = forward) {
     return this.roundCornerRight(forward, -left).turnBack();
   }
 
@@ -627,11 +632,6 @@ export class Turtle extends DefaultPiece {
    */
   halfEllipseLeft(forward: number, left: number) {
     return this.halfEllipseRight(forward, -left);
-  }
-
-  /** Makes a turn over the specified angle, with the specified radius. */
-  arcLeft(angleDeg: number, radius: number) {
-    return this.arcRight(-angleDeg, -radius);
   }
 
   private relPos(forward: number, strafeRight: number): Point {

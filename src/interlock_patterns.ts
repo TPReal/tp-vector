@@ -166,6 +166,14 @@ export class TabsPattern {
     return SlotsPattern.create(this.pattern);
   }
 
+  startsWithTab() {
+    return this.pattern.first()?.active ?? false;
+  }
+
+  endsWithTab() {
+    return this.pattern.last()?.active ?? false;
+  }
+
   length() {
     return this.pattern.length();
   }
