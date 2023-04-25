@@ -1,5 +1,4 @@
-import {kerfUtil, layouts, Sheet, TabsPattern, Turtle} from 'tp-vector/index.ts';
-import {turtleInterlock} from 'tp-vector/interlock.ts';
+import {Sheet, TabsPattern, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
 
 export function getSheet() {
 
@@ -26,12 +25,12 @@ export function getSheet() {
 
   const p = {
     thickness: 3,
-    drawerGap: 0.5,
+    drawerGap: 0.3,
     drawerHandleWidth: 20,
     drawerHandleHeight: 14,
   };
 
-  const {tabs, slots} = turtleInterlock({
+  const {slots, TFace} = turtleInterlock({
     kerf,
     thickness: p.thickness,
     tabsDir: "left",
@@ -65,67 +64,64 @@ export function getSheet() {
   }
 
   function makeDrawer({innerWidth, innerHeight, innerDepth}: DrawerParams) {
-    const frontToSidePat = TabsPattern.distributed({
-      length: innerHeight,
-      tabEveryLen: 15,
-    });
-    const frontToBottomPat = TabsPattern.distributed({
-      length: innerWidth,
-      tabEveryLen: 20,
-    });
-    const sideToBottomPat = TabsPattern.distributed({
-      length: innerDepth,
-      tabEveryLen: 20,
-    });
-    const [front, back] = Turtle.create()
-      .andThen(tabs, frontToSidePat)
+    const [front, back] = TFace.create("down")
+      .tabsDef("side", TabsPattern.distributed({
+        length: innerHeight,
+        tabEveryLen: 15,
+      }))
       .right()
-      .andThen(t => [
-        t
-          .forward((innerWidth - p.drawerHandleWidth) / 2)
-          .curve(t => t
-            .forward(p.drawerHandleWidth / 2)
-            .strafeRight(p.drawerHandleHeight),
-            {startSpeed: 4, targetSpeed: 10},
-          )
-          .curve(t => t
-            .forward(p.drawerHandleWidth / 2)
-            .strafeLeft(p.drawerHandleHeight),
-            {startSpeed: 10, targetSpeed: 4},
-          )
-          .forward((innerWidth - p.drawerHandleWidth) / 2),
-        t
-          .forward(innerWidth),
-      ]).map(t => t
+      .tabsDef("bottom", TabsPattern.distributed({
+        length: innerWidth,
+        tabEveryLen: 20,
+      }))
+      .right()
+      .tabs("side")
+      .right()
+      .andThen(fc => [
+        fc
+          .andThenTurtle(t => t
+            .forward((innerWidth - p.drawerHandleWidth) / 2)
+            .curve(t => t
+              .forward(p.drawerHandleWidth / 2)
+              .strafeRight(p.drawerHandleHeight),
+              {startSpeed: 4, targetSpeed: 10},
+            )
+            .curve(t => t
+              .forward(p.drawerHandleWidth / 2)
+              .strafeLeft(p.drawerHandleHeight),
+              {startSpeed: 10, targetSpeed: 4},
+            )
+            .forward((innerWidth - p.drawerHandleWidth) / 2)
+          ),
+        fc
+          .noTabs("bottom"),
+      ].map(fc => fc
         .right()
-        .andThen(tabs, frontToSidePat)
-        .right()
-        .andThen(tabs, frontToBottomPat)
-        .center()
+        .closeFace())
       );
-    const side = Turtle.create()
-      .andThen(tabs, frontToSidePat.matchingTabs())
+    const side = TFace.create("down")
+      .tabs(back.fit.side)
       .right()
-      .forward(innerDepth)
+      .tabsDef("bottom", TabsPattern.distributed({
+        length: innerDepth,
+        tabEveryLen: 20,
+      }))
       .right()
-      .andThen(tabs, frontToSidePat.matchingTabs())
+      .tabs(front.fit.side)
       .right()
-      .andThen(tabs, sideToBottomPat)
-      .center();
-    const bottom = Turtle.create()
-      .repeat(2, t => t
-        .andThen(tabs, {
-          pattern: sideToBottomPat.matchingTabs(),
-          onTabLevel: true,
-        })
-        .forward(p.thickness).right().forward(p.thickness)
-        .andThen(tabs, {
-          pattern: frontToBottomPat.matchingTabs(),
-          onTabLevel: true,
-        })
-        .forward(p.thickness).right().forward(p.thickness)
-      )
-      .center();
+      .noTabs("bottom")
+      .right()
+      .closeFace();
+    const bottom = TFace.create()
+      .tabs(side.fit.bottom)
+      .right()
+      .tabs(back.fit.bottom)
+      .right()
+      .tabs(side.fit.bottom)
+      .right()
+      .tabs(front.fit.bottom)
+      .right()
+      .closeFace();
     // Return the drawer parts separately, so that a separate logic can arrange them.
     return {front, back, side, bottom};
   }
@@ -161,83 +157,87 @@ export function getSheet() {
   })();
 
   function makeChest(sParams: DrawerParams, lParams: DrawerParams) {
-    const sideToTopPat = TabsPattern.distributed({
-      length: lParams.outerDepth,
-      tabEveryLen: 20,
-    });
-    const sideToBackPat = TabsPattern.distributed({
-      length:
-        p.drawerGap + lParams.outerHeight + p.drawerGap + p.thickness +
-        p.drawerGap + sParams.outerHeight + p.drawerGap,
-      tabEveryLen: 20,
-    });
-    const topToBackPat = TabsPattern.distributed({
-      length: p.drawerGap + lParams.outerWidth + p.drawerGap,
-      tabEveryLen: 20,
-    });
-    const shelfToSidePat = sideToTopPat;
-    const shelfToBackPat = topToBackPat;
-    const dividerToTopPat = sideToTopPat;
-    const dividerToBackPat = TabsPattern.distributed({
-      length: p.drawerGap + sParams.outerHeight + p.drawerGap,
-      tabEveryLen: 20,
-    });
-    const divider = Turtle.create()
-      .andThen(tabs, dividerToBackPat)
+    const leftSide = TFace.create()
+      .tabsDef("back", TabsPattern.distributed({
+        length:
+          p.drawerGap + lParams.outerHeight + p.drawerGap + p.thickness +
+          p.drawerGap + sParams.outerHeight + p.drawerGap,
+        tabEveryLen: 20,
+      }))
       .right()
-      .andThen(tabs, dividerToTopPat)
+      .tabsDef("top", TabsPattern.distributed({
+        length: lParams.outerDepth,
+        tabEveryLen: 20,
+      }))
       .right()
-      .forward(dividerToBackPat.length())
-      .right()
-      .andThen(tabs, dividerToTopPat)
-      .center();
-    const shelf = Turtle.create()
-      .andThen(tabs, shelfToSidePat)
-      .right()
-      .andThen(tabs, shelfToBackPat)
-      .right()
-      .andThen(tabs, shelfToSidePat)
-      .right()
-      .forward(shelfToBackPat.length())
-      .withPenUp(t => t.back(shelfToBackPat.length() / 2))
-      .right()
-      .andThen(slots, dividerToTopPat.matchingSlots())
-      .center();
-    const [bottom, top] = Turtle.create()
-      .andThen(tabs, sideToTopPat.matchingTabs())
-      .right()
-      .andThen(tabs, topToBackPat)
-      .right()
-      .andThen(tabs, sideToTopPat.matchingTabs())
-      .right()
-      .forward(shelfToBackPat.length())
-      .andThen(t => [
-        t.center(),
-        t
-          .withPenUp(t => t.back(shelfToBackPat.length() / 2))
-          .right()
-          .andThen(slots, dividerToTopPat.matchingSlots())
-          .center(),
-      ]);
-    const leftSide = Turtle.create()
-      .andThen(tabs, sideToBackPat)
-      .right()
-      .andThen(tabs, sideToTopPat)
-      .right()
-      .forward(sideToBackPat.length())
-      .branch(t => t
+      .noTabs("back")
+      .andThen(fc => fc.branchTurtle(t => t
         .withPenUp(t => t.back(p.drawerGap + lParams.outerHeight + p.drawerGap))
         .right()
         .andThen(slots, {
-          pattern: shelfToSidePat.matchingSlots(),
+          pattern: fc.pat.top.matchingSlots(),
           dir: "right",
         })
-      )
+      ))
       .right()
-      .andThen(tabs, sideToTopPat)
-      .center();
-    const back = Turtle.create()
-      .branch(t => t
+      .tabsDef("bottom", "top")
+      .right()
+      .closeFace();
+    const divider = TFace.create()
+      .tabsDef("back", TabsPattern.distributed({
+        length: p.drawerGap + sParams.outerHeight + p.drawerGap,
+        tabEveryLen: 20,
+      }))
+      .right()
+      .tabsDef("top", leftSide.tt.top)
+      .right()
+      .noTabs("back")
+      .right()
+      .tabsDef("bottom", "top")
+      .right()
+      .closeFace();
+    const shelf = TFace.create()
+      .tabsDef("side", leftSide.tt.top)
+      .right()
+      .tabsDef("back", TabsPattern.distributed({
+        length: p.drawerGap + lParams.outerWidth + p.drawerGap,
+        tabEveryLen: 20,
+      }))
+      .right()
+      .tabs("side")
+      .right()
+      .noTabs("back")
+      .andThen(fc => fc.branchTurtle(t => t
+        .withPenUp(t => t.back(fc.pat.back.length() / 2))
+        .right()
+        .andThen(slots, divider.pat.bottom.matchingSlots())
+      ))
+      .right()
+      .closeFace();
+    const [bottom, top] = TFace.create()
+      .tabsDef("side", leftSide.fit.top)
+      .right()
+      .tabsDef("back", TabsPattern.distributed({
+        length: p.drawerGap + lParams.outerWidth + p.drawerGap,
+        tabEveryLen: 20,
+      }))
+      .right()
+      .tabs("side")
+      .right()
+      .noTabs("back")
+      .andThen(fc => [
+        fc,
+        fc.branchTurtle(t => t
+          .withPenUp(t => t.back(shelf.pat.back.length() / 2))
+          .right()
+          .andThen(slots, divider.pat.top.matchingSlots())
+        ),
+      ].map(fc => fc
+        .right()
+        .closeFace()
+      ));
+    const back = TFace.create()
+      .branchTurtle(t => t
         .withPenUp(t => t
           .forward(p.drawerGap + lParams.outerHeight + p.drawerGap)
           .strafeRight(p.thickness)
@@ -245,29 +245,26 @@ export function getSheet() {
         .right()
         .branch(t => t
           .andThen(slots, {
-            pattern: shelfToBackPat.matchingSlots(),
+            pattern: shelf.pat.back.matchingSlots(),
             dir: "left",
           })
         )
         .withPenUp(t => t
-          .forward(shelfToBackPat.length() / 2)
+          .forward(shelf.pat.back.length() / 2)
           .left()
           .forward(p.thickness)
         )
-        .andThen(slots, dividerToBackPat.matchingSlots())
+        .andThen(slots, divider.pat.back.matchingSlots())
       )
-      .repeat(2, t => t
-        .andThen(tabs, {
-          pattern: sideToBackPat.matchingTabs(),
-          onTabLevel: true,
-        })
-        .forward(p.thickness).right().forward(p.thickness)
-        .andThen(tabs, {
-          pattern: topToBackPat.matchingTabs(),
-          onTabLevel: true,
-        })
-        .forward(p.thickness).right().forward(p.thickness)
-      ).center();
+      .tabs(leftSide.fit.back)
+      .right()
+      .tabs(top.fit.back)
+      .right()
+      .tabs(leftSide.fit.back)
+      .right()
+      .tabs(bottom.fit.back)
+      .right()
+      .closeFace();
     // Return the drawer parts separately, so that a separate logic can arrange them.
     return {divider, shelf, top, bottom, leftSide, back};
   }

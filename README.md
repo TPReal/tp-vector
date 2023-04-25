@@ -172,6 +172,8 @@ Sheet.create({
 
 </details>
 
+See [demos/coins.ts](src/demos/coins.ts) for a more advanced example.
+
 ### [Text](src/text.ts)
 
 ![Text](wiki/feature_text.png)
@@ -482,6 +484,9 @@ const pieces = layouts.row(
 ```
 
 </details>
+
+See [demos/tabs_and_slots.ts](src/demos/tabs_and_slots.ts) for a more advanced
+example.
 
 ## Important reads
 

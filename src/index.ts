@@ -16,7 +16,7 @@ export * as globalOptions from './global_options.ts';
 export {generateId, registerId} from './ids.ts';
 export {Image} from './images.ts';
 export type {ImageType, PartialImageScaling} from './images.ts';
-export {slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleInterlock, turtleSlots, turtleTabs} from './interlock.ts';
+export {slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleSlots, turtleTabs} from './interlock.ts';
 export type {PartialSlotsOptions, PartialTabsOptions, SlotsOptions, TabsOptions} from './interlock.ts';
 export {SlotsPattern, TabsPattern} from './interlock_patterns.ts';
 export * as kerfUtil from './kerf_util.ts';
@@ -35,6 +35,7 @@ export type {LaserSVGParams, PartialLaserSVGParams, PartialRunsSelector, RunsSel
 export {getPNGDataURI} from './svg_converter.ts';
 export type {PartialPNGConversionParams} from './svg_converter.ts';
 export {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
+export {TabbedFace, turtleInterlock} from './tabbed_face.ts';
 export {PathForText, createText} from './text.ts';
 export {Tf, Transform, transformedToString} from './transform.ts';
 export {Turtle} from './turtle.ts';
