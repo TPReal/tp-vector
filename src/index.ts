@@ -22,7 +22,7 @@ export {SlotsPattern, TabsPattern} from './interlock_patterns.ts';
 export * as kerfUtil from './kerf_util.ts';
 export type {Kerf} from './kerf_util.ts';
 export * as layouts from './layouts.ts';
-export {SimpleLazyPiece, lazyPiece} from './lazy_piece.ts';
+export {SimpleLazyPiece} from './lazy_piece.ts';
 export type {CutOptions, Medium, PartialCutOptions, PartialPrintOptions, PartialRunOptions, PartialSheetOptions, PrintOptions, RunOptions, SheetOptions, Side} from './options.ts';
 export {createInlineParams, createParams} from './params.ts';
 export type {InlineParams} from './params.ts';

@@ -1,5 +1,5 @@
 import {createElement} from './elements.ts';
-import {lazyPiece} from './lazy_piece.ts';
+import {SimpleLazyPiece} from './lazy_piece.ts';
 import {Point, pointsToString} from './point.ts';
 import {OrArrayRest, flatten} from './util.ts';
 
@@ -49,13 +49,15 @@ function arcArgsFromPartial({
 }
 
 /** A builder for a `<path>` element. */
-export class Path extends lazyPiece<Path, [Point?]>() {
+export class Path extends SimpleLazyPiece {
 
   protected constructor(private readonly commands: readonly string[]) {
     super(() => this.getElement());
   }
 
-  protected static createInternal(start: Point = [0, 0]) {
+  static create(point?: Point): Path;
+  static create(...params: unknown[]): never;
+  static create(start: Point = [0, 0]) {
     return new Path([]).moveTo(start);
   }
 

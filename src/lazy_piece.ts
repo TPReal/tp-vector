@@ -41,34 +41,17 @@ class LazyWrapperPiece implements BasicPiece {
 
 }
 
+/**
+ * A superclass for custom classes that wants to extend Piece in a lazy way, i.e. so that
+ * the actual geometry is only created on demand. This is useful for builder-like classes if
+ * building the SVG geometry after each build step would be expensive.
+ *
+ * For a usage example, see the Path class.
+ */
 export abstract class SimpleLazyPiece extends DefaultPiece {
 
   protected constructor(getPiece: LazyPieceArg) {
     super(LazyWrapperPiece.create(getPiece));
   }
 
-}
-
-/**
- * Creates a superclass for a custom class that wants to extend Piece in a lazy way, i.e. so that
- * the actual geometry is only created on demand. This is useful for builder-like classes if
- * building the SVG geometry after each build step would be expensive.
- *
- * For example usage, see the Path class.
- */
-export function lazyPiece<ThisClass, CreateArgs extends unknown[] = [never]>() {
-  abstract class LazyPiece extends SimpleLazyPiece {
-
-    static create(...args: CreateArgs): ThisClass;
-    static create(...args: unknown[]): never;
-    static create(...args: CreateArgs) {
-      return this.createInternal(...args);
-    }
-
-    protected static createInternal(..._args: CreateArgs): ThisClass {
-      throw new Error(`Implement static createInternal in ${this.name}`);
-    }
-
-  }
-  return LazyPiece;
 }
