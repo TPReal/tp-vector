@@ -255,7 +255,7 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
       const postLen = (next.kind === "forward" ? next.length / 2 : 0) - kerfCorrection;
       if (preLen < 0 || postLen < 0)
         throw new Error(`Kerf too big, negative edge`);
-      const radii = [-innerCornersRadius, outerCornersRadius];
+      const radii = curr.useKerf ? [-innerCornersRadius, outerCornersRadius] : [0, 0];
       if (!curr.newActive)
         radii.reverse();
       const neighs = [prev, next];
