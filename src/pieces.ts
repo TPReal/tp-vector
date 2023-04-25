@@ -5,10 +5,10 @@ import {generateId} from './ids.ts';
 import {LayerName, Layerable, NO_LAYER, OptionalLayerName, inLayerString} from './layers.ts';
 import {NormaliseArgs, getNormaliseTransform} from './normalise_transform.ts';
 import {Point} from './point.ts';
-import {Tf, Transform, transformedToString} from './transform.ts';
+import {Tf, Transform, simplifyTransform, transformedToString} from './transform.ts';
 import {AbstractTransformableTo} from './transformable.ts';
 import {OrArray, OrArrayRest, flatten, flattenFilter} from './util.ts';
-import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMargin, viewBoxMarginFromPartial, viewBoxFromPartial} from './view_box.ts';
+import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMargin, viewBoxFromPartial, viewBoxMarginFromPartial} from './view_box.ts';
 
 /**
  * A part of SVG that is not directly rendered, but rather is placed in the `<defs>` element,
@@ -316,14 +316,14 @@ export class Piece
       if (Object.keys(attributes).every(key => !childAttributeNames.has(key))) {
         const childClone = cloneElement(child);
         setAttributes(childClone, attributes);
-        return [childClone];
+        return [simplifyTransform(childClone)];
       }
     }
-    return [createElement({
+    return [simplifyTransform(createElement({
       tagName: 'g',
       attributes,
       children,
-    })];
+    }))];
   }
 
   getDefs() {
