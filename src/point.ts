@@ -1,3 +1,5 @@
+import {roundReasonably} from "./util.ts";
+
 export type Point = readonly [number, number]
 
 export function isPoint(arg: Point | {} | null | undefined): arg is Point {
@@ -6,5 +8,7 @@ export function isPoint(arg: Point | {} | null | undefined): arg is Point {
 }
 
 export function pointsToString(points: Point[]) {
-  return points.map(point => point.join(",")).join(" ");
+  return points.map(([x, y]) =>
+    `${roundReasonably(x)},${roundReasonably(y)}`
+  ).join(" ");
 }

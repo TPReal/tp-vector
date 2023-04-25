@@ -54,3 +54,21 @@ export function almostEqual(a: number, b: number, {maxError = 1e-9} = {}) {
   const diff = a - b;
   return diff >= -maxError && diff <= maxError;
 }
+
+const REASONABLE_SIGNIFICANT_DIGITS = 5;
+const REASONABLE_ZERO_TOLERANCE = 1e-9;
+
+export function roundReasonably(value: number, {
+  significantDigits = REASONABLE_SIGNIFICANT_DIGITS,
+  zeroTolerance = REASONABLE_ZERO_TOLERANCE,
+} = {}): string {
+  if (!Number.isFinite(value))
+    return String(value);
+  if (!value)
+    return "0";
+  const absValue = Math.abs(value);
+  if (absValue <= zeroTolerance)
+    return "0";
+  const mult = 10 ** (significantDigits - 1 - Math.floor(Math.log10(absValue)));
+  return String(Math.round(value * mult) / mult);
+}

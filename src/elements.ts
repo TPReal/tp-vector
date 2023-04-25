@@ -1,8 +1,8 @@
 import {getGlobalOptions} from './global_options.ts';
-import {OrArray, flattenFilter} from './util.ts';
+import {OrArray, flattenFilter, roundReasonably} from './util.ts';
 import {ViewBox, extendViewBox, fitsInViewBox, viewBoxFromBBox, viewBoxFromPartial, viewBoxToString} from './view_box.ts';
 
-export type AttributeValue = string | number | boolean;
+export type AttributeValue = string | number;
 /**
  * A mutable mapping specifying the attributes of an element, helpful for constructing the
  * Attributes object.
@@ -41,6 +41,10 @@ for (const attr of HYPHENATED_ATTRIBUTES)
 
 export const COMMON_ATTRIBUTES: Attributes = {vectorEffect: "inherit"};
 
+function valueToString(value: AttributeValue) {
+  return typeof value === "number" ? roundReasonably(value) : value;
+}
+
 /**
  * Sets the specified attributes on the element. Values missing in the attributes are left alone,
  * values set to undefined are cleared.
@@ -55,12 +59,12 @@ export function setAttributes(element: SVGElement, attributes: Attributes) {
       if (value === undefined)
         element.removeAttributeNS(ns, attribute);
       else
-        element.setAttributeNS(ns, attribute, String(value));
+        element.setAttributeNS(ns, attribute, valueToString(value));
     } else {
       if (value === undefined)
         element.removeAttribute(attribute);
       else
-        element.setAttribute(attribute, String(value));
+        element.setAttribute(attribute, valueToString(value));
     }
     if (getGlobalOptions().quirks?.xlinkHref && attribute === "href")
       setAttributes(element, {"xlink:href": value});

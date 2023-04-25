@@ -1,7 +1,7 @@
 import {createElement} from './elements.ts';
 import {SimpleLazyPiece} from './lazy_piece.ts';
 import {Point, pointsToString} from './point.ts';
-import {OrArrayRest, flatten} from './util.ts';
+import {OrArrayRest, flatten, roundReasonably} from './util.ts';
 
 /**
  * Parameters of a quadratic Bézier curve drawn directly after another quadratic curve.
@@ -202,8 +202,8 @@ export class Path extends SimpleLazyPiece {
         arcArgsFromPartial(arcArgs);
       return {
         command: "A",
-        args: `${radiusX},${radiusY} ${xAxisRotationDeg} ` +
-          `${Number(largeArc)} ${Number(clockwise)} ` +
+        args: `${roundReasonably(radiusX)},${roundReasonably(radiusY)} ` +
+          `${roundReasonably(xAxisRotationDeg)} ${Number(largeArc)} ${Number(clockwise)} ` +
           pointsToString([target]),
         relative,
       };

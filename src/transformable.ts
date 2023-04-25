@@ -1,5 +1,6 @@
 import {Point} from './point.ts';
 import {Transform} from './transform.ts';
+import {roundReasonably} from './util.ts';
 
 /**
  * Basic methods for transformations.
@@ -142,7 +143,7 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
 }
 
 function tfDataToSVGTransform(func: string, args: number[]) {
-  const res = `${func}(${args.join(",")})`;
+  const res = `${func}(${args.map(a => roundReasonably(a)).join(",")})`;
   if (args.some(a => !Number.isFinite(+a)))
     console.warn(`Infinite values in transform: ${res}`);
   return res;
