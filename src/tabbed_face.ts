@@ -628,6 +628,8 @@ export class TabbedFace<P extends string = never>
       let prevHopSegm: HopSegment | undefined;
       let nextHopSegm: HopSegment | undefined = this.segments.find(isHopSegment);
       let pointLevel = getPointLevel(prevHopSegm?.end, nextHopSegm?.start);
+      if (pointLevel === Level.TAB)
+        t = t.withPenUp(this.strafeToTab());
       for (let i = 0; i < this.segments.length; i++) {
         const segment = this.segments[i];
         if (segment.kind === "hop") {
@@ -639,6 +641,8 @@ export class TabbedFace<P extends string = never>
         } else
           t = t.andThen(segment.getFunc(pointLevel));
       }
+      if (pointLevel === Level.TAB)
+        t = t.withPenUp(this.strafeToTab(false));
       return t;
     };
   }
