@@ -309,8 +309,15 @@ export class TabbedFace<P extends string = never>
   /** Stores the specified tabs definition as the specified name, and draws the tabs. */
   tabsDef<N extends string>(name: N, ...tabsParams: RestTabsParams<P>): TabbedFace<P | N>;
   tabsDef(name: string, ...tabsParams: RestTabsParams<P>) {
-    const expanded = this.expandTabsFuncParams(tabsParams);
-    return this.tabs(expanded).appendNamedTabs(name, expanded);
+    return this.def(name, this.expandTabsFuncParams(tabsParams)).tabs(name);
+  }
+
+  /** Cannot reuse an existing name. */
+  def(name: P, ...tabsParams: RestTabsParams<P>): never;
+  /** Stores the specified tabs definition as the specified name, without drawing them. */
+  def<N extends string>(name: N, ...tabsParams: RestTabsParams<P>): TabbedFace<P | N>;
+  def(name: string, ...tabsParams: RestTabsParams<P>) {
+    return this.appendNamedTabs(name, this.expandTabsFuncParams(tabsParams));
   }
 
   /**
