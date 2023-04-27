@@ -154,12 +154,12 @@ const ROTATION = {
 };
 
 /** Rotation of a face, representing the starting direction of the Turtle that draws it. */
-export type RotationDeg = number | keyof typeof ROTATION;
+export type StartAngleDeg = number | keyof typeof ROTATION;
 
-function rotationDegAngle(rotationDeg?: RotationDeg) {
-  return rotationDeg === undefined ? undefined :
-    typeof rotationDeg === "number" ? rotationDeg :
-      ROTATION[rotationDeg];
+function startAngleDeg(startDir?: StartAngleDeg) {
+  return startDir === undefined ? undefined :
+    typeof startDir === "number" ? startDir :
+      ROTATION[startDir];
 }
 
 export interface ReverseTabsParamsModifier {
@@ -247,25 +247,25 @@ export class TabbedFace<P extends string = never>
     readonly options: TabsOptions,
     private readonly segments: Segment[],
     private readonly tabsDict: LazySimpleTabsDict<P>,
-    private readonly rotationDeg: number | undefined,
+    private readonly startDir: number | undefined,
   ) {
     super(() => this.asTurtle());
-    this.toTabLevelStrafeLeft = options.thickness * (options.tabsDir === "left" ? 1 : -1);
+    this.toTabLevelStrafeLeft = options.tabWidth * (options.tabsDir === "left" ? 1 : -1);
     this.tt = tabsDict.tt;
     this.fit = tabsDict.fit;
     this.pat = tabsDict.pat;
   }
 
-  static create(options: PartialTabsOptions, rotationDeg?: RotationDeg): TabbedFace;
+  static create(options: PartialTabsOptions, startDir?: StartAngleDeg): TabbedFace;
   static create(...params: unknown[]): never;
-  static create(options: PartialTabsOptions, rotationDeg?: RotationDeg) {
+  static create(options: PartialTabsOptions, startDir?: StartAngleDeg) {
     return new TabbedFace(
-      tabsOptionsFromPartial(options), [], LazySimpleTabsDict.EMPTY, rotationDegAngle(rotationDeg));
+      tabsOptionsFromPartial(options), [], LazySimpleTabsDict.EMPTY, startAngleDeg(startDir));
   }
 
   setOptions(options: Partial<PartialTabsOptions>) {
     return new TabbedFace(
-      {...this.options, ...options}, this.segments, this.tabsDict, this.rotationDeg);
+      {...this.options, ...options}, this.segments, this.tabsDict, this.startDir);
   }
 
   withOptions<P2 extends string>(
@@ -570,12 +570,12 @@ export class TabbedFace<P extends string = never>
         getPointLevel(lastHopSegm.end, segment.start);
     }
     return new TabbedFace(
-      this.options, [...this.segments, segment], this.tabsDict, this.rotationDeg);
+      this.options, [...this.segments, segment], this.tabsDict, this.startDir);
   }
 
   private appendNamedTabs(name: string, tabsParams: ExpandedTabsFuncParams) {
     return new TabbedFace(
-      this.options, this.segments, this.tabsDict.addTabs(name, tabsParams), this.rotationDeg);
+      this.options, this.segments, this.tabsDict.addTabs(name, tabsParams), this.startDir);
   }
 
   /**
@@ -609,12 +609,12 @@ export class TabbedFace<P extends string = never>
         this.options,
         [closingSegment, ...this.segments, closingSegment],
         this.tabsDict,
-        this.rotationDeg);
+        this.startDir);
     } else
       closed = this;
     const turtle = closed.asTurtle();
     if (!allowOpen)
-      checkFaceClosed(this.rotationDeg ?? 0, turtle);
+      checkFaceClosed(this.startDir ?? 0, turtle);
     const path = closePath ? turtle.closePath() : turtle.asPath();
     return ClosedFace.create(path, this.tabsDict);
   }
@@ -648,7 +648,7 @@ export class TabbedFace<P extends string = never>
   }
 
   asTurtle() {
-    return Turtle.create().setAngle(this.rotationDeg ?? 0).andThen(this);
+    return Turtle.create().setAngle(this.startDir ?? 0).andThen(this);
   }
 
   asPath() {
@@ -665,22 +665,22 @@ export class TabbedFaceCreator {
     return new TabbedFaceCreator(tabsOptionsFromPartial(options));
   }
 
-  create(rotationDeg?: RotationDeg) {
-    return TabbedFace.create(this.options, rotationDeg);
+  create(startDir?: StartAngleDeg) {
+    return TabbedFace.create(this.options, startDir);
   }
 
 }
 
-function checkFaceClosed(rotationDeg: number, {pos: [x, y], angleDeg}: Turtle) {
+function checkFaceClosed(startDir: number, {pos: [x, y], angleDeg}: Turtle) {
   const norm = (v: number) => almostEqual(v, 0) ? 0 : v;
   const angleToRange = (a: number) => (a % 360 + 360 + 180) % 360 - 180;
-  rotationDeg = angleToRange(rotationDeg);
+  startDir = angleToRange(startDir);
   x = norm(x);
   y = norm(y);
   angleDeg = norm(angleToRange(angleDeg));
-  if (x !== 0 || y !== 0 || norm(angleToRange(angleDeg - rotationDeg)) !== 0)
+  if (x !== 0 || y !== 0 || norm(angleToRange(angleDeg - startDir)) !== 0)
     throw new Error(`The face shape is not closed properly: ` +
-      `angleDeg=${angleDeg} (expected: ${rotationDeg}), pos=[${x}, ${y}] (expected: [0, 0])`);
+      `angleDeg=${angleDeg} (expected: ${startDir}), pos=[${x}, ${y}] (expected: [0, 0])`);
 }
 
 export class ClosedFace<P extends string = never> extends DefaultPiece implements TabsDict<P>{
@@ -705,8 +705,9 @@ export class ClosedFace<P extends string = never> extends DefaultPiece implement
 }
 
 export function turtleInterlock(options: PartialInterlockOptions) {
+  const res = origTurtleInterlock(options);
   return {
-    ...origTurtleInterlock(options),
-    TFace: TabbedFaceCreator.create(options),
+    ...res,
+    TFace: TabbedFaceCreator.create(res.tabsOptions),
   };
 }

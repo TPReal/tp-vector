@@ -6,8 +6,11 @@ import {Turtle, TurtleFunc} from './turtle.ts';
 export interface PartialTabsOptions {
   /** Kerf correction, affecting connection tightness. */
   kerf: Kerf;
-  /** Thickness of the material, corresponding with the width of the tabs. */
-  thickness: number;
+  /**
+   * How much the tabs protrude from the edge (typically equal to
+   * the thickness of the material).
+   */
+  tabWidth: number;
   /** To which side should the tabs go from the base line; or the edge of the material. */
   tabsDir: "right" | "left";
   /** Radius of the corners of the tabs, to make them slide in easier. */
@@ -21,14 +24,14 @@ export interface PartialTabsOptions {
 export interface TabsOptions extends Readonly<Required<PartialTabsOptions>> {}
 export function tabsOptionsFromPartial({
   kerf,
-  thickness,
+  tabWidth,
   tabsDir,
   outerCornersRadius = 0,
   innerCornersRadius = 0,
 }: PartialTabsOptions): TabsOptions {
   return {
     kerf,
-    thickness,
+    tabWidth,
     tabsDir,
     outerCornersRadius,
     innerCornersRadius,
@@ -38,10 +41,10 @@ export function tabsOptionsFromPartial({
 export interface PartialSlotsOptions {
   /** Kerf correction, affecting connection tightness. */
   kerf: Kerf;
-  /** Thickness of the material, corresponding with the width of the slots. */
-  thickness: number;
+  /** The width of the slots, typically corresponding with the thickness of the material. */
+  slotWidth: number;
   /**
-   * Kerf correction applied to thickness, or false to disable. By default true, which means
+   * Kerf correction applied to slots width, or false to disable. By default true, which means
    * same as kerf.
    */
   slotWidthKerf?: boolean | Kerf;
@@ -53,20 +56,20 @@ export interface PartialSlotsOptions {
 }
 export interface SlotsOptions extends Readonly<Required<PartialSlotsOptions>> {
   readonly kerf: Kerf;
-  readonly thickness: number;
+  readonly slotWidth: number;
   readonly slotWidthKerf: Kerf;
   readonly innerCornersRadius: number;
 }
 export function slotsOptionsFromPartial({
   kerf,
-  thickness,
+  slotWidth,
   slotWidthKerf: wKerfInput = true,
   innerCornersRadius = 0,
 }: PartialSlotsOptions): SlotsOptions {
   const slotWidthKerf = wKerfInput === true ? kerf : wKerfInput || kerfUtil.ZERO;
   return {
     kerf,
-    thickness,
+    slotWidth,
     slotWidthKerf,
     innerCornersRadius,
   };
@@ -231,7 +234,7 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
   endOnTab: endActive = onTabLevel,
   options,
 }) => {
-  const {kerf, thickness, outerCornersRadius, innerCornersRadius} =
+  const {kerf, tabWidth, outerCornersRadius, innerCornersRadius} =
     tabsOptionsFromPartial(options);
   const progression = patternProgression({
     pattern: pattern.pattern,
@@ -264,7 +267,7 @@ const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
       const d = dirNum * (curr.newActive ? 1 : -1);
       t = t.forward(preLen - r1Val)
         .andThen(arcTurn, r1Sign, r1Val, d)
-        .forward(thickness - r1Val - r2Val)
+        .forward(tabWidth - r1Val - r2Val)
         .andThen(arcTurn, r2Sign, r2Val, -d)
         .forward(postLen - r2Val);
     }
@@ -285,7 +288,7 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   endOpen = pattern.endsWithOpenSlot(),
   options,
 }) => {
-  const {kerf, thickness, slotWidthKerf, innerCornersRadius} =
+  const {kerf, slotWidth, slotWidthKerf, innerCornersRadius} =
     slotsOptionsFromPartial(options);
   const progression = patternProgression({
     pattern: pattern.pattern,
@@ -293,8 +296,8 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
     endActive: endOpen,
   });
   return t.branch(t => {
-    t = t.withPenUp(t => t.strafeRight(thickness / 2 * SLOT_DIR_VALUES[dir]));
-    const halfWid = Math.max(0, thickness / 2 - slotWidthKerf.oneSideInUnits);
+    t = t.withPenUp(t => t.strafeRight(slotWidth / 2 * SLOT_DIR_VALUES[dir]));
+    const halfWid = Math.max(0, slotWidth / 2 - slotWidthKerf.oneSideInUnits);
     for (const d of [1, -1])
       t = t.branch(t => {
         if (startOpen)
@@ -361,14 +364,45 @@ export const turtleSlots: ExportedFunc<SlotsArgs> = makeExportedFunc(TURTLE_SLOT
 export interface TurtleTabsFunc extends TurtleInterlockFunc<TabsArgs> {}
 export interface TurtleSlotsFunc extends TurtleInterlockFunc<SlotsArgs> {}
 
-export interface PartialInterlockOptions
-  extends PartialTabsOptions, PartialSlotsOptions {}
+export type PartialInterlockOptions =
+  | (PartialTabsOptions & PartialSlotsOptions)
+  | (Omit<PartialTabsOptions & PartialSlotsOptions, "tabWidth" | "slotWidth"> &
+    Partial<Pick<PartialTabsOptions & PartialSlotsOptions, "tabWidth" | "slotWidth">> & {
+      materialThickness: number,
+    });
+
+export function tabsAndSlotsOptionsFromPartial(options: PartialInterlockOptions): {
+  tabsOptions: TabsOptions,
+  slotsOptions: SlotsOptions,
+} {
+  function noMaterialThickness(options: PartialInterlockOptions):
+    options is PartialTabsOptions & PartialSlotsOptions {
+    return !Object.hasOwn(options, "materialThickness");
+  }
+  const {tabs, slots} = noMaterialThickness(options) ? {tabs: options, slots: options} : {
+    tabs: {
+      ...options,
+      tabWidth: options.tabWidth ?? options.materialThickness,
+    },
+    slots: {
+      ...options,
+      slotWidth: options.slotWidth ?? options.materialThickness,
+    },
+  };
+  return {
+    tabsOptions: tabsOptionsFromPartial(tabs),
+    slotsOptions: slotsOptionsFromPartial(slots),
+  };
+}
 
 /** Returns a pair of TurtleFunc's for tabs and for slots, given the options. */
 export function turtleInterlock(options: PartialInterlockOptions) {
+  const {tabsOptions, slotsOptions} = tabsAndSlotsOptionsFromPartial(options);
   return {
-    tabs: turtleTabs(options),
-    slots: turtleSlots(options),
+    tabsOptions,
+    tabs: turtleTabs(tabsOptions),
+    slotsOptions,
+    slots: turtleSlots(slotsOptions),
   };
 }
 

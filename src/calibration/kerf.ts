@@ -32,7 +32,7 @@ export function getSheet(params: KerfParams) {
   const fontOptions = {font: "monospace", size: p.textHeight};
   const {tabs, slots} = turtleInterlock({
     kerf: kerfUtil.ZERO,
-    thickness: p.thickness,
+    materialThickness: p.thickness,
     tabsDir: "left",
     outerCornersRadius: 0.5,
   });

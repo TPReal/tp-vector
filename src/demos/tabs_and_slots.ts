@@ -32,7 +32,7 @@ export function getSheet() {
 
   const {slots, TFace} = turtleInterlock({
     kerf,
-    thickness: p.thickness,
+    materialThickness: p.thickness,
     tabsDir: "left",
     outerCornersRadius: 0.3,
   });

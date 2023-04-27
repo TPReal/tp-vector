@@ -444,7 +444,7 @@ material stress to prevent breaking (useful for materials like acrylic).
 const {tabs, slots} = turtleInterlock({
   // Calibrated for the given laser and material.
   kerf: kerfUtil.millimeters(0.15, {millimetersPerUnit: 1}),
-  thickness: 3,
+  materialThickness: 3,
   tabsDir: "left",
   // Slightly rounded corners, to make joining the pieces easier.
   outerCornersRadius: 0.8,
