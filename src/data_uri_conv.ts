@@ -1,13 +1,5 @@
 import {loadEvent} from './internal_util.ts';
 
-/** @deprecated */
-export function fromBinary({mimeType, binData}: {
-  mimeType: string,
-  binData: string,
-}) {
-  return fromText({mimeType, text: binData});
-}
-
 export function fromText({mimeType, text}: {
   mimeType: string,
   text: string,

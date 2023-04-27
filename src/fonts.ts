@@ -9,10 +9,6 @@ export type FontType = "woff" | "woff2" | "otf" | "ttf";
 
 export const DEFAULT_FONT_TYPE: FontType = "woff2";
 
-function mimeType(type: FontType) {
-  return dataURIConv.mimeTypeFromExt(type);
-}
-
 export const FONT_WEIGHT_VALUES = {
   thin: 100,
   regular: 400,
@@ -58,34 +54,6 @@ export class Font extends SimpleAttributesDefTool {
     super(defs, {
       fontFamily: name,
       ...fontAttributes && attributesFromFontAttributes(fontAttributes),
-    });
-  }
-
-  /** @deprecated */
-  static async fromBinary({name, type = DEFAULT_FONT_TYPE, binData, fontAttributes}: {
-    name: string,
-    type?: FontType,
-    binData: string,
-    fontAttributes?: FontAttributes,
-  }) {
-    return await Font.fromURL({
-      name,
-      url: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
-      fontAttributes,
-    });
-  }
-
-  /** @deprecated */
-  static async fromBase64({name, type = DEFAULT_FONT_TYPE, base64Data, fontAttributes}: {
-    name: string,
-    type?: FontType,
-    base64Data: string,
-    fontAttributes?: FontAttributes,
-  }) {
-    return await Font.fromURL({
-      name,
-      url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
-      fontAttributes,
     });
   }
 

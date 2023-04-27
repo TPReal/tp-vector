@@ -37,10 +37,6 @@ function imageScalingFromPartial(partialScaling: PartialImageScaling = "auto"): 
   return {width, height, align: requiredOriginAlignmentFromPartial(align), fitting};
 }
 
-function mimeType(type: ImageType) {
-  return dataURIConv.mimeTypeFromExt(type);
-}
-
 /** A class representing an image, usually referenced by URL or data URI. */
 export class Image extends DefaultPiece {
 
@@ -49,30 +45,6 @@ export class Image extends DefaultPiece {
     readonly scaling: ImageScaling,
   ) {
     super(image);
-  }
-
-  /** @deprecated */
-  static async fromBinary({type = DEFAULT_IMAGE_TYPE, binData, scaling}: {
-    type?: ImageType,
-    binData: string,
-    scaling?: PartialImageScaling,
-  }) {
-    return await Image.fromURL({
-      url: dataURIConv.fromBinary({mimeType: mimeType(type), binData}),
-      scaling,
-    });
-  }
-
-  /** @deprecated */
-  static async fromBase64({type = DEFAULT_IMAGE_TYPE, base64Data, scaling}: {
-    type?: ImageType,
-    base64Data: string,
-    scaling?: PartialImageScaling,
-  }) {
-    return await Image.fromURL({
-      url: dataURIConv.fromBase64({mimeType: mimeType(type), base64Data}),
-      scaling,
-    });
   }
 
   static async fromBlob(blob: Blob) {

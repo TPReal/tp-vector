@@ -5,7 +5,7 @@ export {ALL_BLACK, ConstColorsDistributor, CyclicColorsDistributor, MapColorsDis
 export type {ColorsDistributor, InitialColorsAssignment} from './colors_distributor.ts';
 export {GenericDefTool, SimpleAttributesDefTool, getRef} from './def_tool.ts';
 export type {AttributesDefTool, RefBy} from './def_tool.ts';
-export {Mask, createClipPath, createLinearGradient, createMask, createRadialGradient} from './def_tools.ts';
+export {Mask, createClipPath, createLinearGradient, createRadialGradient} from './def_tools.ts';
 export type {GradientCoordFrac, GradientFracPoint, GradientStop, RadialGradientEnd} from './def_tools.ts';
 export {cloneElement, createElement, setAttributes} from './elements.ts';
 export type {AttributeValue, Attributes, AttributesBuilder} from './elements.ts';
