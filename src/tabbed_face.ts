@@ -626,17 +626,12 @@ export class TabbedFace<P extends string = never>
     return ClosedFace.create(path, this.tabsDict);
   }
 
-  /**
-   * TabbedFace can be used directly as a TurtleFunc.
-   * Note that the rotation is ignored in that case.
-   */
-  getFunc(): TurtleFunc {
-    return t => {
+  private collectFunctions() {
       let prevHopSegm: HopSegment | undefined;
       let nextHopSegm: HopSegment | undefined = this.segments.find(isHopSegment);
-      let pointLevel = getPointLevel(prevHopSegm?.end, nextHopSegm?.start);
-      if (pointLevel === Level.TAB)
-        t = t.withPenUp(this.strafeToTab());
+    const startLevel = getPointLevel(undefined, nextHopSegm?.start);
+    let pointLevel = startLevel;
+    const func: TurtleFunc = t => {
       for (let i = 0; i < this.segments.length; i++) {
         const segment = this.segments[i];
         if (segment.kind === "hop") {
@@ -648,14 +643,36 @@ export class TabbedFace<P extends string = never>
         } else
           t = t.andThen(segment.getFunc(pointLevel));
       }
-      if (pointLevel === Level.TAB)
-        t = t.withPenUp(this.strafeToTab(false));
       return t;
+    }
+    return {
+      func,
+      startLevel,
+      endLevel: pointLevel,
     };
   }
 
+  /**
+   * TabbedFace can be used directly as a TurtleFunc.
+   * Note that the start dir is ignored in that case.
+   */
+  getFunc(): TurtleFunc {
+    return this.collectFunctions().func;
+  }
+
+  /**
+   * Returns a Turtle that draws the tabbed face. The start direction of the turtle is
+   * as specified. The point `[0, 0]` is on the base level at the beginning of the path.
+   */
   asTurtle() {
-    return Turtle.create().setAngle(this.startDir ?? 0).andThen(this);
+    const {func, startLevel, endLevel} = this.collectFunctions();
+    let t = Turtle.create().setAngle(this.startDir ?? 0);
+    if (startLevel === Level.TAB)
+      t = t.withPenUp(this.strafeToTab());
+    t = t.andThen(func);
+    if (endLevel === Level.TAB)
+      t = t.withPenUp(this.strafeToTab(false));
+    return t;
   }
 
   asPath() {
