@@ -511,8 +511,11 @@ Photos of some of the demo projects:
 - [Tabs and slots](src/demos/tabs_and_slots.ts) - holds without glue (due to the
   kerf), even when made with 3-ply paperboard
   <br> ![Tabs and slots](wiki/demos_tas_1.jpg)
-  <br> ![Tabs and slots](wiki/demos_tas_2.jpg)
-  <br> ![Tabs and slots](wiki/demos_tas_3.jpg)
+  ![Tabs and slots](wiki/demos_tas_2.jpg)
+  ![Tabs and slots](wiki/demos_tas_3.jpg)
+- [House box](src/demos/house_box.ts) - more advanced, using
+  [tabbed faces](src/tabbed_face.ts)
+  <br> ![House box](wiki/demos_box.jpg)
 
 ---
 

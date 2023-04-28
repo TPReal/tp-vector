@@ -686,7 +686,8 @@ export class TabbedFace<P extends string = never>
   /**
    * Closes the face:
    * - Determines the correct level of the transition between the end of the face and its beginning.
-   * - Verifies that the Turtle is back at the starting position (unless `allowOpen` is specified).
+   * - Verifies that the Turtle is back at the starting position with the given tolerance,
+   *   and the starting angle (unless `allowOpen` is specified).
    * - If `closePath` is specified, uses `Turtle.closePath()`.
    * - Creates an object representing the complete face, and retaining all the stored tabs,
    *   for use when defining other faces.
@@ -694,9 +695,10 @@ export class TabbedFace<P extends string = never>
    *
    * It is recommended to always call `closeFace` when a face is fully defined.
    */
-  closeFace({closePath = false, allowOpen = closePath}: {
+  closeFace({closePath = false, allowOpen = closePath, posTolerance = 1e-9}: {
     closePath?: boolean,
     allowOpen?: boolean,
+    posTolerance?: number,
   } = {}) {
     let closed;
     const firstHopSegm = this.segments.find((segm): segm is HopSegment => segm.kind === "hop");
@@ -721,7 +723,7 @@ export class TabbedFace<P extends string = never>
       closed = this;
     const turtle = closed.asTurtle();
     if (!allowOpen)
-      checkFaceClosed(this.startAngle, turtle);
+      checkFaceClosed(this.startAngle, turtle, posTolerance);
     const path = closePath ? turtle.closePath() : turtle.asPath();
     return ClosedFace.create(path, this.tabsDict);
   }
@@ -798,16 +800,21 @@ export class TabbedFaceCreator {
 
 }
 
-function checkFaceClosed(startDir: number, {pos: [x, y], angleDeg}: Turtle) {
-  const norm = (v: number) => almostEqual(v, 0) ? 0 : v;
+function checkFaceClosed(
+  startDir: number,
+  {pos: [x, y], angleDeg}: Turtle,
+  posTolerance: number,
+) {
+  const norm = (v: number, tolerance?: number) => almostEqual(v, 0, {tolerance}) ? 0 : v;
   const angleToRange = (a: number) => (a % 360 + 360 + 180) % 360 - 180;
   startDir = angleToRange(startDir);
-  x = norm(x);
-  y = norm(y);
+  x = norm(x, posTolerance);
+  y = norm(y, posTolerance);
   angleDeg = norm(angleToRange(angleDeg));
   if (x !== 0 || y !== 0 || norm(angleToRange(angleDeg - startDir)) !== 0)
     throw new Error(`The face shape is not closed properly: ` +
-      `angleDeg=${angleDeg} (expected: ${startDir}), pos=[${x}, ${y}] (expected: [0, 0])`);
+      `angleDeg=${angleDeg} (expected: ${startDir}), pos=[${x}, ${y}] (expected: [0, 0]` +
+      `${posTolerance ? ` with tolerance ${posTolerance}` : ``})`);
 }
 
 export class ClosedFace<P extends string = never> extends DefaultPiece implements TabsDict<P>{

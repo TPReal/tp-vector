@@ -1,5 +1,6 @@
 import * as calibration from '../calibration/index.ts';
 import * as coins from '../demos/coins.ts';
+import * as houseBox from '../demos/house_box.ts';
 import * as images from '../demos/images.ts';
 import * as jigsawPuzzle from '../demos/jigsaw_puzzle.ts';
 import * as normaliseExplainer from '../demos/normalise_explainer.ts';
@@ -19,6 +20,7 @@ export const DEMOS_VIEWER = Viewer.create()
   .add(coins)
   .add(jigsawPuzzle)
   .add(tabsAndSlots)
+  .add(houseBox)
   .add(images)
 
   // Calibration utilities

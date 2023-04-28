@@ -50,9 +50,9 @@ export function assertNumber(value: unknown): number {
   return value;
 }
 
-export function almostEqual(a: number, b: number, {maxError = 1e-9} = {}) {
+export function almostEqual(a: number, b: number, {tolerance = 1e-9} = {}) {
   const diff = a - b;
-  return diff >= -maxError && diff <= maxError;
+  return diff >= -tolerance && diff <= tolerance;
 }
 
 const REASONABLE_SIGNIFICANT_DIGITS = 5;
