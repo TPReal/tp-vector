@@ -13,6 +13,7 @@ export {Image, type ImageType, type PartialImageScaling} from './images.ts';
 export {slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleSlots, turtleTabs, type PartialSlotsOptions, type PartialTabsOptions, type SlotsOptions, type TabsOptions} from './interlock.ts';
 export {SlotsPattern, TabsPattern} from './interlock_patterns.ts';
 export * as kerfUtil from './kerf_util.ts';
+export type {Kerf} from './kerf_util.ts';
 export * as layouts from './layouts.ts';
 export {SimpleLazyPiece} from './lazy_piece.ts';
 export {type CutOptions, type Medium, type PartialCutOptions, type PartialPrintOptions, type PartialRunOptions, type PartialSheetOptions, type PrintOptions, type RunOptions, type SheetOptions, type Side} from './options.ts';

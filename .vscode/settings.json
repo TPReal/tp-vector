@@ -9,6 +9,4 @@
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
   "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.extension.sortImports.maxNamedImportsInSingleLine": 1000,
-  "typescript.extension.sortImports.sortMethod": "path",
 }
