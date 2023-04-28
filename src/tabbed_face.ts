@@ -173,7 +173,7 @@ export interface ReverseTabsParamsModifier {
  */
 export type RestTabsParams<P> = [
   params: TabsFuncParams | P,
-  ...modifiers: (Partial<ExpandedTabsFuncParams & ReverseTabsParamsModifier>)[],
+  ...modifiers: readonly (Partial<ExpandedTabsFuncParams & ReverseTabsParamsModifier>)[],
 ];
 
 export interface PartialTabbedFaceMode {
@@ -294,10 +294,10 @@ export class TabbedFace<P extends string = never>
   readonly pat;
 
   protected constructor(
-    private readonly startDir: number,
+    readonly startAngle: number,
     readonly mode: TabbedFaceMode,
     readonly options: TabsOptions,
-    private readonly segments: Segment[],
+    private readonly segments: readonly Segment[],
     private readonly tabsDict: LazySimpleTabsDict<P>,
   ) {
     super(() => this.asTurtle());
@@ -327,7 +327,7 @@ export class TabbedFace<P extends string = never>
     mode?: PartialTabbedFaceMode,
   }) {
     return new TabbedFace(
-      this.startDir,
+      this.startAngle,
       {...this.mode, ...mode},
       {...this.options, ...options},
       this.segments,
@@ -440,7 +440,7 @@ export class TabbedFace<P extends string = never>
    */
   right(angleDeg = 90) {
     const forwardLenMultiplier = Math.tan(angleDeg / 2 / 180 * Math.PI);
-    return this.appendDualK(angleDeg > 0, k => {
+    return this.appendDualK(isPositiveAngle(angleDeg), k => {
       const boxCorr = this.boxCorrection(angleDeg);
       if (k && Math.abs(forwardLenMultiplier) >= MAX_FORWARD_LEN_MULTIPLIER_ON_TURN)
         return t => t
@@ -465,7 +465,7 @@ export class TabbedFace<P extends string = never>
    */
   arcRight(angleDeg = 90, radius = 0) {
     const boxCorr = this.boxCorrection(angleDeg);
-    return this.appendDualK(angleDeg > 0, k =>
+    return this.appendDualK(isPositiveAngle(angleDeg), k =>
       t => t
         .forward(boxCorr)
         .arcRight(angleDeg, radius + k * this.toTabLevelStrafeLeft)
@@ -482,7 +482,7 @@ export class TabbedFace<P extends string = never>
    */
   bevelRight(angleDeg = 90) {
     const boxCorr = this.boxCorrection(angleDeg);
-    return this.appendDualK(angleDeg > 0, k =>
+    return this.appendDualK(isPositiveAngle(angleDeg), k =>
       t => t
         .forward(boxCorr)
         .andThen(t => {
@@ -507,7 +507,7 @@ export class TabbedFace<P extends string = never>
     outerCurveArgs = innerCurveArgs,
   ) {
     const boxCorr = this.boxCorrection(angleDeg);
-    return this.appendDualK(angleDeg > 0, k =>
+    return this.appendDualK(isPositiveAngle(angleDeg), k =>
       t => t
         .forward(boxCorr)
         .smoothRight(
@@ -607,7 +607,8 @@ export class TabbedFace<P extends string = never>
       kind: "hop",
       start: {level},
       end: {level, required: true},
-      getFunc: (start, _end) => level === start ? IDENTITY_FUNC : this.strafeToTab(tabLevel ? 1 : -1),
+      getFunc: (start, _end) => level === start ?
+        IDENTITY_FUNC : this.strafeToTab(tabLevel ? 1 : -1),
     });
   }
 
@@ -673,12 +674,12 @@ export class TabbedFace<P extends string = never>
       if (lastHopSegm)
         getPointLevel(lastHopSegm.end, segment.start);
     }
-    return new TabbedFace(this.startDir, this.mode, this.options,
+    return new TabbedFace(this.startAngle, this.mode, this.options,
       [...this.segments, segment], this.tabsDict);
   }
 
   private appendNamedTabs(name: string, tabsParams: ExpandedTabsFuncParams) {
-    return new TabbedFace(this.startDir, this.mode, this.options,
+    return new TabbedFace(this.startAngle, this.mode, this.options,
       this.segments, this.tabsDict.addTabs(name, tabsParams));
   }
 
@@ -710,7 +711,7 @@ export class TabbedFace<P extends string = never>
         getFunc: () => IDENTITY_FUNC,
       };
       closed = new TabbedFace(
-        this.startDir,
+        this.startAngle,
         this.mode,
         this.options,
         [closingSegment, ...this.segments, closingSegment],
@@ -720,28 +721,28 @@ export class TabbedFace<P extends string = never>
       closed = this;
     const turtle = closed.asTurtle();
     if (!allowOpen)
-      checkFaceClosed(this.startDir, turtle);
+      checkFaceClosed(this.startAngle, turtle);
     const path = closePath ? turtle.closePath() : turtle.asPath();
     return ClosedFace.create(path, this.tabsDict);
   }
 
-  private collectFunctions() {
+  private joinFunctions() {
     let prevHopSegm: HopSegment | undefined;
     let nextHopSegm: HopSegment | undefined = this.segments.find(isHopSegment);
     const startLevel = getPointLevel(undefined, nextHopSegm?.start);
     let pointLevel = startLevel;
     const funcs: TurtleFunc[] = [];
-      for (let i = 0; i < this.segments.length; i++) {
-        const segment = this.segments[i];
-        if (segment.kind === "hop") {
-          const startLevel = pointLevel;
-          prevHopSegm = segment;
-          nextHopSegm = this.segments.slice(i + 1).find(isHopSegment);
-          pointLevel = getPointLevel(prevHopSegm.end, nextHopSegm?.start);
+    for (let i = 0; i < this.segments.length; i++) {
+      const segment = this.segments[i];
+      if (segment.kind === "hop") {
+        const startLevel = pointLevel;
+        prevHopSegm = segment;
+        nextHopSegm = this.segments.slice(i + 1).find(isHopSegment);
+        pointLevel = getPointLevel(prevHopSegm.end, nextHopSegm?.start);
         funcs.push(segment.getFunc(startLevel, pointLevel));
-        } else
+      } else
         funcs.push(segment.getFunc(pointLevel));
-      }
+    }
     const func: TurtleFunc = t => {
       for (const func of funcs)
         t = func(t);
@@ -756,10 +757,10 @@ export class TabbedFace<P extends string = never>
 
   /**
    * TabbedFace can be used directly as a TurtleFunc.
-   * Note that the start dir is ignored in that case.
+   * Note that the start angle is ignored in that case.
    */
   getFunc(): TurtleFunc {
-    return this.collectFunctions().func;
+    return this.joinFunctions().func;
   }
 
   /**
@@ -767,8 +768,8 @@ export class TabbedFace<P extends string = never>
    * as specified. The point `[0, 0]` is on the base level at the beginning of the path.
    */
   asTurtle() {
-    const {func, startLevel, endLevel} = this.collectFunctions();
-    let t = Turtle.create().setAngle(this.startDir ?? 0);
+    const {func, startLevel, endLevel} = this.joinFunctions();
+    let t = Turtle.create().setAngle(this.startAngle ?? 0);
     if (startLevel === Level.TAB)
       t = t.withPenUp(this.strafeToTab());
     t = t.andThen(func);
@@ -879,4 +880,9 @@ export function tabWidthForAcuteAngle({angleDeg, tabWidth}: {
   if (cos >= 0)
     return tabWidth;
   return tabWidth / Math.abs(sin);
+}
+
+/** Returns whether the angle is equivalent to an angle between 0° and 180°. */
+export function isPositiveAngle(angleDeg: number) {
+  return sinCos(angleDeg)[0] > 0;
 }
