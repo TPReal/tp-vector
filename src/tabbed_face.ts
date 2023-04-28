@@ -730,7 +730,7 @@ export class TabbedFace<P extends string = never>
     let nextHopSegm: HopSegment | undefined = this.segments.find(isHopSegment);
     const startLevel = getPointLevel(undefined, nextHopSegm?.start);
     let pointLevel = startLevel;
-    const func: TurtleFunc = t => {
+    const funcs: TurtleFunc[] = [];
       for (let i = 0; i < this.segments.length; i++) {
         const segment = this.segments[i];
         if (segment.kind === "hop") {
@@ -738,12 +738,15 @@ export class TabbedFace<P extends string = never>
           prevHopSegm = segment;
           nextHopSegm = this.segments.slice(i + 1).find(isHopSegment);
           pointLevel = getPointLevel(prevHopSegm.end, nextHopSegm?.start);
-          t = t.andThen(segment.getFunc(startLevel, pointLevel));
+        funcs.push(segment.getFunc(startLevel, pointLevel));
         } else
-          t = t.andThen(segment.getFunc(pointLevel));
+        funcs.push(segment.getFunc(pointLevel));
       }
+    const func: TurtleFunc = t => {
+      for (const func of funcs)
+        t = func(t);
       return t;
-    }
+    };
     return {
       func,
       startLevel,
