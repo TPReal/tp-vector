@@ -3,7 +3,7 @@ import {TabsPattern} from './interlock_patterns.ts';
 import {SimpleLazyPiece} from './lazy_piece.ts';
 import {DefaultPiece, Piece, PieceFunc} from './pieces.ts';
 import {LazyTurtleFunc, PartialCurveArgs, Turtle, TurtleFunc, TurtleFuncArg} from './turtle.ts';
-import {almostEqual} from './util.ts';
+import {almostEqual, sinCos} from './util.ts';
 
 type TabsFuncParams = Parameters<TurtleTabsFunc>[1];
 type ExpandedTabsFuncParams = Readonly<Exclude<TabsFuncParams, TabsPattern>>;
@@ -146,7 +146,7 @@ class LazySimpleTabsDict<P extends string = never> implements TabsDict<P>{
 
 }
 
-const ROTATION = {
+const ROTATION_DEG = {
   up: 0,
   down: 180,
   right: 90,
@@ -154,12 +154,11 @@ const ROTATION = {
 };
 
 /** Rotation of a face, representing the starting direction of the Turtle that draws it. */
-export type StartAngleDeg = number | keyof typeof ROTATION;
+export type StartAngleDeg = number | keyof typeof ROTATION_DEG;
 
 function startAngleDeg(startDir?: StartAngleDeg) {
-  return startDir === undefined ? undefined :
-    typeof startDir === "number" ? startDir :
-      ROTATION[startDir];
+  return startDir === undefined ? 0 :
+    typeof startDir === "number" ? startDir : ROTATION_DEG[startDir];
 }
 
 export interface ReverseTabsParamsModifier {
@@ -176,6 +175,57 @@ export type RestTabsParams<P> = [
   params: TabsFuncParams | P,
   ...modifiers: (Partial<ExpandedTabsFuncParams & ReverseTabsParamsModifier>)[],
 ];
+
+export interface PartialTabbedFaceMode {
+  /**
+   * Whether the TabbedFace commands `*right` and `*left` operate as if on the base level,
+   * or on the tab level.
+   *
+   * The value `"auto"` means that each turn operates on its "inner" side,
+   * e.g. when `options.tabsDir` is `"left"`, then right turns operate on base level
+   * and left turns operate on tab level.
+   */
+  turnsOnTabLevel?: boolean | "auto";
+  /** The box mode parameters, or `false` if disabled. */
+  boxMode?: BoxMode | false;
+}
+
+/**
+ * Box mode configuration.
+ * The box mode allows to easily create e.g. the base (bottom) face of a box
+ * in the shape of a [right prism](https://en.wikipedia.org/wiki/Prism_(geometry)).
+ * In this mode, on each turn the box correction is applied.
+ *
+ * Note: In box mode it might be difficult to track the current position of the turtle, as the
+ * corrections are applied.
+ * Behaviour can also be surprising at times, e.g. `.right(0)` moves the Turtle forward
+ * (by the tab width).
+ * That's why it is disabled by default.
+ * @see {@link boxCorrection}
+ */
+export interface BoxMode {
+  /** The tab width on the edges between the sides of the box perpendicular to the base. */
+  readonly verticalEdgesTabWidth: number | "same";
+}
+
+export const DEFAULT_MODE = {
+  turnsOnTabLevel: "auto",
+  boxMode: false,
+} satisfies TabbedFaceMode;
+
+interface TabbedFaceMode extends Required<Readonly<PartialTabbedFaceMode>> {}
+
+function modeFromPartial({
+  turnsOnTabLevel = DEFAULT_MODE.turnsOnTabLevel,
+  boxMode = DEFAULT_MODE.boxMode,
+}: PartialTabbedFaceMode = {}): TabbedFaceMode {
+  return {turnsOnTabLevel, boxMode};
+}
+
+interface CreateArgs {
+  startDir?: StartAngleDeg;
+  mode?: PartialTabbedFaceMode;
+}
 
 /**
  * A helper for creating figures that have tabs on its edges (see _src/interlock.ts_).
@@ -206,7 +256,7 @@ export type RestTabsParams<P> = [
  * An example: two sides of an open box:
  *
  *     // Front of the box, starting with the right edge, going clockwise.
- *     const boxFrontFace = TabbedFace.create(options, "down")
+ *     const boxFrontFace = TabbedFace.create(options, {startDir: "down"})
  *       .tabsDef("rightSide", tabsPatternBetweenFrontAndRightSide).right()
  *       .tabsDef("bottom", tabsPatternBetweenFrontAndBottom).right()
  *       // The left side is the same as the right, just reversed.
@@ -215,7 +265,7 @@ export type RestTabsParams<P> = [
  *       .noTabs("bottom").right()
  *       .closeFace();
  *     // The left side of the box, starting with the front edge, going clockwise.
- *     const boxLeftFace = TabbedFace.create(options, "down")
+ *     const boxLeftFace = TabbedFace.create(options, {startDir: "down"})
  *       // Joins the front face. Use `boxFrontFace.fit` to obtain
  *       // the matching tabs, already correctly reversed.
  *       .tabsDef("front", boxFrontFace.fit.leftSide).right()
@@ -244,10 +294,11 @@ export class TabbedFace<P extends string = never>
   readonly pat;
 
   protected constructor(
+    private readonly startDir: number,
+    readonly mode: TabbedFaceMode,
     readonly options: TabsOptions,
     private readonly segments: Segment[],
     private readonly tabsDict: LazySimpleTabsDict<P>,
-    private readonly startDir: number | undefined,
   ) {
     super(() => this.asTurtle());
     this.toTabLevelStrafeLeft = options.tabWidth * (options.tabsDir === "left" ? 1 : -1);
@@ -256,22 +307,47 @@ export class TabbedFace<P extends string = never>
     this.pat = tabsDict.pat;
   }
 
-  static create(options: PartialTabsOptions, startDir?: StartAngleDeg): TabbedFace;
+  static create(options: PartialTabsOptions, args?: CreateArgs): TabbedFace;
   static create(...params: unknown[]): never;
-  static create(options: PartialTabsOptions, startDir?: StartAngleDeg) {
+  static create(options: PartialTabsOptions, {
+    startDir,
+    mode,
+  }: CreateArgs = {}) {
     return new TabbedFace(
-      tabsOptionsFromPartial(options), [], LazySimpleTabsDict.EMPTY, startAngleDeg(startDir));
+      startAngleDeg(startDir),
+      modeFromPartial(mode),
+      tabsOptionsFromPartial(options),
+      [],
+      LazySimpleTabsDict.EMPTY,
+    );
   }
 
-  setOptions(options: Partial<PartialTabsOptions>) {
+  set({options, mode}: {
+    options?: Partial<PartialTabsOptions>,
+    mode?: PartialTabbedFaceMode,
+  }) {
     return new TabbedFace(
-      {...this.options, ...options}, this.segments, this.tabsDict, this.startDir);
+      this.startDir,
+      {...this.mode, ...mode},
+      {...this.options, ...options},
+      this.segments,
+      this.tabsDict,
+    );
   }
 
-  withOptions<P2 extends string>(
-    options: Partial<PartialTabsOptions>, func: PieceFunc<TabbedFace<P>, TabbedFace<P2>>):
-    TabbedFace<P2> {
-    return this.setOptions(options).andThen(func).setOptions(this.options);
+  with<P2 extends string, Args extends unknown[]>(optionsAndMode: {
+    options?: Partial<PartialTabsOptions>,
+    mode?: PartialTabbedFaceMode,
+  },
+    func: PieceFunc<TabbedFace<P>, TabbedFace<P2>, Args>,
+    ...args: Args): TabbedFace<P2> {
+    return this
+      .set(optionsAndMode)
+      .andThen(func, ...args)
+      .set({
+        options: this.options,
+        mode: this.mode,
+      });
   }
 
   tabs(...tabsParams: RestTabsParams<P>) {
@@ -358,16 +434,25 @@ export class TabbedFace<P extends string = never>
     return this.strafeRight(-length);
   }
 
-  /** Turns right. If on tab level, adds the correct forward segments before and after the turn. */
+  /**
+   * Turns right on the level specified as `mode.turnsOnTabLevel`.
+   * Applies the box correction if `mode.box` is set.
+   */
   right(angleDeg = 90) {
     const forwardLenMultiplier = Math.tan(angleDeg / 2 / 180 * Math.PI);
-    const forwardLen = this.toTabLevelStrafeLeft * forwardLenMultiplier;
-    return this.appendDual(
-      t => t.right(angleDeg),
-      Math.abs(forwardLenMultiplier) < MAX_FORWARD_LEN_MULTIPLIER_ON_TURN ?
-        t => t.forward(forwardLen).right(angleDeg).forward(forwardLen) :
-        t => t.withPenUp(this.turnRightOnTabLevel(angleDeg)),
-    );
+    return this.appendDualK(angleDeg > 0, k => {
+      const boxCorr = this.boxCorrection(angleDeg);
+      if (k && Math.abs(forwardLenMultiplier) >= MAX_FORWARD_LEN_MULTIPLIER_ON_TURN)
+        return t => t
+          .forward(boxCorr)
+          .andThen(this.turnRightOnLevelK(angleDeg, k))
+          .forward(boxCorr);
+      const fwd = boxCorr + k * this.toTabLevelStrafeLeft * forwardLenMultiplier;
+      return t => t
+        .forward(fwd)
+        .right(angleDeg)
+        .forward(fwd);
+    });
   }
 
   left(angleDeg = 90) {
@@ -375,15 +460,16 @@ export class TabbedFace<P extends string = never>
   }
 
   /**
-   * Turns right with an arc. Adjusts the radius when on tab level.
-   * Note that `arcRight()` can be called without parameters, which is the same as `right()`
-   * on base level, and draws a quarter of a circle on the tab level.
+   * Turns right with the specified arc on the level specified as `mode.turnsOnTabLevel`.
+   * Applies the box correction if `mode.box` is set.
    */
   arcRight(angleDeg = 90, radius = 0) {
-    return this.appendDual(
-      t => t.arcRight(angleDeg, radius),
-      t => t.arcRight(angleDeg, radius + this.toTabLevelStrafeLeft),
-    );
+    const boxCorr = this.boxCorrection(angleDeg);
+    return this.appendDualK(angleDeg > 0, k =>
+      t => t
+        .forward(boxCorr)
+        .arcRight(angleDeg, radius + k * this.toTabLevelStrafeLeft)
+        .forward(boxCorr));
   }
 
   arcLeft(angleDeg = 90, radius = 0) {
@@ -391,17 +477,19 @@ export class TabbedFace<P extends string = never>
   }
 
   /**
-   * Turns right with a bevel, i.e. when on tab level, it draws a straight line to the target
-   * position.
+   * Turns right with a bevel (cut corner) on the level specified as `mode.turnsOnTabLevel`.
+   * Applies the box correction if `mode.box` is set.
    */
   bevelRight(angleDeg = 90) {
-    return this.appendDual(
-      t => t.right(angleDeg),
-      t => {
-        const res = t.andThen(this.turnRightOnTabLevel(angleDeg));
-        return t.goTo(res.pos).copyAngle(res);
-      },
-    );
+    const boxCorr = this.boxCorrection(angleDeg);
+    return this.appendDualK(angleDeg > 0, k =>
+      t => t
+        .forward(boxCorr)
+        .andThen(t => {
+          const res = t.andThen(this.turnRightOnLevelK(angleDeg, k));
+          return t.goTo(res.pos).copyAngle(res);
+        })
+        .forward(boxCorr));
   }
 
   bevelLeft(angleDeg = 90) {
@@ -409,27 +497,24 @@ export class TabbedFace<P extends string = never>
   }
 
   /**
-   * Turns smooth right, using a Bézier curve.
-   *
-   * Curve args can be specified, with an option to specify them separately for the tab level.
-   *
-   * Note that `smoothRight()` can be called without parameters, which is the same as `right()`
-   * on base level, and draws a curve on the tab level.
+   * Turns smooth right, using a Bézier curve, on the level specified as `mode.turnsOnTabLevel`.
+   * Applies the box correction if `mode.box` is set.
    */
   smoothRight(
     angleDeg = 90,
     circleR = 0,
-    curveArgs?: PartialCurveArgs,
-    onTabCurveArgs = curveArgs,
+    innerCurveArgs?: PartialCurveArgs,
+    outerCurveArgs = innerCurveArgs,
   ) {
-    return this.appendDual(
-      t => t.smoothRight(angleDeg, circleR, curveArgs),
-      t => t.smoothRight(
-        angleDeg,
-        circleR + this.toTabLevelStrafeLeft * Math.tan(angleDeg / 2 / 180 * Math.PI),
-        onTabCurveArgs,
-      ),
-    );
+    const boxCorr = this.boxCorrection(angleDeg);
+    return this.appendDualK(angleDeg > 0, k =>
+      t => t
+        .forward(boxCorr)
+        .smoothRight(
+          angleDeg,
+          circleR + k * (this.toTabLevelStrafeLeft * Math.tan(angleDeg / 2 / 180 * Math.PI)),
+          k ? outerCurveArgs : innerCurveArgs)
+        .forward(boxCorr));
   }
 
   smoothLeft(
@@ -442,35 +527,28 @@ export class TabbedFace<P extends string = never>
   }
 
   roundCornerRight(forward: number, right = forward) {
-    return this.appendDual(
-      t => t.roundCornerRight(forward, right),
+    return this.appendDualK(true, k =>
       t => t.roundCornerRight(
-        forward + this.toTabLevelStrafeLeft, right + this.toTabLevelStrafeLeft),
-    );
+        forward + k * this.toTabLevelStrafeLeft,
+        right + k * this.toTabLevelStrafeLeft));
   }
 
   roundCornerLeft(forward: number, left = forward) {
-    return this.appendDual(
-      t => t.roundCornerLeft(forward, left),
+    return this.appendDualK(false, k =>
       t => t.roundCornerLeft(
-        forward - this.toTabLevelStrafeLeft, left - this.toTabLevelStrafeLeft),
-    );
+        forward - k * this.toTabLevelStrafeLeft,
+        left - k * this.toTabLevelStrafeLeft));
   }
 
   halfEllipseRight(forward: number, right: number) {
-    return this.appendDual(
-      t => t.halfEllipseRight(forward, right),
+    return this.appendDualK(right > 0, k =>
       t => t.halfEllipseRight(
-        forward + this.toTabLevelStrafeLeft, right + 2 * this.toTabLevelStrafeLeft),
-    );
+        forward + (right > 0 ? k : -k) * this.toTabLevelStrafeLeft,
+        right + 2 * k * this.toTabLevelStrafeLeft));
   }
 
   halfEllipseLeft(forward: number, left: number) {
-    return this.appendDual(
-      t => t.halfEllipseLeft(forward, left),
-      t => t.halfEllipseLeft(
-        forward - this.toTabLevelStrafeLeft, left - 2 * this.toTabLevelStrafeLeft),
-    );
+    return this.halfEllipseRight(forward, -left);
   }
 
   /**
@@ -487,13 +565,13 @@ export class TabbedFace<P extends string = never>
   }
 
   /**
-   * Executes the TurtleFunc as a branch of the Turtle.
+   * Executes the TurtleFunc as a branch of the Turtle, starting from the current level.
    * The function receives the level as an extra parameter.
    */
   branchTurtle<Args extends unknown[]>(
     func: TurtleFuncArg<[...Args, {onTabLevel: boolean}]>, ...args: Args): TabbedFace<P>;
   /**
-   * Executes the TurtleFunc as a branch of the Turtle, starting at the specified level.
+   * Executes the TurtleFunc as a branch of the Turtle, starting from the specified level.
    */
   branchTurtle<Args extends unknown[]>(
     fromTabLevelParam: {fromTabLevel: boolean},
@@ -516,7 +594,7 @@ export class TabbedFace<P extends string = never>
           .andThen(func, ...args, {onTabLevel: fromTabLevel ?? false})
       ),
       t => t.branch(t =>
-        (fromTabLevel === false ? t.withPenUp(this.strafeToTab(false)) : t)
+        (fromTabLevel === false ? t.withPenUp(this.strafeToTab(-1)) : t)
           .andThen(func, ...args, {onTabLevel: fromTabLevel ?? true})
       ),
     );
@@ -529,7 +607,7 @@ export class TabbedFace<P extends string = never>
       kind: "hop",
       start: {level},
       end: {level, required: true},
-      getFunc: (start, _end) => level === start ? IDENTITY_FUNC : this.strafeToTab(tabLevel),
+      getFunc: (start, _end) => level === start ? IDENTITY_FUNC : this.strafeToTab(tabLevel ? 1 : -1),
     });
   }
 
@@ -544,7 +622,7 @@ export class TabbedFace<P extends string = never>
       kind: "hop",
       start: {level, required: true},
       end: {level},
-      getFunc: (_start, end) => level === end ? IDENTITY_FUNC : this.strafeToTab(!tabLevel),
+      getFunc: (_start, end) => level === end ? IDENTITY_FUNC : this.strafeToTab(tabLevel ? -1 : 1),
     });
   }
 
@@ -552,15 +630,34 @@ export class TabbedFace<P extends string = never>
     return this.fromTabLevel(!baseLevel);
   }
 
-  private strafeToTab(toTab = true): TurtleFunc {
-    return t => t.strafeLeft((toTab ? 1 : -1) * this.toTabLevelStrafeLeft);
+  private strafeToTab(toTabMult = 1): TurtleFunc {
+    return t => t.strafeLeft(toTabMult * this.toTabLevelStrafeLeft);
   }
 
-  private turnRightOnTabLevel(angleDeg: number): TurtleFunc {
+  private turnRightOnLevelK(angleDeg: number, levelK: number): TurtleFunc {
     return t => t
-      .andThen(this.strafeToTab(false))
+      .andThen(this.strafeToTab(-levelK))
       .right(angleDeg)
-      .andThen(this.strafeToTab());
+      .andThen(this.strafeToTab(levelK));
+  }
+
+  private boxCorrection(angleDeg: number) {
+    if (!this.mode.boxMode)
+      return 0;
+    const vTabWidth = this.mode.boxMode.verticalEdgesTabWidth;
+    return boxCorrection({
+      angleDeg,
+      tabWidth: vTabWidth === "same" ? this.options.tabWidth : vTabWidth,
+    });
+  }
+
+  private appendDualK(rightTurn: boolean, getFunc: (k: number) => TurtleFunc) {
+    const onTabLevel = this.mode.turnsOnTabLevel === "auto" ?
+      rightTurn !== (this.options.tabsDir === "left") :
+      this.mode.turnsOnTabLevel;
+    if (onTabLevel)
+      return this.appendDual(getFunc(-1), getFunc(0));
+    return this.appendDual(getFunc(0), getFunc(1));
   }
 
   private appendDual(baseFunc: TurtleFunc, tabFunc = baseFunc) {
@@ -576,13 +673,13 @@ export class TabbedFace<P extends string = never>
       if (lastHopSegm)
         getPointLevel(lastHopSegm.end, segment.start);
     }
-    return new TabbedFace(
-      this.options, [...this.segments, segment], this.tabsDict, this.startDir);
+    return new TabbedFace(this.startDir, this.mode, this.options,
+      [...this.segments, segment], this.tabsDict);
   }
 
   private appendNamedTabs(name: string, tabsParams: ExpandedTabsFuncParams) {
-    return new TabbedFace(
-      this.options, this.segments, this.tabsDict.addTabs(name, tabsParams), this.startDir);
+    return new TabbedFace(this.startDir, this.mode, this.options,
+      this.segments, this.tabsDict.addTabs(name, tabsParams));
   }
 
   /**
@@ -613,22 +710,24 @@ export class TabbedFace<P extends string = never>
         getFunc: () => IDENTITY_FUNC,
       };
       closed = new TabbedFace(
+        this.startDir,
+        this.mode,
         this.options,
         [closingSegment, ...this.segments, closingSegment],
         this.tabsDict,
-        this.startDir);
+      );
     } else
       closed = this;
     const turtle = closed.asTurtle();
     if (!allowOpen)
-      checkFaceClosed(this.startDir ?? 0, turtle);
+      checkFaceClosed(this.startDir, turtle);
     const path = closePath ? turtle.closePath() : turtle.asPath();
     return ClosedFace.create(path, this.tabsDict);
   }
 
   private collectFunctions() {
-      let prevHopSegm: HopSegment | undefined;
-      let nextHopSegm: HopSegment | undefined = this.segments.find(isHopSegment);
+    let prevHopSegm: HopSegment | undefined;
+    let nextHopSegm: HopSegment | undefined = this.segments.find(isHopSegment);
     const startLevel = getPointLevel(undefined, nextHopSegm?.start);
     let pointLevel = startLevel;
     const func: TurtleFunc = t => {
@@ -671,7 +770,7 @@ export class TabbedFace<P extends string = never>
       t = t.withPenUp(this.strafeToTab());
     t = t.andThen(func);
     if (endLevel === Level.TAB)
-      t = t.withPenUp(this.strafeToTab(false));
+      t = t.withPenUp(this.strafeToTab(-1));
     return t;
   }
 
@@ -689,8 +788,8 @@ export class TabbedFaceCreator {
     return new TabbedFaceCreator(tabsOptionsFromPartial(options));
   }
 
-  create(startDir?: StartAngleDeg) {
-    return TabbedFace.create(this.options, startDir);
+  create(args?: CreateArgs) {
+    return TabbedFace.create(this.options, args);
   }
 
 }
@@ -734,4 +833,47 @@ export function turtleInterlock(options: PartialInterlockOptions) {
     ...res,
     TFace: TabbedFaceCreator.create(res.tabsOptions),
   };
+}
+
+/**
+ * Returns the size correction for tabbed faces that meet at an obtuse angle.
+ * The angle is specified as exterior angle.
+ *
+ * Imagine two faces, each of them a square 1×1, with tabs protruding from one of the edges
+ * (the other faces being flat).
+ * The tabs on the two faces match, so that the squares can be joined with them.
+ * Imagine the two faces are vertical, joined by a vertical edge at an obtuse angle
+ * (i.e. acute exterior angle). Consider the shape formed by the two faces when they are
+ * looked on from above, and in particular, the shape of the inner side of the angle they form.
+ * The length of each of the two legs of that shape is slightly longer than 1,
+ * because it also includes part of the distance at which the tabs interlock.
+ * If we denote the length of each leg as _1+c_, this function returns _c_.
+ *
+ * When the two faces lie on a surface (exterior angle of zero), the tabs interlock completely,
+ * and their total length becomes `1 + tabWidth + 1`, thus `tabWidth / 2` is returned.
+ * This value falls to zero as the angle approaches 90°.
+ */
+export function boxCorrection({angleDeg, tabWidth}: {
+  angleDeg: number,
+  tabWidth: number,
+}) {
+  const posCos = Math.max(sinCos(angleDeg)[1], 0);
+  return tabWidth * posCos / (1 + posCos);
+}
+
+/**
+ * Given the typically used tab width and an (exterior) angle between two faces,
+ * returns the tab width that should be used to join them. When the faces meet at an obtuse
+ * or right angle (exterior angle up to 90°), the original tab width is returned.
+ * For acute angles, a larger value is returned to ensure that the tabs of the faces
+ * overlap sufficiently.
+ */
+export function tabWidthForAcuteAngle({angleDeg, tabWidth}: {
+  angleDeg: number,
+  tabWidth: number,
+}) {
+  const [sin, cos] = sinCos(angleDeg);
+  if (cos >= 0)
+    return tabWidth;
+  return tabWidth / Math.abs(sin);
 }

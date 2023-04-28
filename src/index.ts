@@ -35,7 +35,7 @@ export type {LaserSVGParams, PartialLaserSVGParams, PartialRunsSelector, RunsSel
 export {getPNGDataURI} from './svg_converter.ts';
 export type {PartialPNGConversionParams} from './svg_converter.ts';
 export {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
-export {TabbedFace, turtleInterlock} from './tabbed_face.ts';
+export {TabbedFace, boxCorrection, tabWidthForAcuteAngle, turtleInterlock} from './tabbed_face.ts';
 export {PathForText, createText} from './text.ts';
 export {Tf, Transform, transformedToString} from './transform.ts';
 export {Turtle} from './turtle.ts';

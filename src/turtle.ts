@@ -2,17 +2,12 @@ import {Path} from './path.ts';
 import {DefaultPiece, LazyPieceFunc, PieceFunc, PieceFuncArg} from './pieces.ts';
 import {Point} from './point.ts';
 import {Tf} from './transform.ts';
-import {assert} from './util.ts';
+import {assert, sinCos} from './util.ts';
 
 interface State {
   readonly pos: Point;
   readonly angleDeg: number;
   readonly down: boolean;
-}
-
-function sinCos(angleDeg: number) {
-  const angleRad = angleDeg / 180 * Math.PI;
-  return [Math.sin(angleRad), Math.cos(angleRad)];
 }
 
 /**

@@ -72,3 +72,8 @@ export function roundReasonably(value: number, {
   const mult = 10 ** (significantDigits - 1 - Math.floor(Math.log10(absValue)));
   return String(Math.round(value * mult) / mult);
 }
+
+export function sinCos(angleDeg: number): [number, number] {
+  const angleRad = angleDeg / 180 * Math.PI;
+  return [Math.sin(angleRad), Math.cos(angleRad)];
+}

@@ -64,7 +64,7 @@ export function getSheet() {
   }
 
   function makeDrawer({innerWidth, innerHeight, innerDepth}: DrawerParams) {
-    const [front, back] = TFace.create("down")
+    const [front, back] = TFace.create({startDir: "down"})
       .tabsDef("side", TabsPattern.distributed({
         length: innerHeight,
         tabEveryLen: 15,
@@ -99,7 +99,7 @@ export function getSheet() {
         .right()
         .closeFace())
       );
-    const side = TFace.create("down")
+    const side = TFace.create({startDir: "down"})
       .tabs(back.fit.side)
       .right()
       .tabsDef("bottom", TabsPattern.distributed({
