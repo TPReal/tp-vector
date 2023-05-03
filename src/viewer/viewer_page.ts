@@ -107,14 +107,8 @@ export async function showViewer({
     id ||= () => true;
     const stringId = typeof id === "string" && !id.startsWith(ERROR_SECTION_START) ?
       id : undefined;
-    if (updateURL) {
-      const url = new URL(location.href);
-      if (stringId)
-        url.searchParams.set("section", stringId);
-      else
-        url.searchParams.delete("section");
-      history.pushState({section: stringId}, "", url.toString());
-    }
+    if (updateURL)
+      history.pushState({section: stringId}, "", setSection(location.href, stringId));
     [clearSectionButton.textContent, clearSectionButton.title] = stringId ?
       [ALL_SECTIONS_SYMBOL, `Show all sections`] :
       [UP_SYMBOL, `Back to top`];
@@ -185,4 +179,20 @@ export async function showViewer({
   });
 
   return container;
+}
+
+function setSection(href: string, sectionId: string | undefined) {
+  const url = new URL(href);
+  if (sectionId)
+    url.searchParams.set("section", sectionId);
+  else
+    url.searchParams.delete("section");
+  if (url.host === "htmlpreview.github.io") {
+    const [k1, v1] = [...url.searchParams.entries()][0];
+    if (k1.startsWith("https://github.com/") && !v1) {
+      url.searchParams.delete(k1);
+      url.search = `?${k1}&${url.searchParams.toString()}`;
+    }
+  }
+  return url.toString();
 }
