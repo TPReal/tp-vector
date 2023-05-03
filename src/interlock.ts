@@ -90,6 +90,8 @@ interface SlotsArgs {
   pattern: SlotsPattern;
   /** To which side of the base line should the slots go. */
   dir?: "right" | "left" | "center";
+  /** Whether the end slots should be open. */
+  open?: boolean;
   /** Whether to start with an opened slot. */
   startOpen?: boolean;
   /** Whether to end with an opened slot. */
@@ -284,8 +286,9 @@ const SLOT_DIR_VALUES = {
 const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   pattern,
   dir = "center",
-  startOpen = pattern.startsWithOpenSlot(),
-  endOpen = pattern.endsWithOpenSlot(),
+  open,
+  startOpen = open ?? pattern.startsWithOpenSlot(),
+  endOpen = open ?? pattern.endsWithOpenSlot(),
   options,
 }) => {
   const {kerf, slotWidth, slotWidthKerf, innerCornersRadius} =
