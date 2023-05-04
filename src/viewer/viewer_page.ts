@@ -16,7 +16,7 @@ const SYMBOLS = {
 
 function isMobile() {
   return matchMedia(
-    "only screen and (hover: none) and (pointer: coarse) and (max-width: 768px)"
+    "only screen and (hover: none) and (pointer: coarse) and (max-width: 1000px)"
   ).matches;
 }
 
