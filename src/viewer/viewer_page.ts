@@ -6,6 +6,12 @@ import {SectionDef, unwrap} from './types.ts';
 const ALL_SECTIONS_SYMBOL = `🞹`;
 const UP_SYMBOL = `⮝`;
 
+function isMobile() {
+  return matchMedia(
+    "only screen and (hover: none) and (pointer: coarse) and (max-width: 768px)"
+  ).matches;
+}
+
 export async function showViewer({
   sectionDefs,
   parent = document.body,
@@ -51,6 +57,7 @@ export async function showViewer({
     showSection(id => id.startsWith(ERROR_SECTION_START));
   });
 
+  const mobile = isMobile();
   const container = document.createElement("div");
   parent.append(container);
   container.style.display = "flex";
@@ -59,40 +66,42 @@ export async function showViewer({
   container.append(resizableArea);
   resizableArea.style.flex = "0 1 auto";
   resizableArea.style.minWidth = "100px";
-  const resizeWidth =
-    localStorage.getItem("width") || new URLSearchParams(location.search).get("width");
+  const resizeWidth = !mobile &&
+    (localStorage.getItem("width") || new URLSearchParams(location.search).get("width"));
   resizableArea.style.width = resizeWidth ? `${resizeWidth}px` : "100%";
-  const resizeHandle = document.createElement("div");
-  container.append(resizeHandle);
-  resizeHandle.style.flex = "0 0 6px";
-  resizeHandle.style.backgroundColor = "#444";
-  resizeHandle.style.boxSizing = "border-box";
-  resizeHandle.style.border = "2px solid white";
-  resizeHandle.style.cursor = "ew-resize";
-
-  const handleRect = resizeHandle.getBoundingClientRect();
-  const resizeOffset = handleRect.left + handleRect.width / 2 - resizableArea.getBoundingClientRect().width;
-  let resizeHandleGrabbed = false;
-  resizeHandle.addEventListener("mousedown", () => {resizeHandleGrabbed = true;});
-  document.addEventListener("mouseup", () => {resizeHandleGrabbed = false;});
-  document.addEventListener("mousemove", e => {
-    if (resizeHandleGrabbed) {
-      e.preventDefault();
-      const anchorSection = [...sectionsContainer.children]
-        .find(el => el.getBoundingClientRect().top >= 0) || sectionsContainer.firstElementChild;
-      const anchorScroll = anchorSection?.getBoundingClientRect().top ?? 0;
-      const width = e.clientX - resizeOffset;
-      resizableArea.style.width = `${width}px`;
-      if (resizableArea.clientWidth >= width)
-        localStorage.setItem("width", String(width));
-      else {
-        resizableArea.style.width = "100%";
-        localStorage.removeItem("width");
+  if (!mobile) {
+    const resizeHandle = document.createElement("div");
+    container.append(resizeHandle);
+    resizeHandle.style.flex = "0 0 6px";
+    resizeHandle.style.backgroundColor = "#444";
+    resizeHandle.style.boxSizing = "border-box";
+    resizeHandle.style.border = "2px solid white";
+    resizeHandle.style.cursor = "ew-resize";
+    const handleRect = resizeHandle.getBoundingClientRect();
+    const resizeOffset = handleRect.left + handleRect.width / 2 -
+      resizableArea.getBoundingClientRect().width;
+    let resizeHandleGrabbed = false;
+    resizeHandle.addEventListener("mousedown", () => {resizeHandleGrabbed = true;});
+    document.addEventListener("mouseup", () => {resizeHandleGrabbed = false;});
+    document.addEventListener("mousemove", e => {
+      if (resizeHandleGrabbed) {
+        e.preventDefault();
+        const anchorSection = [...sectionsContainer.children]
+          .find(el => el.getBoundingClientRect().top >= 0) || sectionsContainer.firstElementChild;
+        const anchorScroll = anchorSection?.getBoundingClientRect().top ?? 0;
+        const width = e.clientX - resizeOffset;
+        resizableArea.style.width = `${width}px`;
+        if (resizableArea.clientWidth >= width)
+          localStorage.setItem("width", String(width));
+        else {
+          resizableArea.style.width = "100%";
+          localStorage.removeItem("width");
+        }
+        if (anchorSection)
+          window.scrollBy({top: anchorSection.getBoundingClientRect().top - anchorScroll});
       }
-      if (anchorSection)
-        window.scrollBy({top: anchorSection.getBoundingClientRect().top - anchorScroll});
-    }
-  });
+    });
+  }
 
   const sectionsContainer = document.createElement("div");
   resizableArea.append(sectionsContainer);
