@@ -3,8 +3,16 @@ import {SectionDef, unwrap} from './types.ts';
 
 // TODO: Consider improving the Viewer page.
 
-const ALL_SECTIONS_SYMBOL = `🞹`;
-const UP_SYMBOL = `⮝`;
+const SYMBOLS = {
+  mobile: {
+    allSections: `*`,
+    up: `↑`,
+  },
+  desktop: {
+    allSections: `🞹`,
+    up: `⮝`,
+  },
+};
 
 function isMobile() {
   return matchMedia(
@@ -103,6 +111,7 @@ export async function showViewer({
     });
   }
 
+  const symbols = SYMBOLS[mobile ? "mobile" : "desktop"];
   const sectionsContainer = document.createElement("div");
   resizableArea.append(sectionsContainer);
   sectionsContainer.style.display = "flex";
@@ -119,8 +128,8 @@ export async function showViewer({
     if (updateURL)
       history.pushState({section: stringId}, "", setSection(location.href, stringId));
     [clearSectionButton.textContent, clearSectionButton.title] = stringId ?
-      [ALL_SECTIONS_SYMBOL, `Show all sections`] :
-      [UP_SYMBOL, `Back to top`];
+      [symbols.allSections, `Show all sections`] :
+      [symbols.up, `Back to top`];
     sectionSelect.value = stringId || "";
     const funcId = typeof id === "function" ? id : (sectId: string) => sectId === id;
     for (const section of document.querySelectorAll<HTMLElement>(".section"))
@@ -130,7 +139,7 @@ export async function showViewer({
 
   function addOption(name: string | undefined) {
     const option = document.createElement("option");
-    option.text = name || `${ALL_SECTIONS_SYMBOL} all sections`;
+    option.text = name || `${symbols.allSections} all sections`;
     if (!name)
       option.style.fontWeight = "bold";
     option.value = name || "";
