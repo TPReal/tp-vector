@@ -77,12 +77,20 @@ export function slotsOptionsFromPartial({
 
 interface TabsArgs {
   pattern: TabsPattern;
-  /** Whether the edge starts and ends at the level of the tab (and not the base line). */
-  onTabLevel?: boolean;
-  /** Whether the edge starts at the level of the tab (and not the base line). */
-  startOnTab?: boolean;
-  /** Whether the edge ends at the level of the tab (and not the base line). */
-  endOnTab?: boolean;
+  /**
+   * Whether the edge starts and ends at the level of the tab (and not the base line).
+   */
+  onTabLevel?: boolean | "auto";
+  /**
+   * Whether the edge starts at the level of the tab (and not the base line).
+   * Value `"auto"` means `true` if the pattern starts with a tab.
+   */
+  startOnTab?: boolean | "auto";
+  /**
+   * Whether the edge ends at the level of the tab (and not the base line).
+   * Value `"auto"` means `true` if the pattern ends with a tab.
+   */
+  endOnTab?: boolean | "auto";
   options: PartialTabsOptions;
 }
 
@@ -232,16 +240,16 @@ function arcTurn(t: Turtle, rSign: number, rVal: number, d: number) {
 const TURTLE_TABS_BASE_FUNC: TurtleFunc<[TabsArgs]> = (t, {
   pattern,
   onTabLevel = false,
-  startOnTab: startActive = onTabLevel,
-  endOnTab: endActive = onTabLevel,
+  startOnTab = onTabLevel,
+  endOnTab = onTabLevel,
   options,
 }) => {
   const {kerf, tabWidth, outerCornersRadius, innerCornersRadius} =
     tabsOptionsFromPartial(options);
   const progression = patternProgression({
     pattern: pattern.pattern,
-    startActive,
-    endActive,
+    startActive: startOnTab === "auto" ? pattern.startsWithTab() : startOnTab,
+    endActive: endOnTab === "auto" ? pattern.endsWithTab() : endOnTab,
   });
   const dirNum = options.tabsDir === "right" ? 1 :
     options.tabsDir === "left" ? -1 :

@@ -60,6 +60,26 @@ export class InterlockPattern {
       this.items.map(({active, length}) => ({active: !active, length})));
   }
 
+  slice(from: number, to?: number) {
+    const len = this.length();
+    const f = Math.min(Math.max(from, 0), len);
+    const t = Math.min(Math.max(to ?? len, 0), len);
+    if (t < f)
+      throw new Error(`Expected positive slice, got: from=${from}, to=${to}`);
+    let res = InterlockPattern.EMPTY;
+    if (t > f) {
+      let pos = 0;
+      for (const {active, length} of this.items) {
+        const nPos = pos + length;
+        const slicedLen = Math.min(t, nPos) - Math.max(f, pos);
+        if (slicedLen > 0)
+          res = res.add(active, slicedLen);
+        pos = nPos;
+      }
+    }
+    return res;
+  }
+
   length() {
     return this.items.reduce((acc, {length}) => acc + length, 0);
   }
@@ -154,6 +174,10 @@ export class TabsPattern {
 
   reverse() {
     return TabsPattern.create(this.pattern.reverse());
+  }
+
+  slice(from: number, to?: number) {
+    return TabsPattern.create(this.pattern.slice(from, to));
   }
 
   /** Returns a TabsPattern defining tabs that can be connected with these tabs at some angle. */
@@ -336,6 +360,10 @@ export class SlotsPattern {
       startOpen: this.startOpen,
       endOpen: !closedEnd,
     });
+  }
+
+  slice(from: number, to?: number) {
+    return SlotsPattern.create(this.pattern.slice(from, to));
   }
 
   /** Returns a TabsPattern defining tabs that can be inserted into these slots. */
