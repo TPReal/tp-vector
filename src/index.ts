@@ -10,7 +10,7 @@ export {Font, attributesFromFontAttributes, type FontAttributes, type FontType, 
 export * as globalOptions from './global_options.ts';
 export {generateId, registerId} from './ids.ts';
 export {Image, type ImageType, type PartialImageScaling} from './images.ts';
-export {slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleSlots, turtleTabs, type PartialSlotsOptions, type PartialTabsOptions, type SlotsOptions, type TabsOptions} from './interlock.ts';
+export {getSlotWidth, slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartial, tabsPiece, turtleSlideSlotToSide, turtleSlots, turtleTabs, type PartialSlotsOptions, type PartialTabsOptions, type SlotsOptions, type TabsOptions} from './interlock.ts';
 export {SlotsPattern, TabsPattern} from './interlock_patterns.ts';
 export * as kerfUtil from './kerf_util.ts';
 export type {Kerf} from './kerf_util.ts';

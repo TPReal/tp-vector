@@ -291,6 +291,11 @@ const SLOT_DIR_VALUES = {
   "left": -1,
 };
 
+export function getSlotWidth(options: PartialSlotsOptions) {
+  const {slotWidth, slotWidthKerf} = slotsOptionsFromPartial(options);
+  return Math.max(0, slotWidth - 2 * slotWidthKerf.oneSideInUnits);
+}
+
 const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   pattern,
   dir = "center",
@@ -299,8 +304,7 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   endOpen = open ?? pattern.endsWithOpenSlot(),
   options,
 }) => {
-  const {kerf, slotWidth, slotWidthKerf, innerCornersRadius} =
-    slotsOptionsFromPartial(options);
+  const {kerf, slotWidth, innerCornersRadius} = slotsOptionsFromPartial(options);
   const progression = patternProgression({
     pattern: pattern.pattern,
     startActive: startOpen,
@@ -308,7 +312,7 @@ const TURTLE_SLOTS_BASE_FUNC: TurtleFunc<[SlotsArgs]> = (t, {
   });
   return t.branch(t => {
     t = t.withPenUp(t => t.strafeRight(slotWidth / 2 * SLOT_DIR_VALUES[dir]));
-    const halfWid = Math.max(0, slotWidth / 2 - slotWidthKerf.oneSideInUnits);
+    const halfWid = getSlotWidth(options) / 2;
     for (const d of [1, -1])
       t = t.branch(t => {
         if (startOpen)
@@ -423,4 +427,26 @@ export function tabsPiece(args: TabsArgs) {
 
 export function slotsPiece(args: SlotsArgs) {
   return Turtle.create().andThen(TURTLE_SLOTS_BASE_FUNC, args).asPath();
+}
+
+export function turtleSlideSlotToSide(t: Turtle, {side, slot, options}: {
+  side: "right" | "left",
+  slot: number | SlotsPattern,
+  options: PartialSlotsOptions,
+}) {
+  const wid = getSlotWidth(options);
+  const pattern = typeof slot === "number" ? SlotsPattern.slide(slot) : slot;
+  if (!pattern.startsWithSlot)
+    throw new Error(`The pattern must start with a slot`);
+  return t
+    .withPenUp(t => t.forward(wid / 2))
+    .branch(t => t
+      .right(side === "right" ? 90 : side === "left" ? -90 : side satisfies never)
+      .andThen(turtleSlots, {
+        pattern,
+        startOpen: true,
+        options,
+      })
+    )
+    .withPenUp(t => t.forward(wid / 2));
 }
