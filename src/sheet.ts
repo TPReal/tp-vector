@@ -2,13 +2,14 @@ import {Attributes, createElement, createSVG, setAttributes} from './elements.ts
 import * as figures from './figures.ts';
 import {Image} from './images.ts';
 import {NO_LAYER} from './layers.ts';
+import * as layouts from './layouts.ts';
 import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Piece, gather} from './pieces.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
-import {OrArray, flatten, flattenFilter, assert} from './util.ts';
+import {OrArray, assert, flatten, flattenFilter} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, viewBoxFromPartial, viewBoxMarginFromPartial, viewBoxToString} from './view_box.ts';
 
 const DEFAULT_SVG_BORDER_STYLE = "solid #00f4 1px";
@@ -346,31 +347,44 @@ export class Sheet {
       return undefined;
     const wid = this.viewBox.width / ids.length;
     const baseWid = 100;
+    const margin = 2;
     const handleViewBox = extendViewBox(viewBoxFromPartial({
       width: baseWid,
       height: 15,
       ...handles === "above" ? {maxY: 0} :
         handles === "below" ? {minY: 0} :
           handles satisfies never,
-    }), -2);
+    }), -margin);
     const textAttribs = {size: 5, font: "monospace"};
     return new Map(ids.map(({runId, type}, index) => {
+      const grabAreaSize = handleViewBox.height - 4;
+      const grabAreaGaps = 0.5;
+      const grabArea = layouts.layout({
+        count: grabAreaSize / grabAreaGaps + 1,
+        pieceFunc: i => figures.line([grabAreaSize, 0]).moveUp(i * grabAreaGaps),
+      }).translate(2 * margin, -2 * margin);
       const typeText = createText(type, textAttribs).normalise({
         target: handleViewBox,
         align: {x: "right", y: "center"},
-      }, {margin: 1}).setAttributes({fill: "white"});
+      }, {margin: 1});
       const idText = createText(runId, textAttribs).normalise({
-        target: extendViewBox(handleViewBox, {right: -typeText.getBoundingBox().width}),
+        target: extendViewBox(handleViewBox, {
+          left: -grabAreaSize - margin,
+          right: -typeText.getBoundingBox().width,
+        }),
         align: {y: "center"},
-      }, {margin: 1}).setAttributes({fill: "white"});
+      }, {margin: 1});
       return [
         runId,
         gather(
           figures.rectangle(handleViewBox).setAttributes({
             fill: this.options.laserRunsOptions.colorCodes ? undefined : "black",
           }),
-          idText,
-          typeText,
+          grabArea.setAttributes({stroke: "white"}),
+          gather(
+            idText,
+            typeText,
+          ).setAttributes({fill: "white"}),
         ).setAttributes({stroke: "none"})
           .moveRight(index * baseWid)
           .scale(wid / baseWid)
