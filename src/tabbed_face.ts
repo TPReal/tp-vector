@@ -88,8 +88,8 @@ interface TabsDict<P extends string = never> {
   pat: Readonly<Record<P, TabsPattern>>;
 }
 
-function bInv(b: boolean | undefined) {
-  return b === undefined ? undefined : !b;
+function bInv(b: boolean | "auto" | undefined) {
+  return b === "auto" || b === undefined ? b : !b;
 }
 
 function matchingTabs({
@@ -358,9 +358,11 @@ export class TabbedFace<P extends string = never>
       endOnTab = onTabLevel,
       options,
     } = this.expandTabsFuncParams(tabsParams);
-    function levelPref(declaredOnTab: boolean | undefined, tabAtEnd: boolean): LevelPreference {
+    function levelPref(
+      declaredOnTab: boolean | "auto" | undefined, tabAtEnd: boolean): LevelPreference {
       return {
-        level: toLevel(declaredOnTab ?? tabAtEnd),
+        level: toLevel(declaredOnTab === "auto" || declaredOnTab === undefined ?
+          tabAtEnd : declaredOnTab),
         required: declaredOnTab !== undefined,
       };
     }
