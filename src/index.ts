@@ -6,7 +6,7 @@ export {GenericDefTool, SimpleAttributesDefTool, getRef, type AttributesDefTool,
 export {Mask, createClipPath, createLinearGradient, createRadialGradient, type GradientCoordFrac, type GradientFracPoint, type GradientStop, type RadialGradientEnd} from './def_tools.ts';
 export {cloneElement, createElement, setAttributes, type AttributeValue, type Attributes, type AttributesBuilder} from './elements.ts';
 export * as figures from './figures.ts';
-export {Font, attributesFromFontAttributes, type FontAttributes, type FontType, type FontWeight} from './fonts.ts';
+export {Font, attributesFromFontAttributes, googleFontsURL, type FontAttributes, type FontType, type FontWeight} from './fonts.ts';
 export * as globalOptions from './global_options.ts';
 export {generateId, registerId} from './ids.ts';
 export {Image, type ImageType, type PartialImageScaling} from './images.ts';

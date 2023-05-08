@@ -40,7 +40,7 @@ export async function getSheet() {
       gather(
         dents,
         createText("1", {
-          font: (await Font.googleFonts("Sawarabi Mincho"))
+          font: (await Font.googleFonts("Sawarabi Mincho", {text: "1"}))
             .setFontAttributes({bold: true}),
           size: 13,
         }).center(),
@@ -79,7 +79,7 @@ export async function getSheet() {
       gather(
         t.setAttributes({fillRule: "evenodd"}),
         createText("2", {
-          font: await Font.googleFonts("Domine"),
+          font: await Font.googleFonts("Domine", {text: "2"}),
           size: 18,
         }).center().moveDown(0.5),
       ).andThen(pc => gather(
@@ -114,7 +114,7 @@ export async function getSheet() {
       gather(
         t.setAttributes({fillRule: "evenodd"}),
         createText("5", {
-          font: (await Font.googleFonts("Vidaloka")).setFontAttributes({bold: true}),
+          font: (await Font.googleFonts("Vidaloka", {text: "5"})).setFontAttributes({bold: true}),
           size: 20,
         }).center().moveDown(1)
           .setAttributes({fill: "white"}),

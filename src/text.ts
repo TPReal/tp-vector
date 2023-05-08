@@ -52,7 +52,7 @@ export class PathForText extends SimpleAttributesDefTool {
 
 }
 
-/** Creates a Piece containing a text SVG element. */
+/** Creates a Piece containing a `<text>` SVG element. */
 export function createText(text: string, {
   font,
   size = 1,

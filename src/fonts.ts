@@ -1,9 +1,9 @@
 import * as assets from './assets.ts';
 import * as dataURIConv from './data_uri_conv.ts';
-import {SimpleAttributesDefTool} from './def_tool.ts';
+import {AttributesDefTool} from './def_tool.ts';
 import {Attributes, createElement} from './elements.ts';
 import {Defs, Piece} from './pieces.ts';
-import {assert, assertNumber} from './util.ts';
+import {OrArrayRest, assert, assertNumber, flatten} from './util.ts';
 
 export type FontType = "woff" | "woff2" | "otf" | "ttf";
 
@@ -44,28 +44,31 @@ export function attributesFromFontAttributes(
   return attr;
 }
 
-export class Font extends SimpleAttributesDefTool {
+function quoteFontName(name: string) {
+  return "'" + name + "'";
+}
+
+export class Font implements AttributesDefTool {
 
   protected constructor(
     readonly name: string,
-    fontAttributes: FontAttributes | undefined,
-    defs: Defs,
-  ) {
-    super(defs, {
-      fontFamily: name,
-      ...fontAttributes && attributesFromFontAttributes(fontAttributes),
-    });
-  }
+    private readonly fontAttributes: FontAttributes | undefined,
+    protected readonly defs: Defs,
+    protected readonly fallback: Font | undefined,
+    private readonly finalFallback: Font | undefined,
+  ) {}
 
-  static async fromBlob({name, blob, fontAttributes}: {
+  static async fromBlob({name, blob, fontAttributes, finalFallback}: {
     name: string,
     blob: Blob,
     fontAttributes?: FontAttributes,
+    finalFallback?: Font | Promise<Font> | false,
   }) {
     return await Font.fromURL({
       name,
       url: await dataURIConv.fromBlob(blob),
       fontAttributes,
+      finalFallback,
     });
   }
 
@@ -73,10 +76,11 @@ export class Font extends SimpleAttributesDefTool {
    * Loads font from a URL.
    * If it's an external URL, the font is fetched and encoded as a data URI instead.
    */
-  static async fromURL({name, url, fontAttributes}: {
+  static async fromURL({name, url, fontAttributes, finalFallback}: {
     name: string,
     url: string,
     fontAttributes?: FontAttributes,
+    finalFallback?: Font | Promise<Font> | false,
   }) {
     return await Font.fromStyle({
       name,
@@ -85,36 +89,61 @@ export class Font extends SimpleAttributesDefTool {
   src: url(${JSON.stringify(url)});
 }`,
       fontAttributes,
+      finalFallback,
     });
   }
 
-  static async fromAsset({name, urlAsset, fontAttributes}: {
+  /**
+   * Returns a font loaded from an asset.
+   *
+   * Example:
+   *
+   *     await Font.fromAsset({
+   *       name: "My Font",
+   *       urlAsset: import(`./my_font.woff2`),
+   *     })
+   *
+   * See information on assets in _src/assets.ts_.
+   */
+  static async fromAsset({name, urlAsset, fontAttributes, finalFallback}: {
     name: string,
     urlAsset: assets.ModuleImport<string>,
     fontAttributes?: FontAttributes,
+    finalFallback?: Font | Promise<Font> | false,
   }) {
     return await Font.fromURL({
       name,
       url: await assets.url(urlAsset),
       fontAttributes,
+      finalFallback,
     });
   }
 
-  private static async fromStyle({name, styleContent, fontAttributes}: {
+  private static async fromStyle({
+    name,
+    styleContent,
+    fontAttributes,
+    finalFallback = Font.notDef(),
+  }: {
     name: string,
     styleContent: string,
     fontAttributes?: FontAttributes,
+    finalFallback?: Font | Promise<Font> | false,
   }) {
     return new Font(
       name,
       fontAttributes,
       Piece.createDefs(await loadStyle(styleContent)),
+      undefined,
+      finalFallback ? await finalFallback : undefined,
     );
   }
 
   /** Returns a font assumed to be available on the system. */
-  static system(name: string, fontAttributes?: FontAttributes) {
-    return new Font(name, fontAttributes, Piece.EMPTY);
+  static system(name: string, {fontAttributes}: {
+    fontAttributes?: FontAttributes,
+  } = {}) {
+    return new Font(name, fontAttributes, Piece.EMPTY, undefined, undefined);
   }
 
   /**
@@ -128,26 +157,83 @@ export class Font extends SimpleAttributesDefTool {
    *
    *     Font.googleFonts(name).setFontAttributes(fontAttributes)
    */
-  static async googleFonts(name: string, fontAttributes?: FontAttributes) {
-    const keys = [];
-    const vals = [];
-    if (fontAttributes?.italic) {
-      keys.push("ital");
-      vals.push(1);
-    }
-    const weight = getFontWeight(fontAttributes)
-    if (weight !== undefined) {
-      keys.push("wght");
-      vals.push(weight);
-    }
+  static async googleFonts(name: string, {fontAttributes, text}: {
+    fontAttributes?: FontAttributes,
+    text?: string,
+  } = {}) {
     return await Font.fromStyle({
       name,
-      styleContent: `@import url(${JSON.stringify(
-        `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}` +
-        (keys.length ? `:${keys.join(",")}@${vals.join(",")}` : "")
-      )});`,
+      styleContent: `@import url(${JSON.stringify(googleFontsURL(name, {fontAttributes, text}))});`,
       fontAttributes,
     });
+  }
+
+  /**
+   * Returns a font displaying a tofu character for every single character.
+   * To be used as fallback font to detect missing characters.
+   * @see https://github.com/adobe-fonts/adobe-notdef
+   */
+  static async notDef(): Promise<Font> {
+    return await Font.fromURL({
+      name: "Adobe NotDef",
+      url: "https://cdn.jsdelivr.net/gh/adobe-fonts/adobe-notdef/AND-Regular.ttf",
+      finalFallback: false,
+    });
+  }
+
+  getDefs() {
+    return this.getStack().reduce((a, f) => a.addDefs(f.defs), Piece.EMPTY).getDefs();
+  }
+
+  asAttributes() {
+    return {
+      fontFamily: this.getStack().map(f => quoteFontName(f.name)).join(", "),
+      ...this.fontAttributes && attributesFromFontAttributes(this.fontAttributes),
+    };
+  }
+
+  getStack() {
+    const stack = [];
+    let font: Font | undefined = this;
+    while (font) {
+      stack.push(font);
+      font = font.fallback;
+    }
+    if (this.finalFallback)
+      stack.push(this.finalFallback);
+    return stack;
+  }
+
+  setFallback(fallback: Font | undefined) {
+    return new Font(
+      this.name,
+      this.fontAttributes,
+      this.defs,
+      fallback,
+      this.finalFallback,
+    );
+  }
+
+  addFallback(...fallback: OrArrayRest<Font>) {
+    const fallbackFonts = flatten(fallback);
+    function withNextFallback(font: Font | undefined): Font | undefined {
+      if (!fallbackFonts.length)
+        return font;
+      if (font)
+        return font.setFallback(withNextFallback(font.fallback));
+      return withNextFallback(fallbackFonts.shift());
+    }
+    return withNextFallback(this);
+  }
+
+  setFinalFallback(finalFallback: Font | undefined) {
+    return new Font(
+      this.name,
+      this.fontAttributes,
+      this.defs,
+      this.fallback,
+      finalFallback,
+    );
   }
 
   setFontAttributes(fontAttributes: FontAttributes) {
@@ -155,9 +241,31 @@ export class Font extends SimpleAttributesDefTool {
       this.name,
       {...this.setFontAttributes, ...fontAttributes},
       this.defs,
+      this.fallback,
+      this.finalFallback,
     );
   }
 
+}
+
+export function googleFontsURL(name: string, {fontAttributes, text}: {
+  fontAttributes?: FontAttributes,
+  text?: string,
+} = {}) {
+  const keys = [];
+  const vals = [];
+  if (fontAttributes?.italic) {
+    keys.push("ital");
+    vals.push(1);
+  }
+  const weight = getFontWeight(fontAttributes)
+  if (weight !== undefined) {
+    keys.push("wght");
+    vals.push(weight);
+  }
+  return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}` +
+    (keys.length ? `:${keys.join(",")}@${vals.join(",")}` : "") +
+    (text ? `&text=${encodeURIComponent(text)}` : "");
 }
 
 const URL_REGEXP = /(?<import>@import\s+)?\burl\((?<q>['"]?)(?<url>.+?)\k<q>\)(?<semi>;)?/g;
