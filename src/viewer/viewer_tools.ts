@@ -129,7 +129,6 @@ export class Viewer {
       params is [string, OrFuncPromise<HTMLElement, Args>, ...Args] {
       return typeof params[0] === "string";
     }
-
     const [name, item, ...args] = hasName(params) ? params : [undefined, ...params];
     return this.addSect(async () => {
       const unwrapped = await unwrap(item, args);
@@ -139,7 +138,7 @@ export class Viewer {
           element: await getSheetPreview(unwrapped),
         };
       return {
-        name: unwrapped.dataset.name || generateId("section"),
+        name: name || unwrapped.dataset.name || generateId("section"),
         element: unwrapped,
       };
     });
