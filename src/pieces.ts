@@ -378,13 +378,13 @@ export class Piece
       return new Piece(this.parts, this.tf, this.layer, this.defs, this.attributes,
         Piece.create(
           (boundingBox instanceof SVGElement) || isBasicPiece(boundingBox) ?
-            boundingBox : boundingBoxRect(boundingBox))
+            boundingBox : boundingBoxElem(boundingBox))
       );
     return Piece.create(this).setBoundingBox(boundingBox);
   }
 
   extendBoundingBox(margin: PartialViewBoxMargin) {
-    return this.setBoundingBox(extendViewBox(this.getBoundingBox(), margin));
+    return this.setBoundingBox(this.getBoundingBox(margin));
   }
 
   /** Returns this together with a flipped copy. */
@@ -452,10 +452,10 @@ export function gather(...parts: RestPieceCreateArgs) {
   return Piece.create(...parts);
 }
 
-function boundingBoxRect(boundingBox: PartialViewBox) {
+function boundingBoxElem(boundingBox: PartialViewBox) {
   const {minX, minY, width, height} = viewBoxFromPartial(boundingBox);
   return createElement({
-    tagName: "rect",
-    attributes: {x: minX, y: minY, width, height},
+    tagName: "line",
+    attributes: {x1: minX, y1: minY, x2: minX + width, y2: minY + height},
   });
 }
