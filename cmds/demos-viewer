@@ -16,5 +16,8 @@ esbuild \
   --loader:.jpg=file \
   --loader:.png=file \
   --loader:.svg=file \
+  --loader:.otf=file \
+  --loader:.ttf=file \
+  --loader:.woff=file \
   --loader:.woff2=file \
 # See src/assets.ts for more information about the --loader options.
