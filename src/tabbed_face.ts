@@ -308,11 +308,12 @@ export class TabbedFace<P extends string = never>
   }
 
   static create(options: PartialTabsOptions, args?: CreateArgs): TabbedFace;
-  static create(...params: unknown[]): never;
-  static create(options: PartialTabsOptions, {
-    startDir,
-    mode,
-  }: CreateArgs = {}) {
+  static create(...params: Parameters<typeof SimpleLazyPiece.create>): never;
+  static create(...params: unknown[]) {
+    const [options, {
+      startDir,
+      mode,
+    } = {} satisfies CreateArgs] = params as [PartialTabsOptions, CreateArgs?];
     return new TabbedFace(
       startAngleDeg(startDir),
       modeFromPartial(mode),
@@ -833,8 +834,9 @@ export class ClosedFace<P extends string = never> extends DefaultPiece implement
   }
 
   static create<P extends string>(face: Piece, tabsDict: LazySimpleTabsDict<P>): ClosedFace<P>;
-  static create(...params: unknown[]): never;
-  static create<P extends string>(face: Piece, tabsDict: LazySimpleTabsDict<P>) {
+  static create(...params: Parameters<typeof DefaultPiece.create>): never;
+  static create<P extends string>(...params: unknown[]) {
+    const [face, tabsDict] = params as [Piece, LazySimpleTabsDict<P>];
     return new ClosedFace(face, tabsDict);
   }
 

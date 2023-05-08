@@ -74,8 +74,9 @@ export class Turtle extends DefaultPiece {
   }
 
   static create(start?: Point): Turtle;
-  static create(...args: unknown[]): never;
-  static create(start: Point = [0, 0]) {
+  static create(...params: Parameters<typeof DefaultPiece.create>): never;
+  static create(...params: unknown[]) {
+    const [start = [0, 0]] = params as [Point?];
     return new Turtle(Path.create(start), {pos: start, angleDeg: 0, down: true}, new Map());
   }
 

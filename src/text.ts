@@ -21,16 +21,16 @@ export class PathForText extends SimpleAttributesDefTool {
     super(defs, attributes);
   }
 
-  static create(defs: Defs, attributes: Attributes): never;
   static create(params: PathForTextArgs): PathForText;
+  static create(...params: Parameters<typeof SimpleAttributesDefTool.create>): never;
   static create(...params: unknown[]) {
-    const {
+    const [{
       path,
       textPathAttributes,
       textAttributes,
       align,
       id,
-    } = params[0] as PathForTextArgs;
+    }] = params as [PathForTextArgs];
     const tpAttributes: AttributesBuilder = {...textPathAttributes};
     const tAttributes: AttributesBuilder = {...textAttributes};
     if (align)
