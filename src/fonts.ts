@@ -44,8 +44,12 @@ export function attributesFromFontAttributes(
   return attr;
 }
 
+const SIMPLE_FONT_NAME_REGEXP = /^[a-z-]+$/;
+
 function quoteFontName(name: string) {
-  return "'" + name + "'";
+  if (SIMPLE_FONT_NAME_REGEXP.test(name))
+    return name;
+  return JSON.stringify(name);
 }
 
 export class Font implements AttributesDefTool {
