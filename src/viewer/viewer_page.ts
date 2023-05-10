@@ -1,5 +1,7 @@
 import {generateId} from '../ids.ts';
 import {SectionDef, unwrap} from './types.ts';
+import * as globalOptions from '../global_options.ts';
+import {assert} from '../util.ts';
 
 // TODO: Consider improving the Viewer page.
 
@@ -20,38 +22,60 @@ function isMobile() {
   ).matches;
 }
 
+const GLOBAL_OPTIONS_PRESET_KEY = "global_options_preset";
+const WIDTH_KEY = "width";
+const SECTION_KEY = "section";
+
+const ERROR_SECTION_START = `/// `;
+
 export async function showViewer({
+  globalOptsMap,
   sectionDefs,
   parent = document.body,
-  section = new URLSearchParams(location.search).get("section") || undefined,
+  section = new URLSearchParams(location.search).get(SECTION_KEY) || undefined,
 }: {
+  globalOptsMap: ReadonlyMap<string, globalOptions.GlobalOptionsInput> | undefined,
   sectionDefs: readonly SectionDef[],
   parent?: HTMLElement,
   section?: string,
 }) {
-  const ERROR_SECTION_START = `/// `;
+  const mobile = isMobile();
+  const symbols = SYMBOLS[mobile ? "mobile" : "desktop"];
+
+  let globalOptsPreset: string | undefined;
+  if (globalOptsMap) {
+    globalOptions.reset();
+    globalOptsPreset =
+      new URLSearchParams(location.search).get(GLOBAL_OPTIONS_PRESET_KEY) ?? undefined;
+    if (globalOptsPreset === undefined || !globalOptsMap.has(globalOptsPreset))
+      globalOptsPreset = globalOptsMap.has("") ? "" : [...globalOptsMap.keys()].at(0);
+    if (globalOptsPreset !== undefined)
+      globalOptions.modify(assert(globalOptsMap.get(globalOptsPreset)));
+  }
+
   const header = document.createElement("header");
   parent.append(header);
   header.style.position = "fixed";
   header.style.top = "0";
   header.style.width = "100%";
   header.style.background = "white";
-  header.style.padding = "0.5em";
+  header.style.padding = "0.5em 0";
   header.style.display = "flex";
+  header.style.flexWrap = "wrap";
   header.style.gap = "0.5em";
   const headerPlaceholder = document.createElement("div");
   parent.append(headerPlaceholder);
   headerPlaceholder.style.height = "2em";
   const sectionSelect = document.createElement("select");
   header.append(sectionSelect);
-  sectionSelect.title = "Select section";
+  sectionSelect.title = `Select section`;
   sectionSelect.style.minWidth = "15em";
   sectionSelect.addEventListener("change", () => {
     showSection(sectionSelect.value);
   });
   const clearSectionButton = document.createElement("button");
   header.append(clearSectionButton);
-  clearSectionButton.textContent = "⮝";
+  clearSectionButton.textContent = symbols.up;
   clearSectionButton.addEventListener("click", () => {
     showSection(undefined);
   });
@@ -64,8 +88,28 @@ export async function showViewer({
     e.preventDefault();
     showSection(id => id.startsWith(ERROR_SECTION_START));
   });
+  if (globalOptsMap && (globalOptsMap.size > 1 || globalOptsPreset)) {
+    const filler = document.createElement("div");
+    header.append(filler);
+    filler.style.flex = "1 0 0";
+    const globalOptsSelect = document.createElement("select");
+    header.append(globalOptsSelect);
+    globalOptsSelect.title = `Select global options preset`;
+    globalOptsSelect.style.minWidth = "5em";
+    globalOptsSelect.style.marginRight = "1em";
+    for (const preset of globalOptsMap.keys()) {
+      const option = document.createElement("option");
+      globalOptsSelect.insertAdjacentElement(preset ? "beforeend" : "afterbegin", option);
+      option.text = preset || `(default)`;
+      option.value = preset;
+    }
+    globalOptsSelect.value = globalOptsPreset || "";
+    globalOptsSelect.addEventListener("change", () => {
+      location.assign(setSearchParam(
+        location.href, GLOBAL_OPTIONS_PRESET_KEY, globalOptsSelect.value || undefined));
+    });
+  }
 
-  const mobile = isMobile();
   const container = document.createElement("div");
   parent.append(container);
   container.style.display = "flex";
@@ -75,7 +119,7 @@ export async function showViewer({
   resizableArea.style.flex = "0 1 auto";
   resizableArea.style.minWidth = "100px";
   const resizeWidth = !mobile &&
-    (localStorage.getItem("width") || new URLSearchParams(location.search).get("width"));
+    (localStorage.getItem(WIDTH_KEY) || new URLSearchParams(location.search).get(WIDTH_KEY));
   resizableArea.style.width = resizeWidth ? `${resizeWidth}px` : "100%";
   if (!mobile) {
     const resizeHandle = document.createElement("div");
@@ -100,10 +144,10 @@ export async function showViewer({
         const width = e.clientX - resizeOffset;
         resizableArea.style.width = `${width}px`;
         if (resizableArea.clientWidth >= width)
-          localStorage.setItem("width", String(width));
+          localStorage.setItem(WIDTH_KEY, String(width));
         else {
           resizableArea.style.width = "100%";
-          localStorage.removeItem("width");
+          localStorage.removeItem(WIDTH_KEY);
         }
         if (anchorSection)
           window.scrollBy({top: anchorSection.getBoundingClientRect().top - anchorScroll});
@@ -111,7 +155,6 @@ export async function showViewer({
     });
   }
 
-  const symbols = SYMBOLS[mobile ? "mobile" : "desktop"];
   const sectionsContainer = document.createElement("div");
   resizableArea.append(sectionsContainer);
   sectionsContainer.style.display = "flex";
@@ -126,7 +169,8 @@ export async function showViewer({
     const stringId = typeof id === "string" && !id.startsWith(ERROR_SECTION_START) ?
       id : undefined;
     if (updateURL)
-      history.pushState({section: stringId}, "", setSection(location.href, stringId));
+      history.pushState({section: stringId}, "",
+        setSearchParam(location.href, SECTION_KEY, stringId));
     [clearSectionButton.textContent, clearSectionButton.title] = stringId ?
       [symbols.allSections, `Show all sections`] :
       [symbols.up, `Back to top`];
@@ -199,12 +243,12 @@ export async function showViewer({
   return container;
 }
 
-function setSection(href: string, sectionId: string | undefined) {
+function setSearchParam(href: string, param: string, value: string | undefined) {
   const url = new URL(href);
-  if (sectionId)
-    url.searchParams.set("section", sectionId);
+  if (value === undefined)
+    url.searchParams.delete(param);
   else
-    url.searchParams.delete("section");
+    url.searchParams.set(param, value);
   if (url.host === "htmlpreview.github.io") {
     const [k1, v1] = [...url.searchParams.entries()][0];
     if (k1.startsWith("https://github.com/") && !v1) {

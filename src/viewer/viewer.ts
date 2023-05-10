@@ -1,21 +1,18 @@
-import {globalOptions} from 'tp-vector/index.ts';
 import {DEMOS_VIEWER} from 'tp-vector/viewer/demos_viewer.ts';
-import {installLiveReload, Viewer} from 'tp-vector/viewer/viewer_tools.ts';
+import {Viewer} from 'tp-vector/viewer/viewer_tools.ts';
 
 // There are two main ways of developing your own projects,
 // described in wiki/installation_and_usage.md#custom-projects.
 
-installLiveReload();
+await Viewer.create({
+  globalOpts: [
+    // Modify the global options to adjust the generated SVG files for the laser cutter software:
+    // globalOptions.presets.lightburn(),
 
-globalOptions.modify(
-  // Modify the global options to adjust the generated SVG files for the laser cutter software:
-  // globalOptions.presets.lightburn(),
-
-  // Set the print pos correction if necessary (see _calibration/print_pos_correction.ts_):
-  // {printPosCorrectionMillimeters: [0.0, 0.0]},
-);
-
-await Viewer.create()
+    // Set the print pos correction if necessary (see _calibration/print_pos_correction.ts_):
+    // {printPosCorrectionMillimeters: [0.0, 0.0]},
+  ],
+})
 
   // Add your own projects here:
   // .add(myProjectModule)

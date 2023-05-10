@@ -1,5 +1,5 @@
 import {ColorsDistributor, CyclicColorsDistributor, InitialColorsAssignment} from './colors_distributor.ts';
-import {flatten, OrArrayRest} from './util.ts';
+import {flatten, OrArray, OrArrayRest} from './util.ts';
 
 /** Method of handling transparency when converting SVG to PNG. */
 export type PNGAllowTransparency =
@@ -97,6 +97,8 @@ export interface GlobalOptions {
   readonly printPosCorrectionMillimeters?: PosCorrectionMillimeters;
   readonly quirks?: Readonly<Quirks>;
 }
+
+export type GlobalOptionsInput = OrArray<PartialGlobalOptions>;
 
 export namespace presets {
 

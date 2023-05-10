@@ -1,5 +1,7 @@
+import {GlobalOptionsInput} from '../global_options.ts';
 import {generateId} from '../ids.ts';
-import {assert, Sheet} from '../index.ts';
+import {Sheet} from '../sheet.ts';
+import {assert} from '../util.ts';
 import {OrFuncPromise, OrPromise, SectionDef, unwrap} from './types.ts';
 import {showViewer} from './viewer_page.ts';
 
@@ -87,14 +89,31 @@ export interface SheetModule<Args extends unknown[] = []> {
 
 export class Viewer {
 
-  protected constructor(private readonly sections: readonly SectionDef[]) {}
+  protected constructor(
+    private readonly liveReload: boolean,
+    private readonly globalOptsMap: ReadonlyMap<string, GlobalOptionsInput> | undefined,
+    private readonly sections: readonly SectionDef[],
+  ) {}
 
-  static create() {
-    return new Viewer([]);
+  static create({liveReload = true, globalOpts, globalOptsPresets}: {
+    liveReload?: boolean,
+    globalOpts?: GlobalOptionsInput,
+    globalOptsPresets?: Record<string, GlobalOptionsInput>,
+  } = {}) {
+    let globalOptsMap: Map<string, GlobalOptionsInput> | undefined;
+    if (globalOpts || globalOptsPresets) {
+      globalOptsMap = new Map();
+      if (globalOptsPresets)
+        for (const [preset, item] of Object.entries(globalOptsPresets))
+          globalOptsMap.set(preset, item);
+      if (globalOpts)
+        globalOptsMap.set("", globalOpts);
+    }
+    return new Viewer(liveReload, globalOptsMap, []);
   }
 
   private addSect(sect: SectionDef) {
-    return new Viewer([...this.sections, sect]);
+    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sections, sect]);
   }
 
   add<Args extends unknown[]>(module: SheetModule<Args>, ...args: Args): Viewer;
@@ -145,14 +164,18 @@ export class Viewer {
   }
 
   addAll(other: Viewer) {
-    return new Viewer([...this.sections, ...other.sections]);
+    return new Viewer(
+      this.liveReload, this.globalOptsMap, [...this.sections, ...other.sections]);
   }
 
   async show({parent, section}: {
     parent?: HTMLElement,
     section?: string,
   } = {}) {
+    if (this.liveReload)
+      installLiveReload();
     return await showViewer({
+      globalOptsMap: this.globalOptsMap,
       sectionDefs: this.sections,
       parent,
       section,
