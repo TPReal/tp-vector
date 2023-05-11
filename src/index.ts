@@ -27,6 +27,6 @@ export {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 export {TabbedFace, boxCorrection, isPositiveAngle, tabWidthForAcuteAngle, turtleInterlock, type StartAngleDeg} from './tabbed_face.ts';
 export {PathForText, createText} from './text.ts';
 export {Tf, Transform, transformedToString} from './transform.ts';
-export {Turtle, type TurtleFunc} from './turtle.ts';
+export {Turtle, type TurtleFunc, type TurtleFuncArg} from './turtle.ts';
 export * from './util.ts';
 export {extendViewBox, viewBoxFromPartial, type PartialViewBox, type PartialViewBoxMargin, type ViewBox} from './view_box.ts';
