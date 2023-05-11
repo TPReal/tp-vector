@@ -107,8 +107,8 @@ export function createSVG({
     tagName: "svg",
     attributes: {
       ...viewBox && millimetersPerUnit && {
-        width: `${viewBox.width * millimetersPerUnit}mm`,
-        height: `${viewBox.height * millimetersPerUnit}mm`,
+        width: `${roundReasonably(viewBox.width * millimetersPerUnit)}mm`,
+        height: `${roundReasonably(viewBox.height * millimetersPerUnit)}mm`,
       },
       ...DEFAULT_SVG_ATTRIBUTES,
       viewBox: viewBox && viewBoxToString(viewBox),

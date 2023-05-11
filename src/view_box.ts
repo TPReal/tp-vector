@@ -1,4 +1,4 @@
-import {almostEqual} from './util.ts';
+import {almostEqual, roundReasonably} from './util.ts';
 
 /** A rectangle defining bounding box of an element, or the view box of the SVG. */
 export interface ViewBox {
@@ -313,5 +313,5 @@ export function assertFitsInViewBox(args: FitsInViewBoxArgs) {
 }
 
 export function viewBoxToString({minX, minY, width, height}: ViewBox) {
-  return [minX, minY, width, height].join(" ");
+  return [minX, minY, width, height].map(v => roundReasonably(v)).join(" ");
 }
