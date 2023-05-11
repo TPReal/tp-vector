@@ -80,6 +80,7 @@ export interface PartialGlobalOptions {
   cornersMarkerType?: CornersMarkerType;
   imageAutoSizeLogic?: ImageAutoSizeLogic;
   laserRunsOptions?: LaserRunsOptions;
+  cutRunsStrokeWidth?: number;
   /**
    * The translation of print runs relative to the cut runs, caused by hardware inaccuracy,
    * measured for a particular laser cutter, in millimeters.
@@ -94,6 +95,7 @@ export interface GlobalOptions {
   readonly cornersMarkerType?: CornersMarkerType;
   readonly imageAutoSizeLogic: ImageAutoSizeLogic;
   readonly laserRunsOptions?: LaserRunsOptions;
+  readonly cutRunsStrokeWidth?: number;
   readonly printPosCorrectionMillimeters?: PosCorrectionMillimeters;
   readonly quirks?: Readonly<Quirks>;
 }
@@ -132,6 +134,7 @@ export namespace presets {
     return {
       cornersMarkerType: "circles",
       quirks: {xlinkHref: true},
+      cutRunsStrokeWidth: 0,
     } satisfies PartialGlobalOptions;
   }
 

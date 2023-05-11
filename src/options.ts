@@ -1,5 +1,6 @@
 import {ALL_BLACK, ColorsDistributor, CyclicColorsDistributor} from './colors_distributor.ts';
 import {Attributes} from './elements.ts';
+import * as globalOptions from './global_options.ts';
 import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, getGlobalOptions} from './global_options.ts';
 import {NO_LAYER, OptionalLayerName} from './layers.ts';
 import {toFileName} from './name.ts';
@@ -71,7 +72,8 @@ export function getDefaultCutStyleAttributes({id, previewColors = ALL_BLACK}: {
     },
     laser: {
       stroke: "black",
-      strokeWidth: 0,
+      strokeWidth: globalOptions.get().cutRunsStrokeWidth ?? 0,
+      vectorEffect: "non-scaling-stroke",
       fill: "none",
     },
   };
