@@ -84,7 +84,7 @@ export function createText(text: string, {
       ...fontAttributes && attributesFromFontAttributes(fontAttributes),
       ...attributes,
     },
-    children: [textChild],
+    children: textChild,
   });
   if (fontDefTool)
     piece = piece.useDefTool(fontDefTool);
