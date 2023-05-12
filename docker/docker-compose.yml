@@ -1,3 +1,4 @@
+name: tp-vector
 services:
   tp-vector:
     container_name: tp-vector
