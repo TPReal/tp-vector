@@ -6,7 +6,7 @@
       "label": "Docker",
       "detail": "Build and serve the Viewer app in a Docker container",
       "type": "shell",
-      "command": "docker compose -f docker/docker-compose.yml up --build --detach",
+      "command": "docker compose -f docker-compose.yml up --build --detach",
       "problemMatcher": [],
       "presentation": {
         "focus": false,

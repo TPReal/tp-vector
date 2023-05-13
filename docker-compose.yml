@@ -1,13 +1,11 @@
-name: tp-vector
 services:
-  tp-vector:
-    container_name: tp-vector
+  viewer:
     deploy:
       resources:
         limits:
           memory: "100M"
     volumes:
-      - "..:/var/app:ro"
+      - ".:/var/app:ro"
     build:
       context: .
     ports:
