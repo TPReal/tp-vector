@@ -194,6 +194,23 @@ const DEFAULT_FRAME_STYLE_ATTRIBUTES = styleAttributesFromPartial({
   defaults: DEFAULT_CUT_STYLE_ATTRIBUTES,
 });
 
+export function getDefaultCornersMarkerStyleAttributes(args: {
+  id?: string,
+  previewColors?: ColorsDistributor,
+} = {}): MediaStyleAttributes {
+  return styleAttributesFromPartial({
+    styleAttributes: {
+      preview: {
+        strokeWidth: 0,
+      },
+      laser: {
+        strokeWidth: 0,
+      },
+    },
+    defaults: getDefaultCutStyleAttributes(args),
+  });
+}
+
 export interface PartialCornersMarkerOptions {
   enable?: boolean;
   type?: CornersMarkerType;
@@ -218,7 +235,7 @@ export function cornersMarkerOptionsFromPartial(
     id,
     styleAttributes: styleAttributesFromPartial({
       styleAttributes,
-      defaults: getDefaultCutStyleAttributes({
+      defaults: getDefaultCornersMarkerStyleAttributes({
         id,
         previewColors: ALL_BLACK,
       }),

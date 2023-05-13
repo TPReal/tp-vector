@@ -139,7 +139,7 @@ export class Sheet {
       if (runOptions.side === "back")
         pieces = pieces.flipX(this.viewBox.minX + this.viewBox.width / 2);
       if (this.options.cornersMarker.enable && runOptions.includeCornersMarker)
-        pieces = gather(pieces, this.getCornersMarkerRawPiece());
+        pieces = gather(pieces, this.getCornersMarkerRawPiece(medium));
     }
     return pieces.asG({
       id: runOptions.id,
@@ -147,27 +147,32 @@ export class Sheet {
     });
   }
 
-  private getCornersMarkerRawPiece() {
+  private getCornersMarkerRawPiece(medium: Medium) {
     const {minX, minY, width, height} = this.viewBox;
+    let cornersMarker;
     if (this.options.cornersMarker.type === "circles")
-      return gather(
+      cornersMarker = gather(
         figures.circle({center: [minX + width, minY + height], radius: 0}),
         figures.circle({center: [minX, minY], radius: 0}),
       );
-    if (this.options.cornersMarker.type === "lines")
-      return gather(
+    else if (this.options.cornersMarker.type === "lines")
+      cornersMarker = gather(
         figures.line([minX, minY], [minX + 1e-9, minY]),
         figures.line([minX + width, minY + height], [minX + width - 1e-9, minY + height]),
       );
-    return this.options.cornersMarker.type satisfies never;
+    else
+      cornersMarker = this.options.cornersMarker.type satisfies never;
+    return cornersMarker.asG({
+      class: this.options.cornersMarker.id,
+      ...this.options.cornersMarker.styleAttributes[medium],
+    });
   }
 
   private getCornersMarker(medium: Medium) {
     const {id} = this.options.cornersMarker;
     return {
       id,
-      group: this.getCornersMarkerRawPiece().asG(
-        {id, ...this.options.cornersMarker.styleAttributes[medium]}),
+      group: this.getCornersMarkerRawPiece(medium),
     };
   }
 
