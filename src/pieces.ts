@@ -410,14 +410,12 @@ export class Piece
     return this.normalise("center");
   }
 
-  /** Centers the piece inside the specified target area. */
-  centerIn(target: PartialViewBox, marginParams?: OptMargin) {
-    return this.normalise({target, align: "center"}, marginParams)
-  }
-
   /** Centers the piece around the origin point and scales so that the larger size has length 1. */
   centerAndFitTo1By1(marginParams?: OptMargin) {
-    return this.centerIn({centered: true}, marginParams);
+    return this.normalise({
+      target: {centered: true},
+      align: "center",
+    }, marginParams);
   }
 
   /** Pads the Piece, relative to its current bounding box. */
