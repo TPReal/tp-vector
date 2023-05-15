@@ -1,3 +1,5 @@
+import {PartialBoxAlignment, alignmentToNumber, boxAlignmentFromPartial} from './alignment.ts';
+import {Point} from './point.ts';
 import {almostEqual, roundReasonably} from './util.ts';
 
 /** A rectangle defining bounding box of an element, or the view box of the SVG. */
@@ -314,4 +316,13 @@ export function assertFitsInViewBox(args: FitsInViewBoxArgs) {
 
 export function viewBoxToString({minX, minY, width, height}: ViewBox) {
   return [minX, minY, width, height].map(v => roundReasonably(v)).join(" ");
+}
+
+export function getBoxPoint(box: PartialViewBox, point: PartialBoxAlignment): Point {
+  const {minX, minY, width, height} = viewBoxFromPartial(box);
+  const {x = "center", y = "center"} = boxAlignmentFromPartial(point);
+  return [
+    minX + (alignmentToNumber(x) + 1) / 2 * width,
+    minY + (alignmentToNumber(y) + 1) / 2 * height,
+  ];
 }
