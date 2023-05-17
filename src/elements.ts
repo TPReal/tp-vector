@@ -45,12 +45,26 @@ function valueToString(value: AttributeValue) {
   return typeof value === "number" ? roundReasonably(value) : value;
 }
 
+const ATTRIBUTES_ALL = "*";
+const ATTRIBUTES_SORT_ORDER = ["id", ATTRIBUTES_ALL, "vector-effect"];
+const ALL_SORT_ORDER = ATTRIBUTES_SORT_ORDER.indexOf(ATTRIBUTES_ALL);
+
+function getSortOrder(attribute: string) {
+  const index = ATTRIBUTES_SORT_ORDER.indexOf(attribute);
+  return index < 0 ? ALL_SORT_ORDER : index;
+}
+
+function sortAttributes(attributes: Attributes) {
+  return Object.entries(attributes).sort(([a,], [b,]) =>
+    getSortOrder(a) - getSortOrder(b));
+}
+
 /**
  * Sets the specified attributes on the element. Values missing in the attributes are left alone,
  * values set to undefined are cleared.
  */
 export function setAttributes(element: SVGElement, attributes: Attributes) {
-  for (const [attrib, value] of Object.entries(attributes)) {
+  for (const [attrib, value] of sortAttributes(attributes)) {
     const attribute = HYPHENATED_ATTRIBUTES_MAP.get(attrib) || attrib;
     const useNS = !/^xmlns(:\w+)?$/.test(attribute);
     if (useNS) {
@@ -81,27 +95,34 @@ export function createElement<TagName extends keyof SVGElementTagNameMap>({
   children?: OrArray<SVGElement | string | undefined>,
 }): SVGElementTagNameMap[TagName] {
   const element = document.createElementNS(SVG_NAMESPACE_URI, tagName);
-  setAttributes(element, COMMON_ATTRIBUTES);
-  setAttributes(element, attributes);
+  setAttributes(element, {
+    ...COMMON_ATTRIBUTES,
+    ...attributes,
+  });
   element.append(...flattenFilter(children));
   return element;
 }
 
-export const DEFAULT_SVG_ATTRIBUTES: Attributes = {
-  xmlns: SVG_NAMESPACE_URI,
-  "xmlns:xlink": "http://www.w3.org/1999/xlink",
-};
+export function getDefaultSVGAttributes(): Attributes {
+  return {
+    xmlns: SVG_NAMESPACE_URI,
+    ...getGlobalOptions().quirks?.xlinkHref ?
+      {"xmlns:xlink": "http://www.w3.org/1999/xlink"} : undefined,
+  };
+}
 
 export function createSVG({
   viewBox,
   millimetersPerUnit,
   attributes = {},
   children = [],
+  childrenSeparator = true,
 }: {
   viewBox: ViewBox | undefined,
   millimetersPerUnit?: number,
   attributes?: Attributes,
-  children?: SVGElement[],
+  children?: OrArray<SVGElement | string | undefined>,
+  childrenSeparator?: boolean,
 }): SVGSVGElement {
   return createElement({
     tagName: "svg",
@@ -110,11 +131,13 @@ export function createSVG({
         width: `${roundReasonably(viewBox.width * millimetersPerUnit)}mm`,
         height: `${roundReasonably(viewBox.height * millimetersPerUnit)}mm`,
       },
-      ...DEFAULT_SVG_ATTRIBUTES,
+      ...getDefaultSVGAttributes(),
       viewBox: viewBox && viewBoxToString(viewBox),
       ...attributes,
     },
-    children,
+    children: childrenSeparator ?
+      [...flattenFilter(children).flatMap(c => ["\n\n", c]), "\n\n"] :
+      children,
   });
 }
 
