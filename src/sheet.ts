@@ -497,7 +497,7 @@ export class Sheet {
     const fileName = [
       this.options.fileName,
       ...runs === "all" ? [] : [...runs, reversingFrame && this.options.reversingFrame.id],
-      printsAsImages && "p_img",
+      printsAsImages && "prerendered",
     ].filter(Boolean).join("__");
     const suffix = this.options.includeSizeInName ?
       getNameSizeSuffix(this.viewBox, this.options.millimetersPerUnit) : undefined;
@@ -679,8 +679,8 @@ export class Sheet {
         if (includePrintsAsImages && print && mainFormat === "SVG")
           buttons.push(this.getLaserSVGSaveButton({
             params: {format: "SVG", printsAsImages: true, runsSelector},
-            label: `[PNG prints]`,
-            hintLines: [`Print layers embedded as raster images`, ...hintLines],
+            label: `(pre)`,
+            hintLines: [`With pre-rendered print runs`, ...hintLines],
           }));
         if (fullFormat === "both")
           buttons.push(this.getLaserSVGSaveButton({

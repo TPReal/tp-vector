@@ -1,3 +1,4 @@
+import {globalOptions} from '../index.ts';
 import {DEMOS_VIEWER} from './demos_viewer.ts';
 import {Viewer} from './viewer_tools.ts';
 
@@ -6,5 +7,15 @@ import {Viewer} from './viewer_tools.ts';
 // because of some limitations of the HTML viewer currently used.
 
 (async () => {
-  await Viewer.create().addAll(DEMOS_VIEWER).show();
+  await Viewer.create({
+    globalOpts: [
+      globalOptions.presets.lightburn(),
+      {
+        cutRunsStrokeWidth: 1,
+        fontFallbackToNotDef: false,
+      },
+    ],
+  })
+    .addAll(DEMOS_VIEWER)
+    .show();
 })();
