@@ -145,6 +145,7 @@ function applyImageScalingAttributes(image: SVGImageElement, scaling: ImageScali
       preserveAspectRatio: fitting === "stretch" ? "none" : [
         "x", MIN_MID_MAX.get(alignmentToNumber(x)),
         "Y", MIN_MID_MAX.get(alignmentToNumber(y)),
+        " ",
         fitting === "fit" ? "meet" : "slice",
       ].join(""),
     });
