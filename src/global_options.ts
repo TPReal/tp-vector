@@ -87,6 +87,8 @@ export interface PartialGlobalOptions {
    * See the calibrator in _calibration/print_pos_correction.ts_.
    */
   printPosCorrectionMillimeters?: PosCorrectionMillimeters;
+  /** Whether all fonts should use `Font.notDef()` as the final fallback. True by default. */
+  fontFallbackToNotDef?: boolean;
   quirks?: Quirks;
 }
 
@@ -97,6 +99,7 @@ export interface GlobalOptions {
   readonly laserRunsOptions?: LaserRunsOptions;
   readonly cutRunsStrokeWidth?: number;
   readonly printPosCorrectionMillimeters?: PosCorrectionMillimeters;
+  readonly fontFallbackToNotDef: boolean;
   readonly quirks?: Readonly<Quirks>;
 }
 
@@ -110,6 +113,7 @@ export namespace presets {
       measure: true,
       widthAndHeight: "_not_set_",
     },
+    fontFallbackToNotDef: true,
   } satisfies GlobalOptions;
 
   /**

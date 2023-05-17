@@ -2,6 +2,7 @@ import * as assets from './assets.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {AttributesDefTool} from './def_tool.ts';
 import {Attributes, createElement} from './elements.ts';
+import {getGlobalOptions} from './global_options.ts';
 import {Defs, Piece} from './pieces.ts';
 import {OrArrayRest, assert, assertNumber, flatten} from './util.ts';
 
@@ -127,7 +128,7 @@ export class Font implements AttributesDefTool {
     name,
     styleContent,
     fontAttributes,
-    finalFallback = Font.notDef(),
+    finalFallback = getGlobalOptions().fontFallbackToNotDef ? Font.notDef() : undefined,
   }: {
     name: string,
     styleContent: string,
@@ -238,6 +239,10 @@ export class Font implements AttributesDefTool {
       this.fallback,
       finalFallback,
     );
+  }
+
+  clearFinalFallback() {
+    return this.setFinalFallback(undefined);
   }
 
   setFontAttributes(fontAttributes: FontAttributes) {
