@@ -5,7 +5,7 @@ import {NO_LAYER} from './layers.ts';
 import * as layouts from './layouts.ts';
 import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
-import {BasicPiece, Piece, gather} from './pieces.ts';
+import {BasicPiece, Defs, Piece, gather} from './pieces.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
@@ -141,10 +141,13 @@ export class Sheet {
       if (this.options.cornersMarker.enable && runOptions.includeCornersMarker)
         pieces = gather(pieces, this.getCornersMarkerRawPiece(medium));
     }
-    return pieces.asG({
-      id: runOptions.id,
-      ...runOptions.styleAttributes[medium],
-    });
+    return {
+      defs: pieces,
+      runGroup: pieces.asG({
+        id: runOptions.id,
+        ...runOptions.styleAttributes[medium],
+      }),
+    };
   }
 
   private getCornersMarkerRawPiece(medium: Medium) {
@@ -273,17 +276,18 @@ export class Sheet {
   }): Promise<SVGSVGElement> {
     const {runs, cornersMarker, reversingFrame} =
       this.runsSelectorFromPartial({medium, runsSelector});
-    const defs = this.pieces.getDefsElement();
     const runsData: {
       id: string,
+      defs?: Defs,
       group: SVGGElement,
       extraAttributes?: Attributes,
       sibling?: SVGElement,
     }[] = [];
     for (const id of this.runsOrAll(runs)) {
       const runOptions = this.getRunOptions(id);
+      let defs;
       let group;
-      if (runOptions.type === "print" && printsAsImages)
+      if (runOptions.type === "print" && printsAsImages) {
         // TODO: Consider converting pieces to PNG separately, at declared levels.
         group = (await Image.fromURL({
           url: await getPNGDataURI(
@@ -303,9 +307,9 @@ export class Sheet {
         }))
           .translate(this.viewBox.minX, this.viewBox.minY)
           .asG({id: runOptions.id});
-      else
-        group = this.getRunPiece({runOptions, medium});
-      runsData.push({id, group});
+      } else
+        ({defs, runGroup: group} = this.getRunPiece({runOptions, medium}));
+      runsData.push({id, defs, group});
     }
     if (cornersMarker)
       runsData.push(this.getCornersMarker(medium));
@@ -322,6 +326,7 @@ export class Sheet {
         for (const runData of runsData)
           runData.sibling = this.runHandles.get(runData.id);
     }
+    const defsElement = gather(runsData.map(({defs}) => defs)).getDefsElement();
     const groups = runsData.map(({id, group, extraAttributes, sibling}) => {
       if (extraAttributes || sibling) {
         setAttributes(group, {id: undefined});
@@ -339,7 +344,7 @@ export class Sheet {
     return createSVG({
       viewBox: this.viewBox,
       millimetersPerUnit: medium === "laser" ? this.options.millimetersPerUnit : undefined,
-      children: [...defs ? [defs] : [], ...groups],
+      children: [defsElement, ...groups],
     })
   }
 
