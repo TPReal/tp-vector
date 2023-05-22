@@ -156,7 +156,7 @@ export namespace presets {
     colorCodedRunsPreset?: true | InitialColorsAssignment,
   } = {}) {
     return {
-      // Non-transparent white covers other runs and makes the harder to select.
+      // Non-transparent white covers other runs and makes them harder to select.
       pngAllowTransparency: "iffWhite",
       // Circles with zero radius are optimised away by LightBurn.
       cornersMarkerType: "lines",
@@ -220,6 +220,20 @@ export namespace presets {
     "#ffdb66",
   ];
 
+  /** A preset designed for production files. */
+  export function product({runsHandles}: {
+    runsHandles?: RunHandlesPosition,
+  } = {}) {
+    return applyModifiers(
+      lightburn({runsHandles}),
+      {
+        cutRunsStrokeWidth: 1,
+        fontFallbackToNotDef: false,
+        quirks: {xlinkHref: true},
+      },
+    );
+  }
+
 }
 
 /** The global options. Warning: this is global mutable state. */
@@ -243,22 +257,23 @@ export function reset(...modifiers: OrArrayRest<PartialGlobalOptions>) {
 }
 
 export function modify(...modifiers: OrArrayRest<PartialGlobalOptions>) {
-  for (const modifier of flatten(modifiers)) {
-    currentGlobalOptions = applyModifier(currentGlobalOptions, modifier);
-  }
+  currentGlobalOptions = applyModifiers(currentGlobalOptions, ...modifiers);
 }
 
-function applyModifier(opts: GlobalOptions, mod: PartialGlobalOptions): GlobalOptions {
-  return {
-    ...opts,
-    ...mod,
-    laserRunsOptions: {
-      ...opts.laserRunsOptions,
-      ...mod.laserRunsOptions,
-    },
-    quirks: {
-      ...opts.quirks,
-      ...mod.quirks,
-    },
-  };
+function applyModifiers<O extends PartialGlobalOptions | GlobalOptions>(
+  opts: O, ...mods: OrArrayRest<PartialGlobalOptions>): O {
+  for (const mod of flatten(mods))
+    opts = {
+      ...opts,
+      ...mod,
+      laserRunsOptions: {
+        ...opts.laserRunsOptions,
+        ...mod.laserRunsOptions,
+      },
+      quirks: {
+        ...opts.quirks,
+        ...mod.quirks,
+      },
+    };
+  return opts;
 }
