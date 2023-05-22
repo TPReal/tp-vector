@@ -279,8 +279,13 @@ export function googleFontsURL(name: string, {fontAttributes, text}: {
 
 const URL_REGEXP = /(?<import>@import\s+)?\burl\((?<q>['"]?)(?<url>.+?)\k<q>\)(?<semi>;)?/g;
 
+const stylesCache = new Map<string, string>();
+
 /** Converts the URLs in the style content to data URIs. */
 async function changeToDataURIs(styleContent: string): Promise<string> {
+  const cached = stylesCache.get(styleContent);
+  if (cached !== undefined)
+    return cached;
   const urls = [...styleContent.matchAll(URL_REGEXP)].map(async (mat) => {
     const {url} = assert(mat.groups);
     let blob;
@@ -303,7 +308,9 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
     ind = assertNumber(mat.index) + mat[0].length;
   }
   out.push(styleContent.slice(ind));
-  return out.join("");
+  const result = out.join("");
+  stylesCache.set(styleContent, result);
+  return result;
 }
 
 async function loadStyle(styleContent: string) {
