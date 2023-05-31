@@ -82,7 +82,7 @@ export async function getPNGDataURI(
         ctx.putImageData(imageData, 0, 0);
       }
       cleanUpFunc();
-      resolve(canvas.toDataURL("image/png"));
+      resolve(canvas.toDataURL());
     };
     img.src = svgURL;
   });

@@ -320,7 +320,7 @@ export class Piece
       }
     }
     return [simplifyTransform(createElement({
-      tagName: 'g',
+      tagName: "g",
       attributes,
       children,
     }))];
@@ -339,7 +339,7 @@ export class Piece
       return undefined;
     return createElement({
       tagName: "defs",
-      children: uniqueElements(defs).map(cloneElement),
+      children: uniqueElements(defs).map(cloneElement).map(simplifyTransform),
     });
   }
 

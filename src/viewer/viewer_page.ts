@@ -176,9 +176,17 @@ export async function showViewer({
       [symbols.up, `Back to top`];
     sectionSelect.value = stringId || "";
     const funcId = typeof id === "function" ? id : (sectId: string) => sectId === id;
-    for (const section of document.querySelectorAll<HTMLElement>(".section"))
-      section.style.display = funcId(section.id) ? "unset" : "none";
-    (parent === document.body ? document.documentElement : parent).scrollTop = 0;
+    let count = 0;
+    for (const section of document.querySelectorAll<HTMLElement>(".section")) {
+      const show = funcId(section.id);
+      section.style.display = show ? "unset" : "none";
+      if (show)
+        count++;
+    }
+    if (typeof id === "string" && !count)
+      showSection(undefined, {updateURL});
+    else
+      (parent === document.body ? document.documentElement : parent).scrollTop = 0;
   }
 
   function addOption(name: string | undefined) {

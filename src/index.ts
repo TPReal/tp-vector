@@ -30,3 +30,4 @@ export {Tf, Transform, transformedToString} from './transform.ts';
 export {Turtle, type TurtleFunc, type TurtleFuncArg} from './turtle.ts';
 export * from './util.ts';
 export {extendViewBox, getBoxPoint, viewBoxFromPartial, type PartialViewBox, type PartialViewBoxMargin, type ViewBox} from './view_box.ts';
+export {Viewer} from './viewer/viewer_tools.ts';

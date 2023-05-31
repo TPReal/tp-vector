@@ -67,7 +67,7 @@ export class Path extends SimpleLazyPiece {
    * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
    */
   static fromD(...commandsOrD: OrArrayRest<string>) {
-    return new Path(flatten(commandsOrD));
+    return new Path(flatten(commandsOrD).map(d => d.trim()));
   }
 
   private getElement() {
