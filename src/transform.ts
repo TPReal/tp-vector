@@ -40,16 +40,31 @@ export function transformedToString(object: unknown, tf: Transform) {
   return `${object}`;
 }
 
-export function simplifyTransform(element: SVGElement) {
-  if (element instanceof SVGGraphicsElement) {
-    const tfList = element.transform.baseVal;
+function simplifyTf<
+  A extends string,
+  S extends SVGElement & Record<A, SVGAnimatedTransformList>,
+>(
+  element: SVGElement,
+  subclass: {prototype: S, new(): S},
+  attribute: A,
+) {
+  if (element instanceof subclass) {
+    const tfList = element[attribute].baseVal;
     if (tfList.length > 1) {
       const matrix = tfList.consolidate()?.matrix;
       if (matrix)
-        setAttributes(element, Tf.matrix([
-          matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f,
-        ]).asAttributes());
+        setAttributes(element, {
+          [attribute]: Tf.matrix([
+            matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f,
+          ]).svgTransform,
+        });
     }
   }
+
+}
+
+export function simplifyTransform(element: SVGElement) {
+  simplifyTf(element, SVGGradientElement, "gradientTransform");
+  simplifyTf(element, SVGGraphicsElement, "transform");
   return element;
 }
