@@ -74,6 +74,7 @@ export class Sheet {
     readonly viewBox: ViewBox,
     private readonly runOptions: ReadonlyMap<string, RunOptions>,
     private readonly emptyRuns: ReadonlySet<string>,
+    private readonly preserveRunsOrder: boolean,
   ) {
     this.runHandles = this.createHandles();
   }
@@ -86,12 +87,14 @@ export class Sheet {
     margin = 1,
     viewBox = "auto",
     runs,
+    preserveRunsOrder = false,
   }: {
     options?: PartialSheetOptions,
     pieces: OrArray<BasicPiece | undefined>,
     margin?: PartialViewBoxMargin,
     viewBox?: PartialViewBox | "auto",
     runs?: OrArray<PartialRunOptions>,
+    preserveRunsOrder?: boolean,
   }) {
     const sheetOptions = sheetOptionsFromPartial(options);
     const fullPieces = gather(flattenFilter(pieces));
@@ -115,6 +118,7 @@ export class Sheet {
       box,
       runOptionsMap,
       emptyRuns,
+      preserveRunsOrder,
     );
   }
 
@@ -578,8 +582,22 @@ export class Sheet {
     });
   }
 
+  getRunsInSpecifiedOrder(): PartialRunsSelector[] {
+    let lastSide: Side | undefined;
+    const result: PartialRunsSelector[] = [];
+    for (const {id, side} of this.runOptions.values()) {
+      if (!this.emptyRuns.has(id))
+        if (lastSide && side !== lastSide)
+          result.push({runs: [], reversingFrame: true});
+      lastSide = side;
+      result.push({runs: [id], reversingFrame: false});
+    }
+    return result;
+  }
+
   /**
-   * Returns all the runs defined in this Sheet in their natural order. The order is:
+   * If preserveRunsOrder was specified, calls getRunsInSpecifiedOrder.
+   * Otherwise returns all the runs defined in this Sheet in their natural order. The order is:
    *  - prints on the back side,
    *  - cuts on the back side (for scoring, as the main cut needs to be done on the front side),
    *  - the reversing frame - if there were any runs on the back,
@@ -587,6 +605,8 @@ export class Sheet {
    *  - cuts on the front.
    */
   getRunsInNaturalOrder(): PartialRunsSelector[] {
+    if (this.preserveRunsOrder)
+      return this.getRunsInSpecifiedOrder();
     const allOptions = [...this.runOptions.values()];
     const hasReverseSide = allOptions.some(({side}) => side === "back");
     const toSingleRuns = (options: RunOptions[]): PartialRunsSelector[] => {
