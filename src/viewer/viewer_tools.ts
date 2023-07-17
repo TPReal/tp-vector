@@ -44,16 +44,13 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
     runsController.append(span);
     span.title = `Right-click to blink`;
     span.style.whiteSpace = "nowrap";
-    const checkbox = document.createElement("input");
-    span.append(checkbox);
-    checkbox.type = "checkbox";
-    checkbox.checked = true;
     const label = document.createElement("label");
     span.append(label);
+    const checkbox = document.createElement("input");
+    label.append(checkbox);
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
     label.append(id);
-    label.addEventListener("click", () => {
-      checkbox.click();
-    });
     checkbox.addEventListener("click", () => {
       (g as HTMLElement).style.display = checkbox.checked ? "" : "none";
     });
