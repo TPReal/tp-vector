@@ -282,7 +282,7 @@ export class Piece
     if (this.layer === NO_LAYER)
       return new Piece(
         this.parts.map(part => part.selectLayers(...layers)),
-        this.tf, NO_LAYER, [], this.attributes,
+        this.tf, NO_LAYER, this.defs, this.attributes,
         this.boundingBoxPiece);
     if (flatten(layers).includes(this.layer))
       return this;
