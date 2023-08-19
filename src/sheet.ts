@@ -394,11 +394,11 @@ export class Sheet {
           figures.rectangle(handleViewBox).setAttributes({
             fill: this.options.laserRunsOptions.colorCodes ? undefined : "black",
           }),
-          grabArea.setAttributes({stroke: "white"}),
+          grabArea.setAttributes({stroke: "black"}),
           gather(
             idText,
             typeText,
-          ).setAttributes({fill: "white"}),
+          ).setAttributes({fill: "black"}),
         ).setAttributes({stroke: "none"})
           .moveRight(index * baseWid)
           .scale(wid / baseWid)
@@ -586,17 +586,18 @@ export class Sheet {
     let lastSide: Side | undefined;
     const result: PartialRunsSelector[] = [];
     for (const {id, side} of this.runOptions.values()) {
-      if (!this.emptyRuns.has(id))
+      if (!this.emptyRuns.has(id)) {
         if (lastSide && side !== lastSide)
           result.push({runs: [], reversingFrame: true});
-      lastSide = side;
-      result.push({runs: [id], reversingFrame: false});
+        lastSide = side;
+        result.push({runs: [id], reversingFrame: false});
+      }
     }
     return result;
   }
 
   /**
-   * If preserveRunsOrder was specified, calls getRunsInSpecifiedOrder.
+   * If preserveRunsOrder was specified, the natural order is the same as the specified order.
    * Otherwise returns all the runs defined in this Sheet in their natural order. The order is:
    *  - prints on the back side,
    *  - cuts on the back side (for scoring, as the main cut needs to be done on the front side),

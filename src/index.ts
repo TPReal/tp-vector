@@ -14,6 +14,7 @@ export {getSlotWidth, slotsOptionsFromPartial, slotsPiece, tabsOptionsFromPartia
 export {SlotsPattern, TabsPattern} from './interlock_patterns.ts';
 export * as kerfUtil from './kerf_util.ts';
 export type {Kerf} from './kerf_util.ts';
+export {NO_LAYER} from './layers.ts';
 export * as layouts from './layouts.ts';
 export {SimpleLazyPiece} from './lazy_piece.ts';
 export {type CutOptions, type Medium, type PartialCutOptions, type PartialPrintOptions, type PartialRunOptions, type PartialSheetOptions, type PrintOptions, type RunOptions, type SheetOptions, type Side} from './options.ts';

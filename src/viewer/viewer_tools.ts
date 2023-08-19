@@ -38,6 +38,7 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   runsController.style.alignItems = "center";
   const blinkTimers: number[] = [];
   runsController.append(`Show runs:`);
+  const runCheckboxes: HTMLInputElement[] = [];
   for (const g of svg.querySelectorAll(":scope > g[id]")) {
     const id = assert(g.getAttribute("id"));
     const span = document.createElement("span");
@@ -48,11 +49,20 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
     span.append(label);
     const checkbox = document.createElement("input");
     label.append(checkbox);
+    runCheckboxes.push(checkbox);
     checkbox.type = "checkbox";
     checkbox.checked = true;
     label.append(id);
-    checkbox.addEventListener("click", () => {
+    checkbox.addEventListener("change", () => {
       (g as HTMLElement).style.display = checkbox.checked ? "" : "none";
+    });
+    // Don't trigger on label, only on checkbox.
+    checkbox.addEventListener("dblclick", e => {
+      e.preventDefault();
+      for (const ch of runCheckboxes)
+        if (ch.checked)
+          ch.click()
+      checkbox.click();
     });
     for (const el of [label, checkbox])
       el.addEventListener("contextmenu", e => {
