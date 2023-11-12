@@ -111,7 +111,7 @@ export class TabsPattern {
     length,
     tabEveryLen,
     minNumTabs = 2,
-    numTabs = tabEveryLen ? Math.ceil(length / tabEveryLen) : 0,
+    numTabs = Math.max(tabEveryLen ? Math.ceil(length / tabEveryLen) : 0, minNumTabs),
     tabToSkipRatio = 1,
     tabLength,
     startWithTab = false,
@@ -126,7 +126,7 @@ export class TabsPattern {
     startWithTab?: boolean,
     endWithTab?: boolean,
   }) {
-    numTabs = Math.floor(Math.max(numTabs, minNumTabs));
+    numTabs = Math.floor(numTabs);
     const numSkips = numTabs + 1 - Number(startWithTab) - Number(endWithTab);
     if (numTabs < 0 || numSkips < 0)
       throw new Error(`Bad parameters (numTabs=${numTabs}, numSkips=${numSkips})`);
