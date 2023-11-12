@@ -1,6 +1,8 @@
 import {Sheet, TabsPattern, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
 
-export function getSheet() {
+export const name = "Tabs and slots";
+
+export function getSheets() {
 
   // A tiny chest of drawers, with three drawers in the following configuration:
   //
@@ -279,7 +281,7 @@ export function getSheet() {
   })();
 
   return Sheet.create({
-    options: {name: "Tabs and slots", ...mpu},
+    options: {name, ...mpu},
     pieces: layouts.pack([
       chest,
       [

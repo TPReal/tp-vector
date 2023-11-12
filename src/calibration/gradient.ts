@@ -1,7 +1,9 @@
 import {Sheet, Turtle, createLinearGradient, createParams, figures, gather, layouts} from 'tp-vector/index.ts';
 
+export const name = "Gradient calibrator";
+
 /** Returns a calibrator Sheet for testing gradients. */
-export function getSheet() {
+export function getSheets() {
 
   const p = createParams({
     size: {
@@ -39,10 +41,7 @@ export function getSheet() {
   );
 
   return Sheet.create({
-    options: {
-      name: "Gradient calibrator",
-      millimetersPerUnit: 1,
-    },
+    options: {name, millimetersPerUnit: 1},
     pieces: gradient,
   });
 

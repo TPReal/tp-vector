@@ -1,6 +1,8 @@
 import {Image, Sheet, layouts} from 'tp-vector/index.ts';
 
-export async function getSheet() {
+export const name = "Images demo";
+
+export async function getSheets() {
 
   const [ts, js, esbuild, deno] = (await Promise.all([
     Image.fromAsset(import(`./images_ts.png`)),
@@ -14,7 +16,7 @@ export async function getSheet() {
   const gap = 0.05;
 
   return Sheet.create({
-    options: {name: "Images demo", resolution: {pixelsPerInch: 2000}},
+    options: {name, resolution: {pixelsPerInch: 2000}},
     pieces: layouts.pack({
       outline: [[
         [ts, js],

@@ -1,6 +1,8 @@
 import {Font, Sheet, Turtle, createText, figures, gather, layouts} from 'tp-vector/index.ts';
 
-export async function getSheet() {
+export const name = "Coins";
+
+export async function getSheets() {
 
   const coin1 = await (async () => {
     const p = {
@@ -128,7 +130,7 @@ export async function getSheet() {
   const coins = [coin1, coin2, coin5];
 
   return Sheet.create({
-    options: {name: "Coins", millimetersPerUnit: 1},
+    options: {name, millimetersPerUnit: 1},
     pieces: layouts.column({
       pieces: coins.map((_c, i) => layouts.row(
         ...coins.slice(i), ...coins.slice(0, i),

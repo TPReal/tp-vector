@@ -29,5 +29,5 @@ export const DEMOS_VIEWER = Viewer.create()
   .add(calibration.gradient)
 
   // Explainers
-  .add(transformExplainer.getSection)
-  .add(normaliseExplainer.getSection)
+  .add(transformExplainer)
+  .add(normaliseExplainer)

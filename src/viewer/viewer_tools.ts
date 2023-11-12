@@ -1,7 +1,6 @@
 import {GlobalOptionsInput} from '../global_options.ts';
-import {generateId} from '../ids.ts';
 import {Sheet} from '../sheet.ts';
-import {assert} from '../util.ts';
+import {OrArray, assert} from '../util.ts';
 import {OrFuncPromise, OrPromise, SectionDef, unwrap} from './types.ts';
 import {showViewer} from './viewer_page.ts';
 
@@ -9,11 +8,23 @@ import {showViewer} from './viewer_page.ts';
  * Returns a `<div>` containing a preview of the Sheet, including checkboxes to control runs
  * visibility and buttons to save runs to files.
  */
-export async function getSheetPreview(sheet: Sheet) {
+export async function getSheetPreview(sheet: Sheet, {projectName, forceShowTitle = false}: {
+  projectName?: string,
+  forceShowTitle?: boolean,
+} = {}) {
   const div = document.createElement("div");
   div.style.display = "flex";
   div.style.flexDirection = "column";
   div.style.gap = "0.2em";
+  if (sheet.name && (forceShowTitle || sheet.name !== projectName)) {
+    const sheetNameInfo = document.createElement("div");
+    div.append(sheetNameInfo);
+    sheetNameInfo.append("Sheet: ");
+    const sheetName = document.createElement("span");
+    sheetNameInfo.append(sheetName);
+    sheetName.style.textDecoration = "underline";
+    sheetName.append(sheet.name);
+  }
   const svgContainer = document.createElement("div");
   div.append(svgContainer);
   const svg = await sheet.getPreviewSVG();
@@ -83,15 +94,27 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
 }
 
 /**
- * Interface for a module with exported `getSheet` function, regular or async,
- * with or without parameters, returning a Sheet.
+ * A Project with a name and a collection of Sheet's.
  *
- * Exporting a function is the preferred way for a module to produce a Sheet. Creating the Sheet
+ * A module exporting `name` and `getSheets`, regular or async, implements this interface.
+ * Exporting a function is the preferred way for a module to produce Sheet's. Creating a Sheet
  * object at the file level is not recommended because it might execute before setting  the global
  * options. See _src/global_options.ts_.
  */
-export interface SheetModule<Args extends unknown[] = []> {
-  getSheet(...args: Args): OrPromise<Sheet>;
+export interface Project<Args extends unknown[] = []> {
+  name: string;
+  getSheets(...args: Args): OrPromise<OrArray<Sheet>>;
+}
+
+export interface StaticSection<Args extends unknown[] = []> {
+  name: string;
+  element: OrFuncPromise<HTMLElement, Args>;
+}
+
+async function getProjectSheets<Args extends unknown[]>(
+  project: Project<Args>, ...args: Args): Promise<Sheet[]> {
+  const sheets = await unwrap(project.getSheets, ...args);
+  return Array.isArray(sheets) ? sheets : [sheets];
 }
 
 export class Viewer {
@@ -123,65 +146,38 @@ export class Viewer {
     return new Viewer(this.liveReload, this.globalOptsMap, [...this.sections, sect]);
   }
 
-  add<Args extends unknown[]>(module: SheetModule<Args>, ...args: Args): Viewer;
-  add<Args extends unknown[]>(element: OrFuncPromise<Sheet, Args>, ...args: Args): Viewer;
-  /**
-   * Adds a section with the specified element. The name of the section is taken from
-   * `element.dataset.name` (taken from the `data-name` attribute).
-   */
-  add<Args extends unknown[]>(element: OrFuncPromise<HTMLElement, Args>, ...args: Args): Viewer;
-  add<Args extends unknown[]>(
-    name: string,
-    element: OrFuncPromise<HTMLElement, Args>,
-    ...args: Args
-  ): Viewer;
-  add<Args extends unknown[]>(...params:
-    | [SheetModule<Args>, ...Args]
-    | [OrFuncPromise<Sheet, Args>, ...Args]
-    | [OrFuncPromise<HTMLElement, Args>, ...Args]
-    | [string, OrFuncPromise<HTMLElement, Args>, ...Args]) {
-    function isModule(params: unknown[]): params is [SheetModule<Args>, ...Args] {
-      const param0 = params[0];
-      if (param0 && typeof param0 === "object" && Object.hasOwn(param0, "getSheet")) {
-        const getSheet = (param0 as SheetModule<Args>).getSheet;
-        if (typeof getSheet === "function")
-          return true;
-      }
-      return false;
+  add<Args extends unknown[]>(project: Project<Args>, ...args: Args): Viewer;
+  add<Args extends unknown[]>(staticSection: StaticSection<Args>, ...args: Args): Viewer;
+  add<Args extends unknown[]>(content: Project<Args> | StaticSection<Args>, ...args: Args) {
+    function isProject(content: Project<Args> | StaticSection<Args>): content is Project<Args> {
+      return Object.hasOwn(content, "getSheets") &&
+        typeof (content as Project<Args>).getSheets === "function";
     }
-    if (isModule(params))
-      params = [params[0].getSheet, ...params.slice(1) as Args];
-    function hasName(params: unknown[]):
-      params is [string, OrFuncPromise<HTMLElement, Args>, ...Args] {
-      return typeof params[0] === "string";
-    }
-    const [name, item, ...args] = hasName(params) ? params : [undefined, ...params];
-    return this.addSect(async () => {
-      const unwrapped = await unwrap(item, args);
-      if (unwrapped instanceof Sheet)
-        return {
-          name: name || unwrapped.name || generateId("sheet"),
-          element: await getSheetPreview(unwrapped),
-        };
-      return {
-        name: name || unwrapped.dataset.name || generateId("section"),
-        element: unwrapped,
-      };
-    });
+    const element = isProject(content) ? async () => {
+      const div = document.createElement("div");
+      div.style.display = "flex";
+      div.style.flexDirection = "column";
+      div.style.gap = "1em";
+      const sheets = await getProjectSheets(content, ...args);
+      for (let i = 0; i < sheets.length; i++)
+        div.append(await getSheetPreview(
+          sheets[i], {projectName: content.name, forceShowTitle: i > 0}));
+      return div;
+    } : content.element;
+    return this.addSect({name: content.name, element});
   }
 
   addAll(other: Viewer) {
-    return new Viewer(
-      this.liveReload, this.globalOptsMap, [...this.sections, ...other.sections]);
+    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sections, ...other.sections]);
   }
 
-  async show({parent, section}: {
+  show({parent, section}: {
     parent?: HTMLElement,
     section?: string,
   } = {}) {
     if (this.liveReload)
       installLiveReload();
-    return await showViewer({
+    return showViewer({
       globalOptsMap: this.globalOptsMap,
       sectionDefs: this.sections,
       parent,

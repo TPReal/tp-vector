@@ -2,7 +2,9 @@ import {PartialCutOptions, PartialViewBox, Sheet, figures, gather} from 'tp-vect
 import {NormaliseArgs} from 'tp-vector/normalise_transform.ts';
 import {getAxes, getExplainerObject, getExplainerSection} from './explainer_helper.ts';
 
-export async function getSection() {
+export const name = "Normalise explainer";
+
+export const element = async () => {
 
   const objBox = {minX: 2, width: 3, minY: 1, height: 2} satisfies PartialViewBox;
   const target: PartialViewBox = {centered: true, side: 2};
@@ -66,7 +68,7 @@ export async function getSection() {
   const axes = getAxes(viewBox);
   const demoObject = getExplainerObject(objBox);
   return await getExplainerSection(Sheet.create({
-    options: {name: "Normalise explainer"},
+    options: {name},
     viewBox,
     margin: 0.1,
     pieces: gather(
@@ -87,4 +89,4 @@ export async function getSection() {
     })),
   }));
 
-}
+};

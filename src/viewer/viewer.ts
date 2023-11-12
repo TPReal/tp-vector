@@ -4,7 +4,7 @@ import {Viewer} from 'tp-vector/viewer/viewer_tools.ts';
 // There are two main ways of developing your own projects,
 // described in wiki/installation_and_usage.md#custom-projects.
 
-await Viewer.create({
+Viewer.create({
   globalOpts: [
     // Modify the global options to adjust the generated SVG files for the laser cutter software:
     // globalOptions.presets.lightburn(),

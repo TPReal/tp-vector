@@ -1,6 +1,8 @@
 import {Sheet, Turtle, figures, gather, layouts} from 'tp-vector/index.ts';
 
-export function getSheet() {
+export const name = "Jigsaw puzzle";
+
+export function getSheets() {
 
   const N = 15, M = 10;
 
@@ -49,7 +51,7 @@ export function getSheet() {
   );
 
   return Sheet.create({
-    options: {name: "Jigsaw puzzle"},
+    options: {name},
     pieces: jigsawPuzzle,
     margin: 0,
   });

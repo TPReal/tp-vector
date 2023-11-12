@@ -1,5 +1,7 @@
 import {Piece, Sheet, TabsPattern, Turtle, createParams, createText, figures, gather, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
 
+export const name = "Kerf calibrator";
+
 export interface KerfParams {
   min?: number;
   max?: number;
@@ -12,7 +14,7 @@ export interface KerfParams {
  * Returns a calibrator Sheet for determining the right value for the kerf when cutting tabs
  * and slots. See _src/interlock.ts_.
  */
-export function getSheet(params: KerfParams) {
+export function getSheets(params: KerfParams) {
 
   const p = createParams({
     min: 0,
@@ -153,7 +155,7 @@ export function getSheet(params: KerfParams) {
   })();
 
   return Sheet.create({
-    options: {name: "Kerf calibrator", ...mpu},
+    options: {name, ...mpu},
     pieces: frameWithProbers,
   });
 

@@ -1,5 +1,7 @@
 import {Piece, Sheet, createParams, createText, figures, gather, layouts} from 'tp-vector/index.ts';
 
+export const name = "printPosCorrection calibrator";
+
 export interface CorrectionParams {
   max?: number;
   step?: number;
@@ -10,7 +12,7 @@ export interface CorrectionParams {
  * `GlobalOptions.printPosCorrectionMillimeters`.
  * @see {@link GlobalOptions.printPosCorrectionMillimeters}
  */
-export function getSheet(params: CorrectionParams = {}) {
+export function getSheets(params: CorrectionParams = {}) {
 
   const p = createParams({
     max: 0.5,
@@ -77,7 +79,7 @@ export function getSheet(params: CorrectionParams = {}) {
 
   return Sheet.create({
     options: {
-      name: "printPosCorrection calibrator",
+      name,
       millimetersPerUnit: 1,
       printPosCorrectionMillimeters: false,
     },

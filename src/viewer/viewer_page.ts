@@ -1,9 +1,6 @@
-import {generateId} from '../ids.ts';
-import {SectionDef, unwrap} from './types.ts';
 import * as globalOptions from '../global_options.ts';
 import {assert} from '../util.ts';
-
-// TODO: Consider improving the Viewer page.
+import {SectionDef, unwrap} from './types.ts';
 
 const SYMBOLS = {
   mobile: {
@@ -26,9 +23,7 @@ const GLOBAL_OPTIONS_PRESET_KEY = "global_options_preset";
 const WIDTH_KEY = "width";
 const SECTION_KEY = "section";
 
-const ERROR_SECTION_START = `/// `;
-
-export async function showViewer({
+export function showViewer({
   globalOptsMap,
   sectionDefs,
   parent = document.body,
@@ -53,19 +48,28 @@ export async function showViewer({
       globalOptions.modify(assert(globalOptsMap.get(globalOptsPreset)));
   }
 
+  const main = document.createElement("div");
+  parent.append(main);
+  if (parent === document.body) {
+    parent.style.margin = "0";
+    main.style.width = "100vw";
+    main.style.height = "100vh";
+  } else {
+    main.style.width = "100%";
+    main.style.height = "100%";
+  }
+  main.style.display = "flex";
+  main.style.flexDirection = "column";
+  main.style.alignItems = "stretch";
   const header = document.createElement("header");
-  parent.append(header);
-  header.style.position = "fixed";
-  header.style.top = "0";
-  header.style.width = "100%";
+  main.append(header);
   header.style.background = "white";
-  header.style.padding = "0.5em 0";
+  header.style.padding = "0.5em";
   header.style.display = "flex";
   header.style.flexWrap = "wrap";
+  header.style.alignItems = "stretch";
   header.style.gap = "0.5em";
-  const headerPlaceholder = document.createElement("div");
-  parent.append(headerPlaceholder);
-  headerPlaceholder.style.height = "2em";
+  header.style.borderBottom = "1px solid #ccc";
   const sectionSelect = document.createElement("select");
   header.append(sectionSelect);
   sectionSelect.title = `Select section`;
@@ -77,26 +81,20 @@ export async function showViewer({
   header.append(clearSectionButton);
   clearSectionButton.textContent = symbols.up;
   clearSectionButton.addEventListener("click", () => {
-    showSection(undefined);
+    if (sectionSelect.value)
+      showSection(undefined);
+    else
+      scrollToTop();
   });
-  const errorsInfo = document.createElement("a");
-  header.append(errorsInfo);
-  errorsInfo.href = "#";
-  errorsInfo.style.alignSelf = "center";
-  errorsInfo.style.color = "red";
-  errorsInfo.addEventListener("click", e => {
-    e.preventDefault();
-    showSection(id => id.startsWith(ERROR_SECTION_START));
-  });
+  const globalProgress = document.createElement("progress");
+  header.append(globalProgress);
+  globalProgress.style.alignSelf = "center";
+  globalProgress.style.flex = "1 0 0";
   if (globalOptsMap && (globalOptsMap.size > 1 || globalOptsPreset)) {
-    const filler = document.createElement("div");
-    header.append(filler);
-    filler.style.flex = "1 0 0";
     const globalOptsSelect = document.createElement("select");
     header.append(globalOptsSelect);
     globalOptsSelect.title = `Select global options preset`;
     globalOptsSelect.style.minWidth = "5em";
-    globalOptsSelect.style.marginRight = "1em";
     for (const preset of globalOptsMap.keys()) {
       const option = document.createElement("option");
       globalOptsSelect.insertAdjacentElement(preset ? "beforeend" : "afterbegin", option);
@@ -110,8 +108,12 @@ export async function showViewer({
     });
   }
 
+  const scrollContainer = document.createElement("div");
+  main.append(scrollContainer);
+  scrollContainer.style.overflowY = "auto";
   const container = document.createElement("div");
-  parent.append(container);
+  scrollContainer.append(container);
+  container.style.margin = "0.5em";
   container.style.display = "flex";
   container.style.gap = "4px";
   const resizableArea = document.createElement("div");
@@ -150,7 +152,7 @@ export async function showViewer({
           localStorage.removeItem(WIDTH_KEY);
         }
         if (anchorSection)
-          window.scrollBy({top: anchorSection.getBoundingClientRect().top - anchorScroll});
+          scrollContainer.scrollBy({top: anchorSection.getBoundingClientRect().top - anchorScroll});
       }
     });
   }
@@ -161,32 +163,70 @@ export async function showViewer({
   sectionsContainer.style.flexDirection = "column";
   sectionsContainer.style.gap = "2em";
 
-  function showSection(
-    id: undefined | string | ((id: string) => boolean),
-    {updateURL = true} = {},
-  ) {
-    id ||= () => true;
-    const stringId = typeof id === "string" && !id.startsWith(ERROR_SECTION_START) ?
-      id : undefined;
-    if (updateURL)
-      history.pushState({section: stringId}, "",
-        setSearchParam(location.href, SECTION_KEY, stringId));
-    [clearSectionButton.textContent, clearSectionButton.title] = stringId ?
-      [symbols.allSections, `Show all sections`] :
-      [symbols.up, `Back to top`];
-    sectionSelect.value = stringId || "";
-    const funcId = typeof id === "function" ? id : (sectId: string) => sectId === id;
-    let count = 0;
-    for (const section of document.querySelectorAll<HTMLElement>(".section")) {
-      const show = funcId(section.id);
-      section.style.display = show ? "unset" : "none";
-      if (show)
-        count++;
+  async function loadSections(sections: readonly SectionDef[]) {
+    globalProgress.value = 0;
+    globalProgress.max = sections.length;
+    globalProgress.style.visibility = "visible";
+    while (sectionsContainer.firstChild)
+      sectionsContainer.firstChild.remove();
+    await new Promise(resolve => {
+      setTimeout(resolve, 0);
+    });
+    await Promise.all(sections.map(async ({name, element}) => {
+      const section = document.createElement("div");
+      sectionsContainer.append(section);
+      section.classList.add("section");
+      const title = document.createElement("div");
+      section.append(title);
+      title.style.fontSize = "1.5em";
+      title.style.cursor = "pointer";
+      const dot = document.createElement("span");
+      title.append(dot);
+      dot.style.fontWeight = "bold";
+      dot.textContent = `•`;
+      title.append(` ${name}`);
+      title.addEventListener("click", () => {
+        showSection(name);
+      });
+      const progress = document.createElement("progress");
+      section.append(progress);
+      progress.style.width = "100%";
+      let content;
+      try {
+        content = await unwrap(element);
+      } catch (e) {
+        console.warn(`Error rendering section ${JSON.stringify(name)}:`, e);
+        content = document.createElement("pre");
+        content.style.color = "red";
+        content.textContent = e.stack || String(e);
+      } finally {
+        progress.remove();
+        if (content)
+          section.append(content);
+        globalProgress.value++;
+      }
+    }));
+    globalProgress.style.visibility = "hidden";
+  }
+
+  function scrollToTop() {
+    scrollContainer.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  function showSection(id: undefined | string, {updateURL = true} = {}) {
+    if (id !== undefined && !sectionDefs.some(({name}) => name === id)) {
+      id = undefined;
+      updateURL = true;
     }
-    if (typeof id === "string" && !count)
-      showSection(undefined, {updateURL});
-    else
-      (parent === document.body ? document.documentElement : parent).scrollTop = 0;
+    const idString = id ?? "";
+    if (updateURL)
+      history.pushState({section: id}, "", setSearchParam(location.href, SECTION_KEY, id));
+    [clearSectionButton.textContent, clearSectionButton.title] = id === undefined ?
+      [symbols.up, `Back to top`] :
+      [symbols.allSections, `Show all sections`];
+    sectionSelect.value = idString;
+    loadSections(id === undefined ? sectionDefs : sectionDefs.filter(({name}) => name === id));
+    scrollToTop();
   }
 
   function addOption(name: string | undefined) {
@@ -198,50 +238,10 @@ export async function showViewer({
     sectionSelect.append(option);
   }
 
-  function addSection(name: string) {
-    const section = document.createElement("div");
-    sectionsContainer.append(section);
-    section.style.display = "none";
-    section.classList.add("section");
-    section.id = name;
-    addOption(name);
-    const title = document.createElement("div");
-    section.append(title);
-    title.style.fontSize = "1.5em";
-    title.style.cursor = "pointer";
-    const dot = document.createElement("span");
-    title.append(dot);
-    dot.style.fontWeight = "bold";
-    dot.textContent = `•`;
-    title.append(` ${name}`);
-    title.addEventListener("click", () => {
-      showSection(name);
-    });
-    return section;
-  }
-
   addOption(undefined);
   sectionSelect.append(document.createElement("hr"));
-
-  const progress = document.createElement("progress");
-  sectionsContainer.append(progress);
-  progress.style.width = "100%";
-  const results = await Promise.allSettled(sectionDefs.map(sect => unwrap(sect, [])));
-  progress.remove();
-  let numFailed = 0;
-  for (const result of results)
-    if (result.status === "fulfilled") {
-      const {name, element} = result.value;
-      addSection(name).append(element);
-    } else {
-      numFailed++;
-      const pre = document.createElement("pre");
-      pre.style.color = "red";
-      pre.textContent = result.reason?.stack || String(result.reason);
-      addSection(ERROR_SECTION_START + generateId("section_error")).append(pre);
-    }
-  if (numFailed)
-    errorsInfo.textContent = `Failed sections: ${numFailed}`;
+  for (const {name} of sectionDefs)
+    addOption(name);
 
   showSection(section, {updateURL: false});
   addEventListener("popstate", event => {

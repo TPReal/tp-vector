@@ -1,7 +1,9 @@
 import {PartialViewBox, Sheet, Tf, Transform, gather} from 'tp-vector/index.ts';
 import {getAxes, getExplainerObject, getExplainerSection} from './explainer_helper.ts';
 
-export async function getSection() {
+export const name = "Transform explainer";
+
+export const element = async () => {
 
   const transforms = [
     "",
@@ -36,7 +38,7 @@ export async function getSection() {
   const axes = getAxes(viewBox);
   const demoObject = getExplainerObject({width: 3, height: 2});
   return await getExplainerSection(Sheet.create({
-    options: {name: "Transform explainer"},
+    options: {name},
     viewBox,
     margin: 0.1,
     pieces: gather(
@@ -58,4 +60,4 @@ export async function getSection() {
     })),
   }));
 
-}
+};

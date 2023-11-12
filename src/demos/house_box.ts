@@ -1,6 +1,8 @@
 import {Sheet, StartAngleDeg, TabbedFace, TabsPattern, gather, kerfUtil, layouts, tabWidthForAcuteAngle, turtleInterlock} from 'tp-vector/index.ts';
 
-export function getSheet() {
+export const name = "House box";
+
+export function getSheets() {
 
   const mpu = {millimetersPerUnit: 1};
 
@@ -159,7 +161,7 @@ export function getSheet() {
   const closedTopSides = [...houseOuter.closedTopSides, ...window.closedTopSides];
 
   return Sheet.create({
-    options: {name: "House box", ...mpu},
+    options: {name, ...mpu},
     pieces: layouts.column({
       pieces: [
         houseBases,

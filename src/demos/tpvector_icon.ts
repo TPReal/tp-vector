@@ -1,6 +1,8 @@
 import {Sheet, Turtle, figures, gather, layouts} from '../index.ts';
 
-export function getSheet() {
+export const name = "TPVector icon";
+
+export function getSheets() {
 
   const COLOR = "#009dff";
 
@@ -30,7 +32,7 @@ export function getSheet() {
 
   return Sheet.create({
     options: {
-      name: "TPVector icon",
+      name,
       resolution: {pixelsPerUnit: 256},
     },
     pieces: icon,

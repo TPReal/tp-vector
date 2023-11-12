@@ -1,9 +1,11 @@
 import {Sheet, Turtle, gather, layouts} from 'tp-vector/index.ts';
 
-export function getSheet() {
+export const name = "Turtle demo";
+
+export function getSheets() {
 
   return Sheet.create({
-    options: {name: "Turtle demo"},
+    options: {name},
     pieces: layouts.row({
       pieces: [
 
