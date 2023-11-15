@@ -38,7 +38,7 @@ export function getSheet() {
   }
 
   const pieces = layouts.pack({
-    outline: sizePairs.map(([x1, x2]) =>
+    pieces: sizePairs.map(([x1, x2]) =>
       sizePairs.map(([y1, y2]) => {
         const target: PartialViewBox = {width: x2, height: y2};
         return gather(

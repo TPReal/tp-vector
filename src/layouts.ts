@@ -161,9 +161,9 @@ const DEFAULT_PACK_NORMALISE_ITEMS: NormaliseArgs = "default";
  * an array, is first packed in a column, similar to what the `column` function does - and so on,
  * recursively.
  */
-export function pack(...outlineX: OutlinePiece[]): Piece;
+export function pack(...piecesRow: OutlinePiece[]): Piece;
 /**
- * Packs the outline items in a row (or column, if the Y axis is specified), similar to
+ * Packs the piece items in a row (or column, if the Y axis is specified), similar to
  * what the `row` (or `column`) function does. Each item that is an array, is first packed
  * in the opposite direction  - and so on, recursively.
  *
@@ -171,13 +171,13 @@ export function pack(...outlineX: OutlinePiece[]): Piece;
  * by default.
  */
 export function pack(args: {
-  outline: OutlinePiece[],
+  pieces: OutlinePiece[],
   axis?: Axis,
   normaliseItems?: NormaliseArgs | "none",
   gap?: number,
 }): Piece;
 export function pack(...params: OutlinePiece[] | [{
-  outline: OutlinePiece[],
+  pieces: OutlinePiece[],
   axis?: Axis,
   normaliseItems?: NormaliseArgs | "none",
   gap?: number,
@@ -186,23 +186,23 @@ export function pack(...params: OutlinePiece[] | [{
     return params.length !== 1 || params[0] instanceof Piece || Array.isArray(params[0]);
   }
   const {
-    outline,
+    pieces,
     axis = Axis.X,
     normaliseItems = DEFAULT_PACK_NORMALISE_ITEMS,
     gap = 1,
-  } = isOutlinePieces(params) ? {outline: params} : params[0];
+  } = isOutlinePieces(params) ? {pieces: params} : params[0];
   function norm(pc: Piece) {
     return normaliseItems === "none" ? pc : pc.normalise(normaliseItems);
   }
-  function subPack(outline: OutlinePiece[], axis: Axis): Piece {
+  function subPack(pieces: OutlinePiece[], axis: Axis): Piece {
     return column({
-      pieces: outline.map(o =>
+      pieces: pieces.map(o =>
         (o instanceof Piece ? o : subPack(o, otherAxis(axis))).andThen(norm)),
       gap,
       axis,
     });
   }
-  return subPack(outline, axis);
+  return subPack(pieces, axis);
 }
 
 /**

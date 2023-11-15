@@ -18,7 +18,7 @@ export async function getSheets() {
   return Sheet.create({
     options: {name, resolution: {pixelsPerInch: 2000}},
     pieces: layouts.pack({
-      outline: [[
+      pieces: [[
         [ts, js],
         [esbuild, deno],
       ]],
