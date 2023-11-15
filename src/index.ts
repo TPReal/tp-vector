@@ -23,6 +23,7 @@ export {Path} from './path.ts';
 export {DefaultPiece, Piece, gather, type BasicPiece} from './pieces.ts';
 export {type Point} from './point.ts';
 export {Sheet, type LaserSVGParams, type PartialLaserSVGParams, type PartialRunsSelector, type RunsSelector} from './sheet.ts';
+export {solveForZero, turtleSolve} from './solver.ts';
 export {getPNGDataURI, type PartialPNGConversionParams} from './svg_converter.ts';
 export {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 export {TabbedFace, boxCorrection, isPositiveAngle, tabWidthForAcuteAngle, turtleInterlock, type StartAngleDeg} from './tabbed_face.ts';

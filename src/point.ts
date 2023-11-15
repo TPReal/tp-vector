@@ -1,4 +1,4 @@
-import {roundReasonably} from "./util.ts";
+import {roundReasonably} from './util.ts';
 
 export type Point = readonly [number, number]
 

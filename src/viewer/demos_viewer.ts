@@ -4,6 +4,7 @@ import * as houseBox from '../demos/house_box.ts';
 import * as images from '../demos/images.ts';
 import * as jigsawPuzzle from '../demos/jigsaw_puzzle.ts';
 import * as normaliseExplainer from '../demos/normalise_explainer.ts';
+import * as solver from '../demos/solver.ts';
 import * as tabsAndSlots from '../demos/tabs_and_slots.ts';
 import * as tpVectorIcon from '../demos/tpvector_icon.ts';
 import * as transformExplainer from '../demos/transform_explainer.ts';
@@ -22,6 +23,7 @@ export const DEMOS_VIEWER = Viewer.create()
   .add(tabsAndSlots)
   .add(houseBox)
   .add(images)
+  .add(solver)
 
   // Calibration utilities
   .add(calibration.kerf, {thickness: 3})
