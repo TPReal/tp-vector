@@ -1,2 +1,2 @@
 # Generate the documentation in the docs directory.
-typedoc
+typedoc --name TPVector
