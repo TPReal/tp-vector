@@ -171,8 +171,9 @@ export class Viewer {
     return new Viewer(this.liveReload, this.globalOptsMap, [...this.sections, ...other.sections]);
   }
 
-  show({parent, section}: {
+  show({parent, tableOfContents, section}: {
     parent?: HTMLElement,
+    tableOfContents?: boolean,
     section?: string,
   } = {}) {
     if (this.liveReload)
@@ -181,6 +182,7 @@ export class Viewer {
       globalOptsMap: this.globalOptsMap,
       sectionDefs: this.sections,
       parent,
+      tableOfContents,
       section,
     });
   }

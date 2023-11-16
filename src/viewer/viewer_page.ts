@@ -27,11 +27,13 @@ export function showViewer({
   globalOptsMap,
   sectionDefs,
   parent = document.body,
+  tableOfContents = false,
   section = new URLSearchParams(location.search).get(SECTION_KEY) || undefined,
 }: {
   globalOptsMap: ReadonlyMap<string, globalOptions.GlobalOptionsInput> | undefined,
   sectionDefs: readonly SectionDef[],
   parent?: HTMLElement,
+  tableOfContents?: boolean,
   section?: string,
 }) {
   const mobile = isMobile();
@@ -90,6 +92,7 @@ export function showViewer({
   header.append(globalProgress);
   globalProgress.style.alignSelf = "center";
   globalProgress.style.flex = "1 0 0";
+  globalProgress.style.visibility = "hidden";
   if (globalOptsMap && (globalOptsMap.size > 1 || globalOptsPreset)) {
     const globalOptsSelect = document.createElement("select");
     header.append(globalOptsSelect);
@@ -163,12 +166,33 @@ export function showViewer({
   sectionsContainer.style.flexDirection = "column";
   sectionsContainer.style.gap = "2em";
 
+  function clearSections() {
+    while (sectionsContainer.firstChild)
+      sectionsContainer.firstChild.remove();
+  }
+
+  function createSectionTitle(name: string) {
+    const title = document.createElement("a");
+    title.style.fontSize = "1.5em";
+    title.style.cursor = "pointer";
+    title.style.display = "flex";
+    title.style.gap = "0.2em";
+    const dot = document.createElement("span");
+    title.append(dot);
+    dot.style.fontWeight = "bold";
+    dot.textContent = `•`;
+    title.append(name);
+    title.addEventListener("click", () => {
+      showSection(name);
+    });
+    return title;
+  }
+
   async function loadSections(sections: readonly SectionDef[]) {
     globalProgress.value = 0;
     globalProgress.max = sections.length;
     globalProgress.style.visibility = "visible";
-    while (sectionsContainer.firstChild)
-      sectionsContainer.firstChild.remove();
+    clearSections();
     await new Promise(resolve => {
       setTimeout(resolve, 0);
     });
@@ -176,18 +200,7 @@ export function showViewer({
       const section = document.createElement("div");
       sectionsContainer.append(section);
       section.classList.add("section");
-      const title = document.createElement("div");
-      section.append(title);
-      title.style.fontSize = "1.5em";
-      title.style.cursor = "pointer";
-      const dot = document.createElement("span");
-      title.append(dot);
-      dot.style.fontWeight = "bold";
-      dot.textContent = `•`;
-      title.append(` ${name}`);
-      title.addEventListener("click", () => {
-        showSection(name);
-      });
+      section.append(createSectionTitle(name));
       const progress = document.createElement("progress");
       section.append(progress);
       progress.style.width = "100%";
@@ -229,9 +242,19 @@ export function showViewer({
     scrollToTop();
   }
 
+  function showTableOfContents() {
+    clearSections();
+    const toc = document.createElement("div");
+    toc.style.display = "flex";
+    toc.style.flexDirection = "column";
+    sectionsContainer.append(toc);
+    for (const {name} of sectionDefs)
+      toc.append(createSectionTitle(name));
+  }
+
   function addOption(name: string | undefined) {
     const option = document.createElement("option");
-    option.text = name || `${symbols.allSections} all sections`;
+    option.text = name || `${symbols.allSections} All sections`;
     if (!name)
       option.style.fontWeight = "bold";
     option.value = name || "";
@@ -243,7 +266,10 @@ export function showViewer({
   for (const {name} of sectionDefs)
     addOption(name);
 
-  showSection(section, {updateURL: false});
+  if (section || !tableOfContents)
+    showSection(section, {updateURL: false});
+  else
+    showTableOfContents();
   addEventListener("popstate", event => {
     showSection(event.state?.section, {updateURL: false});
   });
