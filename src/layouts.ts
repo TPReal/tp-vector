@@ -152,7 +152,7 @@ export function row(...args: OrArrayRest<Piece | undefined> | [{
   return column({...parseArgs(args), axis: Axis.X});
 }
 
-export type OutlinePiece = Piece | OutlinePiece[];
+export type PackPiece = Piece | PackPiece[];
 
 const DEFAULT_PACK_NORMALISE_ITEMS: NormaliseArgs = "default";
 
@@ -161,7 +161,7 @@ const DEFAULT_PACK_NORMALISE_ITEMS: NormaliseArgs = "default";
  * an array, is first packed in a column, similar to what the `column` function does - and so on,
  * recursively.
  */
-export function pack(...piecesRow: OutlinePiece[]): Piece;
+export function pack(...piecesRow: PackPiece[]): Piece;
 /**
  * Packs the piece items in a row (or column, if the Y axis is specified), similar to
  * what the `row` (or `column`) function does. Each item that is an array, is first packed
@@ -171,18 +171,18 @@ export function pack(...piecesRow: OutlinePiece[]): Piece;
  * by default.
  */
 export function pack(args: {
-  pieces: OutlinePiece[],
+  pieces: PackPiece[],
   axis?: Axis,
   normaliseItems?: NormaliseArgs | "none",
   gap?: number,
 }): Piece;
-export function pack(...params: OutlinePiece[] | [{
-  pieces: OutlinePiece[],
+export function pack(...params: PackPiece[] | [{
+  pieces: PackPiece[],
   axis?: Axis,
   normaliseItems?: NormaliseArgs | "none",
   gap?: number,
 }]) {
-  function isOutlinePieces(params: OutlinePiece[] | [{}]): params is OutlinePiece[] {
+  function isPackPieces(params: PackPiece[] | [{}]): params is PackPiece[] {
     return params.length !== 1 || params[0] instanceof Piece || Array.isArray(params[0]);
   }
   const {
@@ -190,11 +190,11 @@ export function pack(...params: OutlinePiece[] | [{
     axis = Axis.X,
     normaliseItems = DEFAULT_PACK_NORMALISE_ITEMS,
     gap = 1,
-  } = isOutlinePieces(params) ? {pieces: params} : params[0];
+  } = isPackPieces(params) ? {pieces: params} : params[0];
   function norm(pc: Piece) {
     return normaliseItems === "none" ? pc : pc.normalise(normaliseItems);
   }
-  function subPack(pieces: OutlinePiece[], axis: Axis): Piece {
+  function subPack(pieces: PackPiece[], axis: Axis): Piece {
     return column({
       pieces: pieces.map(o =>
         (o instanceof Piece ? o : subPack(o, otherAxis(axis))).andThen(norm)),

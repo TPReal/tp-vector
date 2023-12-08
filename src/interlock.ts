@@ -7,8 +7,7 @@ export interface PartialTabsOptions {
   /** Kerf correction, affecting connection tightness. */
   kerf: Kerf;
   /**
-   * How much the tabs protrude from the edge (typically equal to
-   * the thickness of the material).
+   * How much the tabs protrude from the edge (typically equal to the thickness of the material).
    */
   tabWidth: number;
   /** To which side should the tabs go from the base line; or the edge of the material. */

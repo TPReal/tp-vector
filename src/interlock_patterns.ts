@@ -50,6 +50,13 @@ export class InterlockPattern {
     return interlock;
   }
 
+  repeat(count: number) {
+    let res = InterlockPattern.EMPTY;
+    for (let i = 0; i < count; i++)
+      res = res.addPattern(this);
+    return res;
+  }
+
   reverse() {
     return new InterlockPattern([...this.items].reverse());
   }
@@ -170,6 +177,10 @@ export class TabsPattern {
 
   addPattern(other: TabsPattern) {
     return TabsPattern.create(this.pattern.addPattern(other.pattern));
+  }
+
+  repeat(count: number) {
+    return TabsPattern.create(this.pattern.repeat(count));
   }
 
   reverse() {
@@ -346,6 +357,10 @@ export class SlotsPattern {
   addPattern(other: SlotsPattern) {
     return SlotsPattern.create(
       this.pattern.addPattern(other.pattern), {startOpen: this.startOpen});
+  }
+
+  repeat(count: number) {
+    return TabsPattern.create(this.pattern.repeat(count));
   }
 
   reverse() {
