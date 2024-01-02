@@ -26,10 +26,12 @@ export const DEMOS_VIEWER = Viewer.create()
   .add(solver)
 
   // Calibration utilities
+  .addSeparator()
   .add(calibration.kerf, {thickness: 3})
   .add(calibration.printPosCorrection)
   .add(calibration.gradient)
 
   // Explainers
+  .addSeparator()
   .add(transformExplainer)
-  .add(normaliseExplainer)
+  .add(normaliseExplainer);

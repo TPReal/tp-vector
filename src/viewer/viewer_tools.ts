@@ -1,7 +1,7 @@
 import {GlobalOptionsInput} from '../global_options.ts';
 import {Sheet} from '../sheet.ts';
 import {OrArray, assert} from '../util.ts';
-import {OrFuncPromise, OrPromise, SectionDef, unwrap} from './types.ts';
+import {OrFuncPromise, OrPromise, SectionDef, SectionItemDef, unwrap} from './types.ts';
 import {showViewer} from './viewer_page.ts';
 
 /**
@@ -122,7 +122,7 @@ export class Viewer {
   protected constructor(
     private readonly liveReload: boolean,
     private readonly globalOptsMap: ReadonlyMap<string, GlobalOptionsInput> | undefined,
-    private readonly sections: readonly SectionDef[],
+    private readonly sectionItems: readonly SectionItemDef[],
   ) {}
 
   static create({liveReload = true, globalOpts, globalOptsPresets}: {
@@ -143,7 +143,7 @@ export class Viewer {
   }
 
   private addSect(sect: SectionDef) {
-    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sections, sect]);
+    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sectionItems, sect]);
   }
 
   add<Args extends unknown[]>(project: Project<Args>, ...args: Args): Viewer;
@@ -168,7 +168,11 @@ export class Viewer {
   }
 
   addAll(other: Viewer) {
-    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sections, ...other.sections]);
+    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sectionItems, ...other.sectionItems]);
+  }
+
+  addSeparator() {
+    return new Viewer(this.liveReload, this.globalOptsMap, [...this.sectionItems, "separator"]);
   }
 
   show({parent, tableOfContents, section}: {
@@ -180,7 +184,7 @@ export class Viewer {
       installLiveReload();
     return showViewer({
       globalOptsMap: this.globalOptsMap,
-      sectionDefs: this.sections,
+      sectionItems: this.sectionItems,
       parent,
       tableOfContents,
       section,
@@ -198,5 +202,5 @@ export const RELOAD = () => {
  * @see https://esbuild.github.io/api/#live-reload
  */
 export function installLiveReload(handler: () => void = RELOAD) {
-  new EventSource('/esbuild').addEventListener('change', handler);
+  new EventSource("/esbuild").addEventListener("change", handler);
 }

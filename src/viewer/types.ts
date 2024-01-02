@@ -12,3 +12,5 @@ export interface SectionDef {
   readonly name: string;
   readonly element: OrFuncPromise<HTMLElement>;
 }
+
+export type SectionItemDef = SectionDef | "separator";

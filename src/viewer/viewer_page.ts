@@ -1,6 +1,6 @@
 import * as globalOptions from '../global_options.ts';
 import {assert} from '../util.ts';
-import {SectionDef, unwrap} from './types.ts';
+import {SectionDef, SectionItemDef, unwrap} from './types.ts';
 
 const SYMBOLS = {
   mobile: {
@@ -25,17 +25,19 @@ const SECTION_KEY = "section";
 
 export function showViewer({
   globalOptsMap,
-  sectionDefs,
+  sectionItems,
   parent = document.body,
   tableOfContents = false,
   section = new URLSearchParams(location.search).get(SECTION_KEY) || undefined,
 }: {
   globalOptsMap: ReadonlyMap<string, globalOptions.GlobalOptionsInput> | undefined,
-  sectionDefs: readonly SectionDef[],
+  sectionItems: readonly SectionItemDef[],
   parent?: HTMLElement,
   tableOfContents?: boolean,
   section?: string,
 }) {
+  const sectionDefs = sectionItems.filter((item): item is SectionDef => item !== "separator");
+
   const mobile = isMobile();
   const symbols = SYMBOLS[mobile ? "mobile" : "desktop"];
 
@@ -247,9 +249,15 @@ export function showViewer({
     const toc = document.createElement("div");
     toc.style.display = "flex";
     toc.style.flexDirection = "column";
+    toc.style.alignItems = "start";
     sectionsContainer.append(toc);
-    for (const {name} of sectionDefs)
-      toc.append(createSectionTitle(name));
+    for (const sect of sectionItems)
+      if (sect === "separator") {
+        const hr = document.createElement("hr");
+        toc.append(hr);
+        hr.style.width = "100%";
+      } else
+        toc.append(createSectionTitle(sect.name));
   }
 
   function addOption(name: string | undefined) {
@@ -263,8 +271,11 @@ export function showViewer({
 
   addOption(undefined);
   sectionSelect.append(document.createElement("hr"));
-  for (const {name} of sectionDefs)
-    addOption(name);
+  for (const sect of sectionItems)
+    if (sect === "separator")
+      sectionSelect.append(document.createElement("hr"));
+    else
+      addOption(sect.name);
 
   if (section || !tableOfContents)
     showSection(section, {updateURL: false});
