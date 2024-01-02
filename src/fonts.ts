@@ -45,11 +45,14 @@ export function attributesFromFontAttributes(
   return attr;
 }
 
-const SIMPLE_FONT_NAME_REGEXP = /^[a-z-]+$/;
+const SIMPLE_FONT_NAME_REGEXP = /^[a-zA-Z0-9-]+$/;
+const SIMPLE_QUOTABLE_FONT_NAME_REGEXP = /^[\w ]+$/;
 
 function quoteFontName(name: string) {
   if (SIMPLE_FONT_NAME_REGEXP.test(name))
     return name;
+  if (SIMPLE_QUOTABLE_FONT_NAME_REGEXP.test(name))
+    return `'${name}'`;
   return JSON.stringify(name);
 }
 
