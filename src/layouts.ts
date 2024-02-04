@@ -152,7 +152,14 @@ export function row(...args: OrArrayRest<Piece | undefined> | [{
   return column({...parseArgs(args), axis: Axis.X});
 }
 
-export type PackPiece = Piece | PackPiece[];
+export type PackPiece = Piece | PackPiece[] | PackArgs;
+
+export interface PackArgs {
+  pieces: PackPiece[],
+  axis?: Axis,
+  normaliseItems?: NormaliseArgs | "none",
+  gap?: number,
+}
 
 const DEFAULT_PACK_NORMALISE_ITEMS: NormaliseArgs = "default";
 
@@ -170,34 +177,27 @@ export function pack(...piecesRow: PackPiece[]): Piece;
  * At every level, each item is normalised using the specified normalisation args, `"default"`
  * by default.
  */
-export function pack(args: {
-  pieces: PackPiece[],
-  axis?: Axis,
-  normaliseItems?: NormaliseArgs | "none",
-  gap?: number,
-}): Piece;
-export function pack(...params: PackPiece[] | [{
-  pieces: PackPiece[],
-  axis?: Axis,
-  normaliseItems?: NormaliseArgs | "none",
-  gap?: number,
-}]) {
-  function isPackPieces(params: PackPiece[] | [{}]): params is PackPiece[] {
-    return params.length !== 1 || params[0] instanceof Piece || Array.isArray(params[0]);
+export function pack(args: PackArgs): Piece;
+export function pack(...params: PackPiece[] | [PackArgs]) {
+  function isPackArgs(params: PackPiece[] | [PackArgs]): params is [PackArgs] {
+    return params.length === 1 && !(params[0] instanceof Piece) && !Array.isArray(params[0]);
   }
   const {
     pieces,
     axis = Axis.X,
     normaliseItems = DEFAULT_PACK_NORMALISE_ITEMS,
     gap = 1,
-  } = isPackPieces(params) ? {pieces: params} : params[0];
+  } = isPackArgs(params) ? params[0] : {pieces: params};
   function norm(pc: Piece) {
     return normaliseItems === "none" ? pc : pc.normalise(normaliseItems);
   }
   function subPack(pieces: PackPiece[], axis: Axis): Piece {
     return column({
       pieces: pieces.map(o =>
-        (o instanceof Piece ? o : subPack(o, otherAxis(axis))).andThen(norm)),
+        (o instanceof Piece ? o :
+          Array.isArray(o) ? subPack(o, otherAxis(axis)) :
+            pack({axis: otherAxis(axis), ...o})
+        ).andThen(norm)),
       gap,
       axis,
     });
