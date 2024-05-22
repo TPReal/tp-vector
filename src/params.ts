@@ -99,7 +99,7 @@ function mergeParams<P1 extends object, P2 extends object>(p1: P1, p2: P2): P1 &
  * This sets `p.side` to 5 and `p.side2` to 10.
  */
 export function createParams<P extends object>(params: P): ConstructedParams<P> {
-  return Object.assign(
+  const result = Object.assign(
     <P2 extends object>(arg: P2 | ((p: P) => P2)) =>
       createParams(mergeParams(
         params,
@@ -107,4 +107,6 @@ export function createParams<P extends object>(params: P): ConstructedParams<P> 
       )),
     params,
   );
+  result.toString = () => JSON.stringify(params);
+  return result;
 }

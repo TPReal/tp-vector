@@ -1,3 +1,4 @@
+import {Piece, PieceFunc} from './pieces.ts';
 import {Turtle, TurtleFunc} from './turtle.ts';
 
 export interface FinderParams {
@@ -87,4 +88,33 @@ export function turtleSolve(t: Turtle, {action, testAction = action, findZero, p
 }) {
   return action(t,
     solveForZero(x => findZero(t.andThen(testAction, x), x), turtleFinderParamsFromPartial(params)));
+}
+
+/**
+ * Finds the value of `x` with which `piece.andThen(func, x)` gives the best result.
+ * A good result is one that satisfies `findZero(result) === 0` as good as possible,
+ * i.e. such that `findZero(result)` changes sign around this point.
+ *
+ * Note: In case of type inference issues, call explicitly like this:
+ *
+ *     somePiece.andThen(pc => pieceSolve(pc, {...})
+ */
+export function pieceSolve<P extends Piece, R = P>(piece: P, {func, findZero, params}: {
+  func: PieceFunc<P, R, [x: number]>,
+  findZero: (result: R, appliedX: number) => number,
+  params?: PartialFinderParams,
+}): R;
+export function pieceSolve<P extends Piece, T = P, R = P>(piece: P, {func, testFunc, findZero, params}: {
+  func: PieceFunc<P, R, [x: number]>,
+  testFunc: PieceFunc<P, T, [x: number]>,
+  findZero: (result: T, appliedX: number) => number,
+  params?: PartialFinderParams,
+}): R;
+export function pieceSolve<P extends Piece, T = P, R = P>(piece: P, {func, testFunc, findZero, params}: {
+  func: PieceFunc<P, R, [x: number]>,
+  testFunc?: PieceFunc<P, T, [x: number]>,
+  findZero: (result: T, appliedX: number) => number,
+  params?: PartialFinderParams,
+}) {
+  return func(piece, solveForZero(x => findZero((testFunc || func as NonNullable<typeof testFunc>)(piece, x), x), params));
 }

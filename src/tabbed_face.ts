@@ -124,7 +124,7 @@ function reverseTabs({
   };
 }
 
-class LazySimpleTabsDict<P extends string = never> implements TabsDict<P>{
+class LazySimpleTabsDict<P extends string = never> implements TabsDict<P> {
 
   static readonly EMPTY = new LazySimpleTabsDict({});
 
@@ -162,7 +162,8 @@ function startAngleDeg(startDir?: StartAngleDeg) {
 }
 
 export interface ReverseTabsParamsModifier {
-  reverse: boolean;
+  readonly reverse: boolean;
+  readonly invert: boolean;
 }
 
 /**
@@ -170,6 +171,7 @@ export interface ReverseTabsParamsModifier {
  * of stored tabs, plus modifiers.
  *
  * To reverse the base tabs, specify `{reverse: true}` as a modifier.
+ * To invert the base tabs, specify `{invert: true}` as a modifier.
  */
 export type RestTabsParams<P> = [
   params: TabsFuncParams | P,
@@ -413,10 +415,12 @@ export class TabbedFace<P extends string = never>
   private expandTabsFuncParams(tabsParams: RestTabsParams<P>) {
     const [base, ...modifiers] = tabsParams;
     let params = expandTabsFuncParams(typeof base === "string" ? this.tt[base] : base);
-    for (const {reverse, ...modifier} of modifiers) {
+    for (const {reverse, invert, ...modifier} of modifiers) {
       params = {...params, ...modifier};
       if (reverse)
         params = reverseTabs(params);
+      if (invert)
+        params = matchingTabs(params);
     }
     return params;
   }
@@ -634,6 +638,20 @@ export class TabbedFace<P extends string = never>
     return this.fromTabLevel(!baseLevel);
   }
 
+  forceOnTabLevel(tabLevel = true) {
+    const level = toLevel(tabLevel);
+    return this.appendSegment({
+      kind: "hop",
+      start: {level},
+      end: {level, required: true},
+      getFunc: (_start, _end) => IDENTITY_FUNC,
+    });
+  }
+
+  forceOnBaseLevel(baseLevel = true) {
+    return this.forceOnTabLevel(!baseLevel);
+  }
+
   private strafeToTab(toTabMult = 1): TurtleFunc {
     return t => t.strafeLeft(toTabMult * this.toTabLevelStrafeLeft);
   }
@@ -704,7 +722,7 @@ export class TabbedFace<P extends string = never>
     posTolerance?: number,
   } = {}) {
     let closed;
-    const firstHopSegm = this.segments.find((segm): segm is HopSegment => segm.kind === "hop");
+    const firstHopSegm = this.segments.find(isHopSegment);
     if (firstHopSegm) {
       const closeLevel = getPointLevel(
         this.segments.findLast(isHopSegment)?.end, firstHopSegm.start);
@@ -820,7 +838,7 @@ function checkFaceClosed(
       `${posTolerance ? ` with tolerance ${posTolerance}` : ``})`);
 }
 
-export class ClosedFace<P extends string = never> extends DefaultPiece implements TabsDict<P>{
+export class ClosedFace<P extends string = never> extends DefaultPiece implements TabsDict<P> {
 
   readonly tt;
   readonly fit;

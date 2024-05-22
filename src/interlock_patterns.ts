@@ -121,8 +121,9 @@ export class TabsPattern {
     numTabs = Math.max(tabEveryLen ? Math.ceil(length / tabEveryLen) : 0, minNumTabs),
     tabToSkipRatio = 1,
     tabLength,
-    startWithTab = false,
-    endWithTab = false,
+    startAndEndWithTab = false,
+    startWithTab = startAndEndWithTab,
+    endWithTab = startAndEndWithTab,
   }: {
     length: number,
     tabEveryLen?: number,
@@ -130,6 +131,7 @@ export class TabsPattern {
     numTabs?: number,
     tabToSkipRatio?: number,
     tabLength?: number,
+    startAndEndWithTab?: boolean,
     startWithTab?: boolean,
     endWithTab?: boolean,
   }) {
@@ -308,6 +310,7 @@ export class SlotsPattern {
     numSlots,
     slotToSkipRatio,
     slotLength,
+    startAndEndWithSlot,
     startWithSlot,
     endWithSlot,
   }: {
@@ -317,6 +320,7 @@ export class SlotsPattern {
     numSlots?: number,
     slotToSkipRatio?: number,
     slotLength?: number,
+    startAndEndWithSlot?: boolean,
     startWithSlot?: boolean,
     endWithSlot?: boolean,
   }) {
@@ -327,6 +331,7 @@ export class SlotsPattern {
       numTabs: numSlots,
       tabToSkipRatio: slotToSkipRatio,
       tabLength: slotLength,
+      startAndEndWithTab: startAndEndWithSlot,
       startWithTab: startWithSlot,
       endWithTab: endWithSlot,
     }).matchingSlots();
