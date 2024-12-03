@@ -257,7 +257,7 @@ placed alongside the code files.
 
 <!-- deno-fmt-ignore -->
 ```ts
-const myImage = await Image.fromAsset(import(`./my_image.png`));
+const myImage = await Image.fromAsset(import("" + "./my_image.png"));
 const myFont = await Font.fromAsset({
   name: "My Font",
   urlAsset: import(`./my_font.woff2`),

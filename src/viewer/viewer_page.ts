@@ -213,7 +213,7 @@ export function showViewer({
         console.warn(`Error rendering section ${JSON.stringify(name)}:`, e);
         content = document.createElement("pre");
         content.style.color = "red";
-        content.textContent = e.stack || String(e);
+        content.textContent = (e instanceof Error ? e.stack : undefined) || String(e);
       } finally {
         progress.remove();
         if (content)

@@ -5,7 +5,7 @@ export const name = "Images demo";
 export async function getSheets() {
 
   const [ts, js, esbuild, deno] = (await Promise.all([
-    Image.fromAsset(import(`./images_ts.png`)),
+    Image.fromAsset(import("" + "./images_ts.png")),
     Image.fromURL(
       "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/240px-JavaScript-logo.png"),
     Image.fromURL(

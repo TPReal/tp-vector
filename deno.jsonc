@@ -5,19 +5,18 @@
       "dom",
       "dom.iterable",
     ],
+    "noImplicitOverride": false,
   },
   "imports": {
     // To allow importing from tp-vector in custom projects.
     "tp-vector/": "./src/",
   },
   "lint": {
-    "files": {
-      "include": [
-        "src/",
-        // TODO: Create tests. Enable linting and compilation.
-        // "test/",
-      ],
-    },
+    "include": [
+      "src/",
+      // TODO: Create tests. Enable linting and compilation.
+      // "test/",
+    ],
     "rules": {
       "tags": ["recommended"],
       "include": [],
