@@ -29,6 +29,7 @@ export type Side = "front" | "back";
 
 export interface PartialCommonRunOptions {
   id?: string;
+  /** The layers which belong to this run. A layer can belong to multiple runs. */
   layers?: OptionalLayerName[];
   styleAttributes?: PartialMediaStyleAttributes;
   /**
@@ -37,6 +38,11 @@ export interface PartialCommonRunOptions {
    * actually be possible if the material was transparent).
    */
   side?: Side;
+  /**
+   * Whether corners marker should be included in this run.
+   * Corners marker is a set of objects placed in the corners, that are not sent to the laser,
+   * but are included to prevent the laser software from ignoring the margins of a vector file.
+   */
   includeCornersMarker?: boolean;
   posCorrectionMillimeters?: PosCorrectionMillimeters;
 }
@@ -44,16 +50,9 @@ export interface PartialCommonRunOptions {
 export interface CommonRunOptions {
   readonly type: "cut" | "print";
   readonly id: string;
-  /** The layers which belong to this run. A layer can belong to multiple runs. */
   readonly layers: readonly OptionalLayerName[];
   readonly styleAttributes: MediaStyleAttributes;
-  /** Side of the material on which this run should be executed. */
   readonly side: Side;
-  /**
-   * Whether corners marker should be included in this run.
-   * Corners marker is a set of objects placed in the corners, that are not sent to the laser,
-   * but are included to prevent the laser software from ignoring the margins of a vector file.
-   */
   readonly includeCornersMarker: boolean;
   readonly posCorrectionMillimeters?: PosCorrectionMillimeters;
 }

@@ -172,7 +172,7 @@ export function pack(...piecesRow: PackPiece[]): Piece;
 /**
  * Packs the piece items in a row (or column, if the Y axis is specified), similar to
  * what the `row` (or `column`) function does. Each item that is an array, is first packed
- * in the opposite direction  - and so on, recursively.
+ * along the opposite axis - and so on, recursively.
  *
  * At every level, each item is normalised using the specified normalisation args, `"default"`
  * by default.
