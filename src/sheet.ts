@@ -64,6 +64,30 @@ export type ButtonSaveFormat = SaveFormat | "both";
 
 const DEFAULT_RUNS: PartialRunOptions[] = [{type: "print"}, {type: "cut"}];
 
+export interface BasicSheetParams {
+  options?: PartialSheetOptions;
+  margin?: PartialViewBoxMargin;
+  viewBox?: PartialViewBox | "auto";
+  runs?: OrArray<PartialRunOptions>;
+  preserveRunsOrder?: boolean;
+}
+
+export interface SheetParams extends BasicSheetParams {
+  pieces: OrArray<BasicPiece | undefined>;
+}
+
+export function mergeSheetParams<S extends BasicSheetParams | undefined>(basic: OrArray<BasicSheetParams | undefined>, params: S):
+  S extends SheetParams ? SheetParams : BasicSheetParams {
+  let result: BasicSheetParams = {};
+  function merge<S extends BasicSheetParams>(params: S): S {
+    return {...result, ...params, options: {...result.options, ...params.options}};
+  }
+  for (const basicParams of flatten(basic))
+    if (basicParams)
+      result = merge(basicParams);
+  return (params ? merge(params) : result) as S extends SheetParams ? SheetParams : BasicSheetParams;
+}
+
 export class Sheet {
 
   private readonly runHandles?: ReadonlyMap<string, SVGGElement>;
@@ -88,14 +112,7 @@ export class Sheet {
     viewBox = "auto",
     runs,
     preserveRunsOrder = false,
-  }: {
-    options?: PartialSheetOptions,
-    pieces: OrArray<BasicPiece | undefined>,
-    margin?: PartialViewBoxMargin,
-    viewBox?: PartialViewBox | "auto",
-    runs?: OrArray<PartialRunOptions>,
-    preserveRunsOrder?: boolean,
-  }) {
+  }: SheetParams) {
     const sheetOptions = sheetOptionsFromPartial(options);
     const fullPieces = gather(flattenFilter(pieces));
     const fullMargin = viewBoxMarginFromPartial(margin);
