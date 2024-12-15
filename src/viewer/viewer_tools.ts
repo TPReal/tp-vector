@@ -70,10 +70,12 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
     // Don't trigger on label, only on checkbox.
     checkbox.addEventListener("dblclick", e => {
       e.preventDefault();
+      const isOnly = runCheckboxes.every(ch => ch === checkbox || !ch.checked);
       for (const ch of runCheckboxes)
-        if (ch.checked)
+        if (ch.checked !== isOnly)
           ch.click()
-      checkbox.click();
+      if (!isOnly)
+        checkbox.click();
     });
     for (const el of [label, checkbox])
       el.addEventListener("contextmenu", e => {
