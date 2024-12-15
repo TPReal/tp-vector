@@ -310,22 +310,22 @@ export class Sheet {
       let group;
       if (runOptions.type === "print" && printsAsImages) {
         // TODO: Consider converting pieces to PNG separately, at declared levels.
-        group = (await Image.fromURL({
-          url: await getPNGDataURI(
-            await this.getRawSVG({
-              medium,
-              printsAsImages: false,
-              runsSelector: {
-                runs: [id],
-                cornersMarker,
-                reversingFrame,
-              },
-            }), this.options.resolution),
-          scaling: {
-            width: this.viewBox.width,
-            height: this.viewBox.height,
-          },
-        }))
+        group = (await Image.fromURL(await getPNGDataURI(
+          await this.getRawSVG({
+            medium,
+            printsAsImages: false,
+            runsSelector: {
+              runs: [id],
+              cornersMarker,
+              reversingFrame,
+            },
+          }), this.options.resolution),
+          {
+            scaling: {
+              width: this.viewBox.width,
+              height: this.viewBox.height,
+            },
+          }))
           .translate(this.viewBox.minX, this.viewBox.minY)
           .asG({id: runOptions.id});
       } else

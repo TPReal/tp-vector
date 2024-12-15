@@ -1,5 +1,4 @@
-import {PartialCutOptions, PartialViewBox, Sheet, figures, gather} from 'tp-vector/index.ts';
-import {NormaliseArgs} from 'tp-vector/normalise_transform.ts';
+import {NormaliseArgs, PartialCutOptions, PartialViewBox, Sheet, figures, gather} from 'tp-vector/index.ts';
 import {getAxes, getExplainerObject, getExplainerSection} from './explainer_helper.ts';
 
 export const name = "Normalise explainer";

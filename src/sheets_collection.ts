@@ -1,4 +1,4 @@
-import {BasicSheetParams, mergeSheetParams, Sheet, SheetParams} from "tp-vector/sheet.ts";
+import {BasicSheetParams, mergeSheetParams, Sheet, SheetParams} from './sheet.ts';
 
 type SheetsCollectionCreateParams = [SheetsCollectionInput] | [BasicSheetParams | undefined, SheetsCollectionInput];
 

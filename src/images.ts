@@ -1,8 +1,8 @@
 import {AlignmentNumber, Fitting, PartialOriginAlignment, RequiredOriginAlignment, alignmentToNumber, requiredOriginAlignmentFromPartial} from './alignment.ts';
+import * as assets from './assets.ts';
 import * as dataURIConv from './data_uri_conv.ts';
 import {cloneElement, createElement, getElementsBoundingBox, setAttributes} from './elements.ts';
 import {getGlobalOptions} from './global_options.ts';
-import {assets} from './index.ts';
 import {loadEvent} from './internal_util.ts';
 import {DefaultPiece} from './pieces.ts';
 
@@ -52,32 +52,15 @@ export class Image extends DefaultPiece {
   }
 
   /**
-   * Loads an image from a URL.
-   * If it's an external URL, the image is fetched and encoded as a data URI instead.
-   */
-  static async fromURL(url: string): Promise<Image>;
-  /**
    * Loads an image from a URL, with the specified scaling.
    * If it's an external URL, the image is fetched and encoded as a data URI instead.
    */
-  static async fromURL(args: {
-    url: string,
-    scaling?: PartialImageScaling,
-  }): Promise<Image>;
-  static async fromURL(arg: string | {
-    url: string,
-    scaling?: PartialImageScaling,
-  }) {
-    const {url, scaling = undefined} = typeof arg === "string" ? {url: arg} : arg;
+  static async fromURL(url: string, {scaling}: {scaling?: PartialImageScaling} = {}) {
     const image = createElement({tagName: "image"});
     const loaded = loadEvent(image);
     setAttributes(image, {href: await dataURIConv.urlToDataURI(url)});
     await loaded;
-    return Image.fromImage({
-      image,
-      canModifyImage: true,
-      scaling,
-    });
+    return Image.fromImage(image, {canModifyImage: true, scaling});
   }
 
   static async fromAsset(urlAsset: assets.ModuleImport<string>): Promise<Image>;
@@ -90,25 +73,13 @@ export class Image extends DefaultPiece {
     scaling?: PartialImageScaling,
   }) {
     const {urlAsset, scaling = undefined} = arg instanceof Promise ? {urlAsset: arg} : arg;
-    return await Image.fromURL({
-      url: await assets.url(urlAsset),
-      scaling,
-    });
+    return await Image.fromURL(await assets.url(urlAsset), {scaling});
   }
 
-  static fromImage(image: SVGImageElement): Image;
-  static fromImage(args: {
-    image: SVGImageElement,
+  static fromImage(image: SVGImageElement, {canModifyImage = false, scaling}: {
     canModifyImage?: boolean,
     scaling?: PartialImageScaling,
-  }): Image;
-  static fromImage(arg: SVGImageElement | {
-    image: SVGImageElement,
-    canModifyImage?: boolean,
-    scaling?: PartialImageScaling,
-  }) {
-    const {image, canModifyImage = false, scaling = undefined} =
-      arg instanceof SVGImageElement ? {image: arg} : arg;
+  } = {}) {
     const imageClone = canModifyImage ? image : cloneElement(image);
     const fullScaling = imageScalingFromPartial(scaling);
     applyImageScalingAttributes(imageClone, fullScaling);
@@ -116,7 +87,7 @@ export class Image extends DefaultPiece {
   }
 
   setScaling(scaling: PartialImageScaling) {
-    return Image.fromImage({image: this.image, scaling});
+    return Image.fromImage(this.image, {scaling});
   }
 
 }
