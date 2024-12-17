@@ -6,10 +6,11 @@ import * as layouts from './layouts.ts';
 import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Defs, Piece, gather} from './pieces.ts';
+import {Point} from './point.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
-import {OrArray, assert, flatten, flattenFilter} from './util.ts';
+import {OrArray, assert, flatten, flattenFilter, roundReasonably} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, viewBoxFromPartial, viewBoxMarginFromPartial, viewBoxToString} from './view_box.ts';
 
 const DEFAULT_SVG_BORDER_STYLE = "solid #00f4 1px";
@@ -459,12 +460,12 @@ export class Sheet {
    */
   async getPreviewSVG({
     runsSelector,
-    saveOnClick = true,
+    showPointOnDblClick = true,
     border = true,
     hoverTitle = true,
   }: {
     runsSelector?: PartialRunsSelector,
-    saveOnClick?: boolean,
+    showPointOnDblClick?: boolean,
     border?: SVGBorderStyle,
     hoverTitle?: boolean,
   } = {}) {
@@ -476,9 +477,16 @@ export class Sheet {
       titleElement.textContent = this.getPreviewHoverTitle({runsSelector: fullRunsSelector});
       svg.insertAdjacentElement("afterbegin", titleElement);
     }
-    if (saveOnClick)
-      svg.addEventListener("click", () => {
-        this.saveLaserSVG({runsSelector});
+    if (showPointOnDblClick)
+      svg.addEventListener("dblclick", (event) => {
+        const elem = event.currentTarget as HTMLElement;
+        const point: Point = [
+          this.viewBox.minX + event.offsetX / elem.clientWidth * this.viewBox.width,
+          this.viewBox.minY + event.offsetY / elem.clientHeight * this.viewBox.height,
+        ];
+        console.log("Point:", point);
+        alert(`Point: [${point.map(c => roundReasonably(c, {significantDigits: 4})).join(", ")}]`);
+        event.preventDefault();
       });
     return svg;
   }

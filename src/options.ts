@@ -87,6 +87,7 @@ export function getDefaultPrintStyleAttributes({id, previewColors = ALL_BLACK}: 
       fill: previewColors.get(id),
       stroke: previewColors.get(id),
       strokeWidth: 0,
+      cursor: "default",
     },
     laser: {
       fill: "black",
