@@ -8,23 +8,24 @@ import {showViewer} from './viewer_page.ts';
  * Returns a `<div>` containing a preview of the Sheet, including checkboxes to control runs
  * visibility and buttons to save runs to files.
  */
-export async function getSheetPreview(sheet: Sheet, {projectName, forceShowTitle = false}: {
-  projectName?: string,
-  forceShowTitle?: boolean,
-} = {}) {
+export async function getSheetPreview(sheet: Sheet) {
   const div = document.createElement("div");
   div.style.display = "flex";
   div.style.flexDirection = "column";
   div.style.gap = "0.2em";
-  if (sheet.name && (forceShowTitle || sheet.name !== projectName)) {
-    const sheetNameInfo = document.createElement("div");
-    div.append(sheetNameInfo);
-    sheetNameInfo.append("Sheet: ");
-    const sheetName = document.createElement("span");
-    sheetNameInfo.append(sheetName);
+  const sheetNameInfo = document.createElement("div");
+  div.append(sheetNameInfo);
+  sheetNameInfo.append("Sheet: ");
+  const sheetName = document.createElement("span");
+  sheetNameInfo.append(sheetName);
+  if (sheet.name) {
     sheetName.style.textDecoration = "underline";
     sheetName.append(sheet.name);
-  }
+  } else
+    sheetName.append("(unnamed)");
+  const sheetSize = document.createElement("span");
+  sheetNameInfo.append(" ", sheetSize);
+  sheetSize.append(`(${sheet.getSizeString()})`);
   const svgContainer = document.createElement("div");
   div.append(svgContainer);
   const svg = await sheet.getPreviewSVG();
@@ -161,9 +162,8 @@ export class Viewer {
       div.style.flexDirection = "column";
       div.style.gap = "1em";
       const sheets = await getProjectSheets(content, ...args);
-      for (let i = 0; i < sheets.length; i++)
-        div.append(await getSheetPreview(
-          sheets[i], {projectName: content.name, forceShowTitle: i > 0}));
+      for (const sheet of sheets)
+        div.append(await getSheetPreview(sheet));
       return div;
     } : content.element;
     return this.addSect({name: content.name, element});

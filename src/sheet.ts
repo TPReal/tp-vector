@@ -462,50 +462,39 @@ export class Sheet {
     runsSelector,
     showPointOnDblClick = true,
     border = true,
-    hoverTitle = true,
   }: {
     runsSelector?: PartialRunsSelector,
     showPointOnDblClick?: boolean,
     border?: SVGBorderStyle,
-    hoverTitle?: boolean,
   } = {}) {
     const fullRunsSelector = this.runsSelectorFromPartial({medium: "preview", runsSelector});
     const svg = await this.getRawSVG({medium: "preview", runsSelector: fullRunsSelector});
     addBorder(svg, border);
-    if (hoverTitle) {
-      const titleElement = createElement({tagName: "title"});
-      titleElement.textContent = this.getPreviewHoverTitle({runsSelector: fullRunsSelector});
-      svg.insertAdjacentElement("afterbegin", titleElement);
-    }
+    const titleElement = createElement({
+      tagName: "title",
+      children: this.name ? `${this.name} (${this.getSizeString()})` : this.getSizeString(),
+    });
+    svg.insertAdjacentElement("afterbegin", titleElement);
     if (showPointOnDblClick)
       svg.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+        document.getSelection()?.empty();
         const elem = event.currentTarget as HTMLElement;
         const point: Point = [
           this.viewBox.minX + event.offsetX / elem.clientWidth * this.viewBox.width,
           this.viewBox.minY + event.offsetY / elem.clientHeight * this.viewBox.height,
         ];
         console.log("Point:", point);
-        alert(`Point: [${point.map(c => roundReasonably(c, {significantDigits: 4})).join(", ")}]`);
-        event.preventDefault();
+        setTimeout(() => {
+          alert(`Point: [${point.map(c => roundReasonably(c, {significantDigits: 4})).join(", ")}]`);
+        });
       });
     return svg;
   }
 
-  private getPreviewHoverTitle({runsSelector: {runs, reversingFrame}}: {
-    runsSelector: RunsSelector,
-  }) {
-    const text = [this.options.fileName];
-    if (runs !== "all") {
-      text.push(" (");
-      text.push([
-        runs.join(", "),
-        reversingFrame && "#",
-      ].filter(Boolean).join(" "));
-      text.push(")");
-    }
-    text.push(" (", getSizeString(this.viewBox.width, this.options.millimetersPerUnit),
-      "×", getSizeString(this.viewBox.height, this.options.millimetersPerUnit), ")");
-    return text.join("");
+  getSizeString() {
+    return getSizeString(this.viewBox.width, this.options.millimetersPerUnit) + "×" +
+      getSizeString(this.viewBox.height, this.options.millimetersPerUnit);
   }
 
   /**
