@@ -19,7 +19,7 @@ export * as layouts from './layouts.ts';
 export {SimpleLazyPiece} from './lazy_piece.ts';
 export {getNormaliseTransform, type NormaliseArgs} from './normalise_transform.ts';
 export {type CutOptions, type Medium, type PartialCutOptions, type PartialPrintOptions, type PartialRunOptions, type PartialSheetOptions, type PrintOptions, type RunOptions, type SheetOptions, type Side} from './options.ts';
-export {createInlineParams, createParams, type InlineParams} from './params.ts';
+export {createInlineParams, createNumParams, createParams, type InlineParams} from './params.ts';
 export {Path} from './path.ts';
 export {DefaultPiece, gather, Piece, type BasicPiece} from './pieces.ts';
 export {type Point} from './point.ts';

@@ -1,4 +1,4 @@
-import {Piece, Sheet, createParams, createText, figures, gather, layouts} from 'tp-vector/index.ts';
+import {Piece, Sheet, createNumParams, createText, figures, gather, layouts} from 'tp-vector/index.ts';
 
 export const name = "printPosCorrection calibrator";
 
@@ -14,7 +14,7 @@ export interface CorrectionParams {
  */
 export function getSheets(params: CorrectionParams = {}) {
 
-  const p = createParams({
+  const p = createNumParams(p => ({
     max: 0.5,
     step: 0.1,
     ...params,
@@ -22,7 +22,6 @@ export function getSheets(params: CorrectionParams = {}) {
     scoresDist: 1.5,
     scoreLength: 6,
     subdivScoreLength: 4,
-  })(p => ({
     unitDist: p.scoresDist * p.subdivs / p.step,
   }));
 

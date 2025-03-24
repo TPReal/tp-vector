@@ -1,22 +1,21 @@
-import {Sheet, Turtle, createLinearGradient, createParams, figures, gather, layouts} from 'tp-vector/index.ts';
+import {Sheet, Turtle, createLinearGradient, createNumParams, figures, gather, layouts} from 'tp-vector/index.ts';
 
 export const name = "Gradient calibrator";
 
 /** Returns a calibrator Sheet for testing gradients. */
 export function getSheets() {
 
-  const p = createParams({
+  const p = createNumParams(p => ({
     size: {
       width: 50,
       height: 5,
     },
     divs: 4,
     margins: 0.5,
-    dasharray: [2, 4, 2, 6],
-  })(p => ({
     marginRatio: p.margins / (p.divs + 2 * p.margins),
     innerRatio: p.divs / (p.divs + 2 * p.margins),
   }));
+  const dasharray = [2, 4, 2, 6];
 
   const gradient = gather(
     figures.rectangle({...p.size, cornerRadius: 0.5}),
@@ -29,7 +28,7 @@ export function getSheets() {
       .setAttributes({strokeWidth: 0.3})
       .setLayer("print"),
     Turtle.create()
-      .repeat(p.dasharray, (t, d, i) =>
+      .repeat(dasharray, (t, d, i) =>
         t.penDown(i % 2 === 0).forward(d)
       )
       .normalise({y: {min: 0, max: p.size.height}})

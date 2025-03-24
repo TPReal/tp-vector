@@ -1,4 +1,4 @@
-import {Piece, Sheet, TabsPattern, Turtle, createParams, createText, figures, gather, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
+import {Piece, Sheet, TabsPattern, Turtle, createNumParams, createText, figures, gather, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
 
 export const name = "Kerf calibrator";
 
@@ -16,7 +16,7 @@ export interface KerfParams {
  */
 export function getSheets(params: KerfParams) {
 
-  const p = createParams({
+  const p = createNumParams(p => ({
     min: 0,
     step: 0.03,
     max: 0.3,
@@ -25,7 +25,6 @@ export function getSheets(params: KerfParams) {
     tabsSpace: 4,
     textHeight: 3,
     proberCornersRadius: 2,
-  })(p => ({
     count: Math.floor((p.max - p.min) / p.step + 1e-9) + 1,
     frameCornersRadius: p.thickness + p.textHeight + p.thickness - p.tabsSpace / 2,
   }));

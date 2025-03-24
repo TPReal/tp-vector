@@ -56,37 +56,27 @@ type ConstructedParams<P extends object> = P & {
   <P2 extends object>(paramsFunc: P2 | ((p: P) => P2)): ConstructedParams<P & P2>,
 };
 
-function mergeValue(key: string, v1: unknown, v2: unknown) {
-  if (Array.isArray(v1)) {
-    if (!Array.isArray(v2))
-      throw new Error(`Cannot merge array with non-array for key ${key}`);
-    return [...v1, ...v2];
-  }
-  if (typeof v1 === "object") {
-    if (typeof v2 !== "object")
-      throw new Error(`Cannot merge object with non-object for key ${key}`);
-    if (v2 == null)
-      return v1;
-    if (v1 == null)
-      return v2;
-    return mergeParams(v1, v2);
-  }
-  throw new Error(`Cannot merge values for key ${key}, can only merge objects and arrays`);
-}
-
 function mergeParams<P1 extends object, P2 extends object>(p1: P1, p2: P2): P1 & P2 {
   const result = {...p1, ...p2};
-  const p1Keys = new Set(Object.keys(p1));
   for (const [key, p2Value] of Object.entries(p2))
-    if (p1Keys.has(key))
+    if (Object.hasOwn(p1, key))
       (result as Record<string, unknown>)[key] =
         mergeValue(key, (p1 as Record<string, unknown>)[key], p2Value);
   return result;
 }
 
+function mergeValue(key: string, v1: unknown, v2: unknown) {
+  if (v1 == undefined)
+    return v2;
+  if (v2 == undefined)
+    return v1;
+  if (typeof v1 === "object" && !Array.isArray(v1) && typeof v2 === "object" && !Array.isArray(v2))
+    return mergeParams(v1, v2);
+  throw new Error(`Cannot merge values for key ${key}, can only merge objects`);
+}
+
 /**
- * Creates a type-safe params object, with the ability to create params
- * based on other params.
+ * Creates a type-safe params object, with the ability to create params based on other params.
  *
  * Usage example:
  *
@@ -101,12 +91,132 @@ function mergeParams<P1 extends object, P2 extends object>(p1: P1, p2: P2): P1 &
 export function createParams<P extends object>(params: P): ConstructedParams<P> {
   const result = Object.assign(
     <P2 extends object>(arg: P2 | ((p: P) => P2)) =>
-      createParams(mergeParams(
-        params,
-        typeof arg === "function" ? arg(params) : arg,
-      )),
+      createParams(mergeParams(params, typeof arg === "function" ? arg(params) : arg)),
     params,
   );
   result.toString = () => JSON.stringify(params);
   return result;
+}
+
+interface NumParamsType {
+  readonly [key: string]: number | NumParamsType | undefined;
+}
+
+// deno-lint-ignore no-explicit-any
+type NumParamsArgType = {readonly [key: string]: number & NumParamsArgType & any};
+
+type NumParamsInput<P extends NumParamsType> = P | ((p: NumParamsArgType) => P);
+
+function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(base: P, spec: NumParamsInput<R>): P & R {
+  function toPrimitive(hint: string) {
+    return hint === "string" ? "??" : NaN;
+  }
+  function merge(p1: NumParamsType, p2: NumParamsType) {
+    const result: {-readonly [K in keyof NumParamsType]: NumParamsType[K]} = {...p1};
+    for (const [key, value2] of Object.entries(p2)) {
+      if (value2 == undefined)
+        continue;
+      let v2 = value2;
+      if ((v2 as {[Symbol.toPrimitive]?: unknown})[Symbol.toPrimitive] === toPrimitive)
+        v2 = Number.NaN;
+      const v1 = result[key];
+      result[key] = (() => {
+        if (typeof v2 === "number") {
+          if (v1 === undefined)
+            return v2;
+          if (typeof v1 === "number") {
+            if (!Number.isNaN(v1) && v2 !== v1)
+              throw new Error(`Unstable value for key ${key}, ${v1} -> ${v2}`);
+            return v2;
+          }
+        }
+        if (typeof v2 === "object" && (v1 === undefined || typeof v1 === "object"))
+          return merge(v1 || {}, v2);
+        throw new Error(`Cannot merge values for key ${key}, can only merge objects`);
+      })();
+    }
+    return result as NumParamsType;
+  }
+  if (typeof spec === "function") {
+    let missCount = 0;
+    const handler: ProxyHandler<NumParamsType> = {
+      get: (target, key) => {
+        if (key === Symbol.toPrimitive)
+          return toPrimitive;
+        if (typeof key !== "string")
+          throw new Error(`Expected string key, got: ${String(key)}`);
+        if (!Object.hasOwn(target, key)) {
+          missCount++;
+          return wrap({});
+        }
+        const val = target[key];
+        if (val === undefined) {
+          return undefined;
+        }
+        if (typeof val === "number") {
+          if (Number.isNaN(val))
+            missCount++;
+          return val;
+        }
+        if (typeof val === "object" && !Array.isArray(val))
+          return wrap(val);
+        throw new Error(`Expected number or number params, got: ${val} (key: ${key})`);
+      }
+    };
+    function wrap(target: NumParamsType) {
+      return new Proxy(target, handler);
+    }
+    let lastMissCount = Number.POSITIVE_INFINITY;
+    let current = base;
+    for (; ;) {
+      missCount = 0;
+      const processed = spec(wrap(current));
+      if (!missCount)
+        return merge(base, processed) as P & R;
+      if (missCount >= lastMissCount)
+        throw new Error(`Cannot compute numeric params, got: ${JSON.stringify(processed)}`);
+      lastMissCount = missCount;
+      current = merge(current, processed) as P & R;
+    }
+  } else
+    return merge(base, spec) as P & R;
+}
+
+type NumParams<P extends NumParamsType> = P & {
+  andThen<R extends NumParamsType>(params: NumParamsInput<R>): NumParams<P & R>;
+  andThenParams<R extends object>(params: R | ((p: P) => R)): ConstructedParams<P & R>;
+};
+
+class NumParamsImpl<P extends NumParamsType> {
+  protected constructor(params: P) {
+    Object.assign(this, params);
+  }
+
+  static create<P extends NumParamsType>(params: P) {
+    return new NumParamsImpl(params) as unknown as NumParams<P>;
+  }
+
+  andThen<R extends NumParamsType>(params: NumParamsInput<R>) {
+    return NumParamsImpl.create(mergeNumParams(this as unknown as NumParams<P>, params));
+  }
+
+  andThenParams<R extends object>(params: R | ((p: P) => R)) {
+    return createParams({...this} as unknown as P)(params);
+  }
+}
+
+/**
+ * Creates a numeric params object, with the ability to create params based on other params.
+ *
+ * Usage example:
+ *
+ *     const p = createNumParams(p => ({
+ *       side: 5,
+ *       side2: 2 * p.side,
+ *     }));
+ *
+ * This sets `p.side` to 5 and `p.side2` to 10.
+ */
+export function createNumParams<P extends NumParamsType>(params: NumParamsInput<P>) {
+  return NumParamsImpl.create(mergeNumParams({}, params));
 }
