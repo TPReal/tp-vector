@@ -107,7 +107,17 @@ type NumParamsArgType = {readonly [key: string]: number & NumParamsArgType & any
 
 type NumParamsInput<P extends NumParamsType> = P | ((p: NumParamsArgType) => P);
 
-function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(base: P, spec: NumParamsInput<R>): P & R {
+type IsAny<T> = boolean extends (T extends never ? true : false) ? true : false;
+/**
+ * Replaces the any-typed values caused by referencing the parameter of NumParamsInput
+ * with the number type.
+ */
+type ReplaceAnys<P extends NumParamsType> = {
+  [K in keyof P]: IsAny<P[K]> extends true ? number : P[K] extends NumParamsType ? ReplaceAnys<P[K]> : P[K];
+};
+
+function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(
+  base: P, params: NumParamsInput<R>): ReplaceAnys<P & R> {
   function toPrimitive(hint: string) {
     return hint === "string" ? "??" : NaN;
   }
@@ -137,7 +147,7 @@ function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(base: 
     }
     return result as NumParamsType;
   }
-  if (typeof spec === "function") {
+  if (typeof params === "function") {
     let missCount = 0;
     const handler: ProxyHandler<NumParamsType> = {
       get: (target, key) => {
@@ -170,16 +180,27 @@ function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(base: 
     let current = base;
     for (; ;) {
       missCount = 0;
-      const processed = spec(wrap(current));
+      const processed = params(wrap(current));
       if (!missCount)
-        return merge(base, processed) as P & R;
-      if (missCount >= lastMissCount)
-        throw new Error(`Cannot compute numeric params, got: ${JSON.stringify(processed)}`);
+        return merge(base, processed) as ReplaceAnys<P & R>;
+      if (missCount >= lastMissCount) {
+        const badKeys: string[][] = [];
+        function findBadKeys(keys: string[], val: NumParamsType) {
+          for (const [key, value] of Object.entries(val)) {
+            if (Number.isNaN(value))
+              badKeys.push([...keys, key]);
+            else if (value && typeof value === "object")
+              findBadKeys([...keys, key], value);
+          }
+        }
+        findBadKeys([], processed);
+        throw new Error(`Cannot compute numeric params, bad keys: ${badKeys.map(k => k.join(".")).join(", ")}`);
+      }
       lastMissCount = missCount;
       current = merge(current, processed) as P & R;
     }
   } else
-    return merge(base, spec) as P & R;
+    return merge(base, params) as ReplaceAnys<P & R>;
 }
 
 type NumParams<P extends NumParamsType> = P & {
