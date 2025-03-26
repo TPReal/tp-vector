@@ -1,6 +1,6 @@
 import {createElement} from './elements.ts';
 import {SimpleLazyPiece} from './lazy_piece.ts';
-import {Point, pointsToString} from './point.ts';
+import {Point, isZeroPoint, pointsToString} from './point.ts';
 import {OrArrayRest, flatten, roundReasonably} from './util.ts';
 
 /**
@@ -51,7 +51,10 @@ function arcArgsFromPartial({
 /** A builder for a `<path>` element. */
 export class Path extends SimpleLazyPiece {
 
-  protected constructor(private readonly commands: readonly string[]) {
+  protected constructor(
+    private readonly commands: readonly string[],
+    private readonly lastCommand: string | undefined,
+  ) {
     super(() => this.getElement());
   }
 
@@ -59,7 +62,7 @@ export class Path extends SimpleLazyPiece {
   static create(...params: Parameters<typeof SimpleLazyPiece.create>): never;
   static create(...params: unknown[]) {
     const [start = [0, 0]] = params as [Point?];
-    return new Path([]).moveTo(start);
+    return new Path([], undefined).moveTo(start);
   }
 
   /**
@@ -67,7 +70,7 @@ export class Path extends SimpleLazyPiece {
    * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
    */
   static fromD(...commandsOrD: OrArrayRest<string>) {
-    return new Path(flatten(commandsOrD).map(d => d.trim()));
+    return new Path(flatten(commandsOrD).map(d => d.trim()), undefined);
   }
 
   private getElement() {
@@ -79,16 +82,23 @@ export class Path extends SimpleLazyPiece {
     args?: string,
     relative?: boolean,
   }[], pathClass = Path) {
-    const newElements = elementSpecs.map(({command, args, relative = false}) => {
-      const caseCommand = relative ? command.toLowerCase() : command;
-      return args ? `${caseCommand} ${args}` : caseCommand;
-    });
-    return new pathClass([...this.commands, ...newElements]);
+    if (!elementSpecs.length)
+      return this;
+    const commands = [...this.commands];
+    let lastCommand = this.lastCommand;
+    for (const {command, args, relative = false} of elementSpecs) {
+      if (command === "M" && lastCommand === "M")
+        commands.pop();
+      lastCommand = command;
+      const casedCommand = relative ? command.toLowerCase() : command;
+      commands.push(args ? `${casedCommand} ${args}` : casedCommand);
+    }
+    return new pathClass(commands, lastCommand);
   }
 
   /** Moves to the point, without drawing a line. */
   moveTo(target: Point, {relative = false} = {}) {
-    return this.append([{
+    return relative && isZeroPoint(target) ? this : this.append([{
       command: "M",
       args: pointsToString([target]),
       relative,
@@ -100,6 +110,8 @@ export class Path extends SimpleLazyPiece {
   }
 
   private appendLineTo(targets: Point[], relative = false) {
+    if (relative)
+      targets = targets.filter(target => !isZeroPoint(target));
     return this.append(targets.map(target => ({
       command: "L",
       args: pointsToString([target]),
@@ -117,7 +129,7 @@ export class Path extends SimpleLazyPiece {
 
   /** Draws a horizontal line. */
   horizontal(x: number, {relative = false} = {}) {
-    return this.append([{command: "H", args: String(x), relative}]);
+    return relative && x === 0 ? this : this.append([{command: "H", args: String(x), relative}]);
   }
 
   relativeHorizontal(dx: number) {
@@ -126,7 +138,7 @@ export class Path extends SimpleLazyPiece {
 
   /** Draws a vertical line. */
   vertical(y: number, {relative = false} = {}) {
-    return this.append([{command: "V", args: String(y), relative}]);
+    return relative && y === 0 ? this : this.append([{command: "V", args: String(y), relative}]);
   }
 
   relativeVertical(dy: number) {

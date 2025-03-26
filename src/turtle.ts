@@ -651,7 +651,10 @@ export class Turtle extends DefaultPiece {
     );
   }
 
-  /** Closes the Turtle's path and returns the Path. */
+  /**
+   * Closes the Turtle's path and returns the Path. Note that this might close the subpath
+   * and not the whole path, if the Turtle was moved.
+   */
   closePath() {
     return this.asPath().closePath();
   }
