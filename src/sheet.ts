@@ -6,7 +6,7 @@ import * as layouts from './layouts.ts';
 import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Defs, Piece, gather} from './pieces.ts';
-import {Point} from './point.ts';
+import {Point, pointDebugString} from './point.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
@@ -475,6 +475,9 @@ export class Sheet {
       children: this.name ? `${this.name} (${this.getSizeString()})` : this.getSizeString(),
     });
     svg.insertAdjacentElement("afterbegin", titleElement);
+    let prevPoint: Point | undefined;
+    let totalDist = 0;
+    let totalDistNumPoints = 1;
     if (showPointOnDblClick)
       svg.addEventListener("dblclick", (event) => {
         event.preventDefault();
@@ -486,7 +489,27 @@ export class Sheet {
         ];
         console.log("Point:", point);
         setTimeout(() => {
-          alert(`Point: [${point.map(c => roundReasonably(c, {significantDigits: 4})).join(", ")}]`);
+          const pointStr = `Point: ${pointDebugString(point)}`;
+          if (prevPoint) {
+            const distToPrev = Math.hypot(point[0] - prevPoint[0], point[1] - prevPoint[1]);
+            totalDist += distToPrev;
+            totalDistNumPoints++;
+            prevPoint = point;
+            if (!confirm(`\
+${pointStr}
+Previous point: ${pointDebugString(prevPoint)}
+Distance from previous point: ${roundReasonably(distToPrev, {significantDigits: 4})}
+
+Total distance (${totalDistNumPoints} points): ${roundReasonably(totalDist, {significantDigits: 4})}
+Continue summing up distances?`)) {
+              totalDist = 0;
+              totalDistNumPoints = 1;
+              prevPoint = undefined;
+            }
+          } else {
+            prevPoint = point;
+            alert(pointStr);
+          }
         });
       });
     return svg;

@@ -12,3 +12,11 @@ export function pointsToString(points: Point[]) {
     `${roundReasonably(x)},${roundReasonably(y)}`
   ).join(" ");
 }
+
+export function pointDebugString(point: Point) {
+  return `[${point.map(c => roundReasonably(c, {significantDigits: 4})).join(", ")}]`;
+}
+
+export function isZeroPoint([x, y]: Point) {
+  return x === 0 && y === 0;
+}

@@ -59,6 +59,7 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
     span.style.whiteSpace = "nowrap";
     const label = document.createElement("label");
     span.append(label);
+    label.style.userSelect = "none";
     const checkbox = document.createElement("input");
     label.append(checkbox);
     runCheckboxes.push(checkbox);
