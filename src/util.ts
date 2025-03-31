@@ -38,9 +38,9 @@ export function round(v: number, {
 }
 
 type Truthy<T> = Exclude<T, null | undefined | 0 | "" | false>;
-export function assert<T>(value: T): Truthy<T> {
+export function assert<T>(value: T, message?: string): Truthy<T> {
   if (!value)
-    throw new Error(`Assertion failed, expected truthy, got ${value}`);
+    throw new Error(message || `Expected truthy, got ${value}`);
   return value as Truthy<T>;
 }
 

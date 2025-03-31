@@ -105,7 +105,7 @@ interface NumParamsType {
 // deno-lint-ignore no-explicit-any
 type NumParamsArgType = {readonly [key: string]: number & NumParamsArgType & any};
 
-type NumParamsInput<P extends NumParamsType> = P | ((p: NumParamsArgType) => P);
+type NumParamsInput<P extends NumParamsType> = P | ((p: NumParamsArgType, helpers: {assert: typeof numParamsAssert}) => P);
 
 type IsAny<T> = boolean extends (T extends never ? true : false) ? true : false;
 /**
@@ -180,7 +180,7 @@ function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(
     let current = base;
     for (; ;) {
       missCount = 0;
-      const processed = params(wrap(current));
+      const processed = params(wrap(current), {assert: numParamsAssert});
       if (!missCount)
         return merge(base, processed) as ReplaceAnys<P & R>;
       if (missCount >= lastMissCount) {
@@ -240,4 +240,48 @@ class NumParamsImpl<P extends NumParamsType> {
  */
 export function createNumParams<P extends NumParamsType>(params: NumParamsInput<P>) {
   return NumParamsImpl.create(mergeNumParams({}, params));
+}
+
+export namespace numParamsAssert {
+
+  export function gt(value: number, reference: number, message = `Expected value greater than reference`) {
+    if (Number.isNaN(reference))
+      return Number.NaN;
+    return assert(value, v => v > reference, `${message} (value: ${value}, reference: ${reference})`);
+  }
+
+  export function lt(value: number, reference: number, message = `Expected value less than reference`) {
+    if (Number.isNaN(reference))
+      return Number.NaN;
+    return assert(value, v => v < reference, `${message} (value: ${value}, reference: ${reference})`);
+  }
+
+  export function gte(value: number, reference: number, message = `Expected value greater than or equal to reference`) {
+    if (Number.isNaN(reference))
+      return Number.NaN;
+    return assert(value, v => v >= reference, `${message} (value: ${value}, reference: ${reference})`);
+  }
+
+  export function lte(value: number, reference: number, message = `Expected value less than or equal to reference`) {
+    if (Number.isNaN(reference))
+      return Number.NaN;
+    return assert(value, v => v <= reference, `${message} (value: ${value}, reference: ${reference})`);
+  }
+
+  export function pos(value: number, message = `Expected positive value`) {
+    return assert(value, v => v > 0, `${message} (value: ${value})`);
+  }
+
+  export function nonNeg(value: number, message = `Expected non-negative value`) {
+    return assert(value, v => v >= 0, `${message} (value: ${value})`);
+  }
+
+  export function assert(value: number, predicate: (v: number) => boolean, message = `Expected value to satisfy the predicate`) {
+    if (Number.isNaN(value))
+      return Number.NaN;
+    if (!predicate(value))
+      throw new Error(message);
+    return value;
+  }
+
 }

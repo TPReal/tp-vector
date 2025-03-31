@@ -11,7 +11,13 @@ interface State {
 }
 
 /**
- * Quadratic Bézier curve parameters - There are none to configure for the quadratic curve.
+ * Line segment parameters. There are none to configure for the line segmnet.
+ * @see {@link Turtle.curveTo}
+ */
+export type LineCurveArgs = "line";
+
+/**
+ * Quadratic Bézier curve parameters. There are none to configure for the quadratic curve.
  * @see {@link Turtle.curveTo}
  */
 export type QuadraticCurveArgs = "quad";
@@ -33,7 +39,7 @@ export interface PartialCubicCurveArgs {
   targetSpeed?: ControlPointSpeed;
 }
 /** Parameters of a quadratic or cubic Bézier curve. */
-export type PartialCurveArgs = QuadraticCurveArgs | PartialCubicCurveArgs;
+export type PartialCurveArgs = LineCurveArgs | QuadraticCurveArgs | PartialCubicCurveArgs;
 
 type Stack = readonly Partial<State>[];
 type StackKey = string | number | undefined;
@@ -454,6 +460,11 @@ export class Turtle extends DefaultPiece {
    */
   curveTo(target: Turtle, curveArgs: PartialCurveArgs = "quad") {
     const posAndAngle = {pos: target.pos, angleDeg: target.angleDeg};
+    if (curveArgs === "line")
+      return this.appendDraw({
+        pathIfDown: this.path.lineTo(target.pos),
+        ...posAndAngle,
+      });
     if (!this.isPenDown)
       return this.appendJump(posAndAngle);
     const start = this;
