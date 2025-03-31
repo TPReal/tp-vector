@@ -47,11 +47,16 @@ export interface ImageAutoSizeLogic {
   readonly widthAndHeight: "auto" | "_not_set_";
 }
 
+export interface RunHandlesOptions {
+  readonly pos: RunHandlesPosition;
+  readonly showHints: boolean;
+}
+
 export type RunHandlesPosition = "above" | "below";
 
 export interface LaserRunsOptions {
   readonly colorCodes?: () => ColorsDistributor;
-  readonly handles?: RunHandlesPosition;
+  readonly handles?: RunHandlesOptions;
 }
 
 /**
@@ -151,7 +156,7 @@ export namespace presets {
     colorCodedRunsPreset,
     colorCodedRuns = !!colorCodedRunsPreset,
   }: {
-    runsHandles?: RunHandlesPosition,
+    runsHandles?: RunHandlesOptions,
     colorCodedRuns?: boolean,
     colorCodedRunsPreset?: true | InitialColorsAssignment,
   } = {}) {
@@ -222,7 +227,7 @@ export namespace presets {
 
   /** A preset designed for production files. */
   export function product({runsHandles}: {
-    runsHandles?: RunHandlesPosition,
+    runsHandles?: RunHandlesOptions,
   } = {}) {
     return applyModifiers(
       lightburn({runsHandles}),

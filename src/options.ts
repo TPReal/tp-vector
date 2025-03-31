@@ -1,6 +1,6 @@
 import {ALL_BLACK, ColorsDistributor, CyclicColorsDistributor} from './colors_distributor.ts';
 import {Attributes} from './elements.ts';
-import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesPosition, getGlobalOptions} from './global_options.ts';
+import {CornersMarkerType, PosCorrectionMillimeters, RunHandlesOptions, getGlobalOptions} from './global_options.ts';
 import {NO_LAYER, OptionalLayerName} from './layers.ts';
 import {toFileName} from './name.ts';
 
@@ -45,6 +45,8 @@ export interface PartialCommonRunOptions {
    */
   includeCornersMarker?: boolean;
   posCorrectionMillimeters?: PosCorrectionMillimeters;
+  /** A hint text displayed on the run handle, if configured in the global options. */
+  hint?: unknown;
 }
 /** Options of a laser run. Some laser cutter software call this "layer". */
 export interface CommonRunOptions {
@@ -55,6 +57,7 @@ export interface CommonRunOptions {
   readonly side: Side;
   readonly includeCornersMarker: boolean;
   readonly posCorrectionMillimeters?: PosCorrectionMillimeters;
+  readonly hint: string | undefined;
 }
 
 export function getDefaultCutStyleAttributes({id, previewColors = ALL_BLACK}: {
@@ -117,6 +120,7 @@ export function cutOptionsFromPartial(
     side = "front",
     includeCornersMarker = false,
     posCorrectionMillimeters,
+    hint,
   }: PartialCutOptions,
 ): CutOptions {
   return {
@@ -133,6 +137,7 @@ export function cutOptionsFromPartial(
     side,
     includeCornersMarker,
     posCorrectionMillimeters,
+    hint: hint === undefined ? undefined : String(hint),
   };
 }
 
@@ -155,6 +160,7 @@ export function printOptionsFromPartial(
     side = "front",
     includeCornersMarker = true,
     posCorrectionMillimeters = sheetOptions.printPosCorrectionMillimeters,
+    hint,
   }: PartialPrintOptions,
 ): PrintOptions {
   return {
@@ -171,6 +177,7 @@ export function printOptionsFromPartial(
     side,
     includeCornersMarker,
     posCorrectionMillimeters,
+    hint: hint === undefined ? undefined : String(hint),
   };
 }
 
@@ -246,19 +253,27 @@ export interface PartialReversingFrameOptions {
   enable?: boolean;
   id?: string;
   styleAttributes?: PartialMediaStyleAttributes;
+  hint?: unknown;
 }
 /**
  * Properties of the reversing frame. The reversing frame is a special cut layer consisting of
  * a single rectangle bounding the whole object. It allows cutting the whole work out of
  * the materia and reversing it in place.
  */
-export interface ReversingFrameOptions extends Required<Readonly<PartialReversingFrameOptions>> {}
+export interface ReversingFrameOptions {
+  readonly enable: boolean;
+  readonly id: string;
+  readonly styleAttributes: PartialMediaStyleAttributes;
+  readonly hint: string | undefined;
+}
+
 export function reversingFrameOptionsFromPartial(
   reversingFrameOptions: boolean | PartialReversingFrameOptions = true): ReversingFrameOptions {
   const {
     enable = true,
     id = "reversing_frame",
     styleAttributes = {},
+    hint,
   }: PartialReversingFrameOptions = reversingFrameOptions === true ? {} :
       reversingFrameOptions === false ? {enable: false} :
         reversingFrameOptions;
@@ -269,6 +284,7 @@ export function reversingFrameOptionsFromPartial(
       styleAttributes,
       defaults: DEFAULT_FRAME_STYLE_ATTRIBUTES,
     }),
+    hint: hint === undefined ? undefined : String(hint),
   };
 }
 
@@ -327,11 +343,11 @@ export function previewColorsFromPartial({
 export interface PartialLaserRunsOptions {
   /** ColorsDistributor assigning colors to runs for the laser medium. */
   colorCodes?: ColorsDistributor;
-  handles?: RunHandlesPosition;
+  handles?: RunHandlesOptions;
 }
 export interface LaserRunsOptions {
   colorCodes?: ColorsDistributor;
-  handles?: RunHandlesPosition;
+  handles?: RunHandlesOptions;
 }
 export function laserRunsOptionsFromPartial({
   colorCodes = getGlobalOptions().laserRunsOptions?.colorCodes?.(),
