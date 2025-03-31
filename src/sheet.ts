@@ -751,7 +751,10 @@ Continue summing up distances?`)) {
         else {
           if (fullRunsSelector.runs.length)
             hintLines.push(`Laser runs: ${fullRunsSelector.runs.map(
-              run => JSON.stringify(run)).join(", ")}`);
+              run => {
+                const options = this.getRunOptions(run);
+                return JSON.stringify(run) + (options.hint ? ` (hint: ${options.hint})` : "");
+              }).join(", ")}`);
           if (fullRunsSelector.reversingFrame)
             hintLines.push(`Reversing frame`);
         }
