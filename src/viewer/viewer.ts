@@ -7,7 +7,7 @@ import {Viewer} from 'tp-vector/viewer/viewer_tools.ts';
 Viewer.create({
   globalOpts: [
     // Modify the global options to adjust the generated SVG files for the laser cutter software:
-    // globalOptions.presets.lightburn(),
+    // globalOptions.presets.LightBurn(),
 
     // Set the print pos correction if necessary (see _calibration/print_pos_correction.ts_):
     // {printPosCorrectionMillimeters: [0.0, 0.0]},

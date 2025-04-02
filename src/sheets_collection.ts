@@ -6,7 +6,7 @@ function getCreateParams(params: SheetsCollectionCreateParams): [BasicSheetParam
   return params.length === 1 ? [undefined, params[0]] : params;
 }
 
-interface SheetsCollectionInput {
+export interface SheetsCollectionInput {
   [name: string]: SheetParams | SheetsCollectionCreateParams;
 }
 

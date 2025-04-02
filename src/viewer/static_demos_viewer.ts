@@ -4,7 +4,7 @@ import {Viewer} from './viewer_tools.ts';
 
 Viewer.create({
   globalOpts: [
-    globalOptions.presets.lightburn(),
+    globalOptions.presets.LightBurn(),
     {
       cutRunsStrokeWidth: 1,
       fontFallbackToNotDef: false,

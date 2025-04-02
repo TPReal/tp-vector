@@ -193,6 +193,10 @@ export function runOptionsFromPartial(
   return options satisfies never;
 }
 
+export function runIdFromPartial(options: PartialRunOptions) {
+  return options.id || options.type;
+}
+
 const DEFAULT_FRAME_STYLE_ATTRIBUTES = styleAttributesFromPartial({
   styleAttributes: {
     preview: {stroke: "red"},

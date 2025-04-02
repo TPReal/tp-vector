@@ -1,3 +1,4 @@
+import {ArtifactData, PartialArtifactData, artifactDataFromPartial, saveArtifact} from './artifacts.ts';
 import {Attributes, createElement, createSVG, setAttributes} from './elements.ts';
 import * as figures from './figures.ts';
 import {Font} from './fonts.ts';
@@ -70,8 +71,9 @@ export interface BasicSheetParams {
   options?: PartialSheetOptions;
   margin?: PartialViewBoxMargin;
   viewBox?: PartialViewBox | "auto";
-  runs?: OrArray<PartialRunOptions>;
+  runs?: PartialRunOptions[];
   preserveRunsOrder?: boolean;
+  artifacts?: (sheet: Sheet) => PartialArtifactData[];
 }
 
 export interface SheetParams extends BasicSheetParams {
@@ -81,13 +83,18 @@ export interface SheetParams extends BasicSheetParams {
 export function mergeSheetParams<S extends BasicSheetParams | undefined>(basic: OrArray<BasicSheetParams | undefined>, params: S):
   S extends SheetParams ? SheetParams : BasicSheetParams {
   let result: BasicSheetParams = {};
-  function merge<S extends BasicSheetParams>(params: S): S {
-    return {...result, ...params, options: {...result.options, ...params.options}};
+  function merge<S extends BasicSheetParams>(result: BasicSheetParams, params: S): S {
+    return {
+      ...result,
+      ...params,
+      options: {...result.options, ...params.options},
+      artifacts: (sheet) => [...result.artifacts?.(sheet) || [], ...params.artifacts?.(sheet) || []],
+    };
   }
   for (const basicParams of flatten(basic))
     if (basicParams)
-      result = merge(basicParams);
-  return (params ? merge(params) : result) as S extends SheetParams ? SheetParams : BasicSheetParams;
+      result = merge(result, basicParams);
+  return (params ? merge(result, params) : result) as S extends SheetParams ? SheetParams : BasicSheetParams;
 }
 
 export class Sheet {
@@ -101,6 +108,7 @@ export class Sheet {
     private readonly runOptions: ReadonlyMap<string, RunOptions>,
     private readonly emptyRuns: ReadonlySet<string>,
     private readonly preserveRunsOrder: boolean,
+    private readonly artifacts: readonly ArtifactData[],
   ) {
     this.runHandles = this.createHandles();
   }
@@ -114,6 +122,7 @@ export class Sheet {
     viewBox = "auto",
     runs,
     preserveRunsOrder = false,
+    artifacts,
   }: SheetParams) {
     const sheetOptions = sheetOptionsFromPartial(options);
     const fullPieces = gather(flattenFilter(pieces));
@@ -131,14 +140,19 @@ export class Sheet {
       if (!fullPieces.selectLayers(...runOptions.layers).getElements().length)
         emptyRuns.add(runOptions.id);
     }
-    return new Sheet(
+    const artifactsData: ArtifactData[] = [];
+    const sheet = new Sheet(
       sheetOptions,
       fullPieces,
       box,
       runOptionsMap,
       emptyRuns,
       preserveRunsOrder,
+      artifactsData,
     );
+    if (artifacts)
+      artifactsData.push(...artifacts(sheet).map(artifactDataFromPartial));
+    return sheet;
   }
 
   private getRunOptions(id: string) {
@@ -215,7 +229,7 @@ export class Sheet {
     return [...this.runOptions.keys()];
   }
 
-  private getNonEmptyRunIds() {
+  getNonEmptyRunIds() {
     return this.getRunIds().filter(id => !this.emptyRuns.has(id));
   }
 
@@ -589,9 +603,8 @@ Continue summing up distances?`)) {
         svg,
         conversionParams: this.options.resolution,
       });
-    else {
+    else
       return format satisfies never;
-    }
   }
 
   private getFormatLabel(format: SaveFormat) {
@@ -711,9 +724,9 @@ Continue summing up distances?`)) {
     container.append(buttonsContainer);
     buttonsContainer.style.display = "flex";
     buttonsContainer.style.flexWrap = "wrap";
+    buttonsContainer.style.gap = "0.2em";
     function addItems(items: OrArray<HTMLElement>) {
       const span = document.createElement("span");
-      span.style.margin = "2px";
       let first = true;
       for (const item of flatten(items)) {
         if (first)
@@ -780,6 +793,27 @@ Continue summing up distances?`)) {
         addItems(buttons);
       }
     }
+    return container;
+  }
+
+  getSaveArtifactsButtons() {
+    if (!this.artifacts.length)
+      return undefined;
+    const container = document.createElement("div");
+    container.textContent = `Artifacts:`;
+    const buttonsContainer = document.createElement("div");
+    container.append(buttonsContainer);
+    buttonsContainer.style.display = "flex";
+    buttonsContainer.style.flexWrap = "wrap";
+    buttonsContainer.style.gap = "0.2em";
+    for (const artifact of this.artifacts)
+      buttonsContainer.append(createSaveButton({
+        label: artifact.name,
+        hint: [artifact.fileName, artifact.desc].filter(Boolean).join("\n"),
+        save: () => {
+          saveArtifact(artifact);
+        },
+      }));
     return container;
   }
 

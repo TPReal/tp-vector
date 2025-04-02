@@ -139,7 +139,7 @@ export namespace presets {
    * Returns preset for the VisiCut software.
    * @see https://visicut.org/
    */
-  export function visicut() {
+  export function VisiCut() {
     return {
       cornersMarkerType: "circles",
       quirks: {xlinkHref: true},
@@ -151,7 +151,7 @@ export namespace presets {
    * Returns preset for the LightBurn software.
    * @see https://lightburnsoftware.com/
    */
-  export function lightburn({
+  export function LightBurn({
     runsHandles,
     colorCodedRunsPreset,
     colorCodedRuns = !!colorCodedRunsPreset,
@@ -230,7 +230,7 @@ export namespace presets {
     runsHandles?: RunHandlesOptions,
   } = {}) {
     return applyModifiers(
-      lightburn({runsHandles}),
+      LightBurn({runsHandles}),
       {
         cutRunsStrokeWidth: 1,
         fontFallbackToNotDef: false,

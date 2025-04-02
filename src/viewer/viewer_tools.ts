@@ -35,6 +35,9 @@ export async function getSheetPreview(sheet: Sheet) {
     div.append(unusedLayersWarning);
   div.append(getSVGRunsControllerCheckboxes(svg));
   div.append(sheet.getSaveLaserSVGButtons());
+  const artifactButtons = sheet.getSaveArtifactsButtons();
+  if (artifactButtons)
+    div.append(artifactButtons);
   return div;
 }
 
