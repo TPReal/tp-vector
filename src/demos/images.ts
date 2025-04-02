@@ -1,4 +1,6 @@
-import {Image, Sheet, layouts} from 'tp-vector/index.ts';
+import {Image} from '../images.ts';
+import * as layouts from '../layouts.ts';
+import {Sheet} from '../sheet.ts';
 
 export const name = "Images demo";
 

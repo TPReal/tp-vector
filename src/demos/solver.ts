@@ -1,4 +1,9 @@
-import {Point, Sheet, Turtle, figures, gather, turtleSolve} from 'tp-vector/index.ts';
+import * as figures from '../figures.ts';
+import {gather} from '../pieces.ts';
+import {Point} from '../point.ts';
+import {Sheet} from '../sheet.ts';
+import {turtleSolve} from '../solver.ts';
+import {Turtle} from '../turtle.ts';
 
 export const name = "Solver demo";
 

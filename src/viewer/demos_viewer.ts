@@ -1,4 +1,6 @@
-import * as calibration from '../calibration/index.ts';
+import * as calibrationGradient from '../calibration/gradient.ts';
+import * as calibrationKerf from '../calibration/kerf.ts';
+import * as calibrationPrintPosCorrection from '../calibration/print_pos_correction.ts';
 import * as coins from '../demos/coins.ts';
 import * as houseBox from '../demos/house_box.ts';
 import * as images from '../demos/images.ts';
@@ -27,9 +29,9 @@ export const DEMOS_VIEWER = Viewer.create()
 
   // Calibration utilities
   .addSeparator()
-  .add(calibration.kerf, {thickness: 3})
-  .add(calibration.printPosCorrection)
-  .add(calibration.gradient)
+  .add(calibrationKerf, {thickness: 3})
+  .add(calibrationPrintPosCorrection)
+  .add(calibrationGradient)
 
   // Explainers
   .addSeparator()

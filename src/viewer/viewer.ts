@@ -1,5 +1,5 @@
-import {DEMOS_VIEWER} from 'tp-vector/viewer/demos_viewer.ts';
-import {Viewer} from 'tp-vector/viewer/viewer_tools.ts';
+import {DEMOS_VIEWER} from './demos_viewer.ts';
+import {Viewer} from './viewer_tools.ts';
 
 // There are two main ways of developing your own projects,
 // described in wiki/installation_and_usage.md#custom-projects.

@@ -1,4 +1,8 @@
-import {Sheet, TabsPattern, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
+import {TabsPattern} from '../interlock_patterns.ts';
+import * as kerfUtil from '../kerf_util.ts';
+import * as layouts from '../layouts.ts';
+import {Sheet} from '../sheet.ts';
+import {turtleInterlock} from '../tabbed_face.ts';
 
 export const name = "Tabs and slots";
 

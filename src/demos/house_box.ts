@@ -1,4 +1,9 @@
-import {Sheet, StartAngleDeg, TabbedFace, TabsPattern, gather, kerfUtil, layouts, tabWidthForAcuteAngle, turtleInterlock} from 'tp-vector/index.ts';
+import {TabsPattern} from '../interlock_patterns.ts';
+import * as kerfUtil from '../kerf_util.ts';
+import * as layouts from '../layouts.ts';
+import {gather} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {StartAngleDeg, TabbedFace, tabWidthForAcuteAngle, turtleInterlock} from '../tabbed_face.ts';
 
 export const name = "House box";
 

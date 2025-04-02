@@ -1,4 +1,7 @@
-import {PartialViewBox, Sheet, Tf, Transform, gather} from 'tp-vector/index.ts';
+import {gather} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {Tf, Transform} from '../transform.ts';
+import {PartialViewBox} from '../view_box.ts';
 import {getAxes, getExplainerObject, getExplainerSection} from './explainer_helper.ts';
 
 export const name = "Transform explainer";

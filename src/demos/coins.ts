@@ -1,4 +1,10 @@
-import {Font, Sheet, Turtle, createText, figures, gather, layouts} from 'tp-vector/index.ts';
+import * as figures from '../figures.ts';
+import {Font} from '../fonts.ts';
+import * as layouts from '../layouts.ts';
+import {gather} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {createText} from '../text.ts';
+import {Turtle} from '../turtle.ts';
 
 export const name = "Coins";
 

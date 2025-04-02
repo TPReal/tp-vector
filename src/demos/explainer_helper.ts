@@ -1,4 +1,8 @@
-import {PartialViewBox, Sheet, Turtle, figures, gather, viewBoxFromPartial, viewBoxToString} from 'tp-vector/index.ts';
+import * as figures from '../figures.ts';
+import {gather} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {Turtle} from '../turtle.ts';
+import {PartialViewBox, viewBoxFromPartial, viewBoxToString} from '../view_box.ts';
 
 export function getAxis({min, max}: {min: number, max: number}) {
   let res = gather(

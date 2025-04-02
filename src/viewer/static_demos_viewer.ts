@@ -1,4 +1,4 @@
-import {globalOptions} from '../index.ts';
+import * as globalOptions from '../global_options.ts';
 import {DEMOS_VIEWER} from './demos_viewer.ts';
 import {Viewer} from './viewer_tools.ts';
 

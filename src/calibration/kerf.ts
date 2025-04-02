@@ -1,4 +1,13 @@
-import {Piece, Sheet, TabsPattern, Turtle, createNumParams, createText, figures, gather, kerfUtil, layouts, turtleInterlock} from 'tp-vector/index.ts';
+import * as figures from '../figures.ts';
+import {TabsPattern} from '../interlock_patterns.ts';
+import * as kerfUtil from '../kerf_util.ts';
+import * as layouts from '../layouts.ts';
+import {createNumParams} from '../params.ts';
+import {gather, Piece} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {turtleInterlock} from '../tabbed_face.ts';
+import {createText} from '../text.ts';
+import {Turtle} from '../turtle.ts';
 
 export const name = "Kerf calibrator";
 

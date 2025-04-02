@@ -1,4 +1,10 @@
-import {Piece, PartialViewBox, createClipPath, layouts, Sheet, gather, figures, viewBoxFromPartial, createText} from 'tp-vector/index.ts';
+import {createClipPath} from '../def_tools.ts';
+import * as figures from '../figures.ts';
+import * as layouts from '../layouts.ts';
+import {gather, Piece} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {createText} from '../text.ts';
+import {PartialViewBox, viewBoxFromPartial} from '../view_box.ts';
 
 export function getSheet() {
 

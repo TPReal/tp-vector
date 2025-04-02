@@ -1,4 +1,7 @@
-import {Sheet, Turtle, gather, layouts} from 'tp-vector/index.ts';
+import * as layouts from '../layouts.ts';
+import {gather} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {Turtle} from '../turtle.ts';
 
 export const name = "Turtle demo";
 

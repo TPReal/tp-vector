@@ -1,4 +1,10 @@
-import {Sheet, Turtle, createLinearGradient, createNumParams, figures, gather, layouts} from 'tp-vector/index.ts';
+import {createLinearGradient} from '../def_tools.ts';
+import * as figures from '../figures.ts';
+import * as layouts from '../layouts.ts';
+import {createNumParams} from '../params.ts';
+import {gather} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {Turtle} from '../turtle.ts';
 
 export const name = "Gradient calibrator";
 

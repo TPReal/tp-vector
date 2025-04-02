@@ -1,4 +1,9 @@
-import {Piece, Sheet, createNumParams, createText, figures, gather, layouts} from 'tp-vector/index.ts';
+import * as figures from '../figures.ts';
+import * as layouts from '../layouts.ts';
+import {createNumParams} from '../params.ts';
+import {gather, Piece} from '../pieces.ts';
+import {Sheet} from '../sheet.ts';
+import {createText} from '../text.ts';
 
 export const name = "printPosCorrection calibrator";
 
