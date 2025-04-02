@@ -1,2 +1,2 @@
 # Generate the documentation in the docs directory.
-typedoc --name TPVector
+typedoc --name TPVector --entryPointStrategy Expand
