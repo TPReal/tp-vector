@@ -245,24 +245,28 @@ export function createNumParams<P extends NumParamsType>(params: NumParamsInput<
 export namespace numParamsAssert {
 
   export function gt(value: number, reference: number, message = `Expected value greater than reference`) {
+    reference = Number(reference);
     if (Number.isNaN(reference))
       return Number.NaN;
     return assert(value, v => v > reference, `${message} (value: ${value}, reference: ${reference})`);
   }
 
   export function lt(value: number, reference: number, message = `Expected value less than reference`) {
+    reference = Number(reference);
     if (Number.isNaN(reference))
       return Number.NaN;
     return assert(value, v => v < reference, `${message} (value: ${value}, reference: ${reference})`);
   }
 
   export function gte(value: number, reference: number, message = `Expected value greater than or equal to reference`) {
+    reference = Number(reference);
     if (Number.isNaN(reference))
       return Number.NaN;
     return assert(value, v => v >= reference, `${message} (value: ${value}, reference: ${reference})`);
   }
 
   export function lte(value: number, reference: number, message = `Expected value less than or equal to reference`) {
+    reference = Number(reference);
     if (Number.isNaN(reference))
       return Number.NaN;
     return assert(value, v => v <= reference, `${message} (value: ${value}, reference: ${reference})`);

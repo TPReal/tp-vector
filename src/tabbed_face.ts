@@ -510,8 +510,8 @@ export class TabbedFace<P extends string = never>
   smoothRight(
     angleDeg = 90,
     circleR = 0,
-    innerCurveArgs?: PartialCurveArgs,
-    outerCurveArgs = innerCurveArgs,
+    curveArgs?: PartialCurveArgs,
+    onTabCurveArgs = curveArgs,
   ) {
     const boxCorr = this.boxCorrection(angleDeg);
     return this.appendDualK(isPositiveAngle(angleDeg), k =>
@@ -520,7 +520,7 @@ export class TabbedFace<P extends string = never>
         .smoothRight(
           angleDeg,
           circleR + k * (this.toTabLevelStrafeLeft * Math.tan(angleDeg / 2 / 180 * Math.PI)),
-          k ? outerCurveArgs : innerCurveArgs)
+          k ? onTabCurveArgs : curveArgs)
         .forward(boxCorr));
   }
 
@@ -746,7 +746,7 @@ export class TabbedFace<P extends string = never>
     if (!allowOpen)
       checkFaceClosed(this.startAngle, turtle, posTolerance);
     const path = closePath ? turtle.closePath() : turtle.asPath();
-    return ClosedFace.create(path, this.tabsDict);
+    return ClosedFace.create(turtle, path, this.tabsDict);
   }
 
   private joinFunctions() {
@@ -844,18 +844,26 @@ export class ClosedFace<P extends string = never> extends DefaultPiece implement
   readonly fit;
   readonly pat;
 
-  protected constructor(face: Piece, tabsDict: LazySimpleTabsDict<P>) {
+  protected constructor(
+    private readonly turtle: Turtle,
+    face: Piece,
+    tabsDict: LazySimpleTabsDict<P>,
+  ) {
     super(face);
     this.tt = tabsDict.tt;
     this.fit = tabsDict.fit;
     this.pat = tabsDict.pat;
   }
 
-  static create<P extends string>(face: Piece, tabsDict: LazySimpleTabsDict<P>): ClosedFace<P>;
+  static create<P extends string>(turtle: Turtle, face: Piece, tabsDict: LazySimpleTabsDict<P>): ClosedFace<P>;
   static create(...params: Parameters<typeof DefaultPiece.create>): never;
   static create<P extends string>(...params: unknown[]) {
-    const [face, tabsDict] = params as [Piece, LazySimpleTabsDict<P>];
-    return new ClosedFace(face, tabsDict);
+    const [turtle, face, tabsDict] = params as [Turtle, Piece, LazySimpleTabsDict<P>];
+    return new ClosedFace(turtle, face, tabsDict);
+  }
+
+  asTurtle() {
+    return this.turtle;
   }
 
 }

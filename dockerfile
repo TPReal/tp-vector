@@ -1,6 +1,6 @@
 # Install the required tools:
 # - node.js - https://nodejs.org/en
-FROM node:23.11.0-slim
+FROM node:current-slim
 # - esbuild - https://esbuild.github.io/ (install globally)
 RUN npm install -g esbuild
 # - deno - https://deno.land/ (for type-checking)
@@ -12,4 +12,4 @@ RUN mkdir /var/app
 WORKDIR /var/app
 
 # Start the Viewer.
-CMD cmds/viewer
+CMD ["cmds/viewer"]
