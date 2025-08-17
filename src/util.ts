@@ -77,3 +77,9 @@ export function sinCos(angleDeg: number): [number, number] {
   const angleRad = angleDeg / 180 * Math.PI;
   return [Math.sin(angleRad), Math.cos(angleRad)];
 }
+
+export const INCH_IN_MM = 25.4;
+
+export function inchToMm(inch: number) {
+  return inch * INCH_IN_MM;
+}
