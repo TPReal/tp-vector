@@ -26,7 +26,7 @@ export function sheetsCollection(...params: SheetsCollectionCreateParams) {
     const nameParams: BasicSheetParams = {
       options: {
         name: [basicParams?.options?.name, name].filter(Boolean).join(" "),
-        fileName: basicParams?.options?.fileName ? basicParams.options.fileName + "_" + name : undefined,
+        fileName: basicParams?.options?.fileName ? basicParams.options.fileName + " " + name : undefined,
       }
     };
     if (Array.isArray(value)) {
@@ -40,5 +40,16 @@ export function sheetsCollection(...params: SheetsCollectionCreateParams) {
       result[name] = sheet;
     }
   }
+  return result;
+}
+
+export function sheetsCollectionParam<P>(
+  paramValues: P[],
+  func: (p: P) => SheetsCollectionInput[string],
+  paramName?: string | ((p: P) => string),
+): SheetsCollectionInput {
+  const result: SheetsCollectionInput = {};
+  for (const p of paramValues)
+    result[typeof paramName === "function" ? paramName(p) : `${paramName || "p"}=${p}`] = func(p);
   return result;
 }
