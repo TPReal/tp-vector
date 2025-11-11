@@ -1,0 +1,31 @@
+# This workflow generates badges to display in the README file.
+
+name: Badges
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  badges:
+    name: Generate badges
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeathSy/GHA-LoC-Badge@1.0.3
+        with:
+          directory: ./src/
+          patterns: "**/*.ts"
+          badge: ./badges/badge-ts.svg
+          badge_label: TypeScript
+          badge_color: 3178c6
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: ./badges
+          publish_branch: badges
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+    permissions:
+      contents: write
