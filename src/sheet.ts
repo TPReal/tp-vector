@@ -576,9 +576,10 @@ Continue summing up distances?`)) {
   }) {
     const fileName = [
       this.options.fileName,
-      ...runs === "all" ? [] : [...runs, reversingFrame && this.options.reversingFrame.id],
+      runs === "all" ? undefined :
+        `(${[...runs, reversingFrame && this.options.reversingFrame.id].filter(Boolean).join(",")})`,
       printsAsImages && "prerendered",
-    ].filter(Boolean).join("__");
+    ].filter(Boolean).join(" ");
     const suffix = this.options.includeSizeInName ?
       getNameSizeSuffix(this.viewBox, this.options.millimetersPerUnit) : undefined;
     return getSuffixedFileName(fileName, suffix);
@@ -760,7 +761,7 @@ Continue summing up distances?`)) {
         const mainFormat = fullFormat === "both" ? "SVG" : fullFormat;
         const hintLines = [];
         if (fullRunsSelector.runs === "all")
-          hintLines.push(`All the laser runs`);
+          hintLines.push(`All laser runs`);
         else {
           if (fullRunsSelector.runs.length)
             hintLines.push(`Laser runs: ${fullRunsSelector.runs.map(
