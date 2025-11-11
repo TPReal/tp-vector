@@ -27,9 +27,7 @@ but note that it is neither ideal nor complete right now. It is recommended to
 consult the source code of the library - the type system will provide a lot of
 additional information.
 
-![Lines of code](https://tokei.rs/b1/github/TPReal/tp-vector?style=flat&label=Total%20lines)
-![Lines of code](https://sloc.xyz/github/TPReal/tp-vector) <sup>(whichever
-counter happens to work better)</sup>
+[![Lines of code](https://raw.githubusercontent.com/TPReal/tp-vector/badges/badge-ts.svg)](#)
 
 ## Features
 
