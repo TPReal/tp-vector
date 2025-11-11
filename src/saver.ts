@@ -12,3 +12,14 @@ export function saveDownload({name, url, cleanup}: {
   link.click();
   link.remove();
 }
+
+export function saveBlobDownload({name, blob}: {name: string, blob: Blob}) {
+  const url = URL.createObjectURL(blob);
+  saveDownload({
+    name, url, cleanup: () => {
+      requestAnimationFrame(() => {
+        URL.revokeObjectURL(url);
+      });
+    },
+  });
+}

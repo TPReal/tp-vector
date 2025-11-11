@@ -1,13 +1,12 @@
-import {saveDownload} from './saver.ts';
-import {PartialPNGConversionParams, getPNGDataURI, getSVGObjectURL} from './svg_converter.ts';
+import {saveBlobDownload, saveDownload} from './saver.ts';
+import {PartialPNGConversionParams, getPNGDataURI, getSVGBlob} from './svg_converter.ts';
 
 /** Triggers saving of the SVG as a file with the specified name. */
 export function saveSVG({name, svg}: {
   name: string,
   svg: SVGSVGElement,
 }) {
-  const {url, cleanUpFunc} = getSVGObjectURL(svg);
-  saveDownload({name, url, cleanup: cleanUpFunc});
+  saveBlobDownload({name, blob: getSVGBlob(svg)});
 }
 
 /** Triggers saving of the SVG as a PNG file with the specified name. */

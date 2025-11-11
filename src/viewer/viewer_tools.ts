@@ -1,6 +1,9 @@
 import {GlobalOptionsInput} from '../global_options.ts';
-import {Sheet} from '../sheet.ts';
+import {saveBlobDownload} from '../saver.ts';
+import {PartialLaserSVGParams, Sheet} from '../sheet.ts';
+import {ButtonsRow} from '../ui.ts';
 import {OrArray, assert} from '../util.ts';
+import {newJSZip} from '../zip.ts';
 import {OrFuncPromise, OrPromise, SectionDef, SectionItemDef, unwrap} from './types.ts';
 import {showViewer} from './viewer_page.ts';
 
@@ -166,6 +169,52 @@ export class Viewer {
       div.style.flexDirection = "column";
       div.style.gap = "1em";
       const sheets = await getProjectSheets(content, ...args);
+      if (sheets.length > 1) {
+        function getFileName(params?: PartialLaserSVGParams) {
+          return `${content.name}${params?.printsAsImages ? ` prerendered` : ``} (all sheets)`;
+        }
+        async function saveAll(name: string, params?: PartialLaserSVGParams) {
+          const zip = await newJSZip();
+          for (const sheet of sheets)
+            zip.file(
+              `${sheet.getFileName(params)}.svg`,
+              new XMLSerializer().serializeToString(await sheet.getLaserSVG(params)),
+            );
+          const blob: Blob = await zip.generateAsync({
+            type: "blob",
+            compression: "DEFLATE",
+            compressionOptions: {level: 9},
+          });
+          saveBlobDownload({name, blob});
+        }
+        const buttonsRow = ButtonsRow.create();
+        div.append(buttonsRow.elem);
+        const saveAllButton = document.createElement("button");
+        const buttons = [saveAllButton];
+        saveAllButton.textContent = `Save SVG files from all sheets (${sheets.length}) as ZIP`;
+        const sheetsList = `Sheets:\n${sheets.map(sheet => `  ${sheet.name}`).join("\n")}`;
+        const saveAllFileName = getFileName();
+        saveAllButton.title = `${JSON.stringify(saveAllFileName)}\n${sheetsList}`;
+        saveAllButton.style.fontWeight = "bold";
+        saveAllButton.addEventListener("click", async () => {
+          await saveAll(saveAllFileName);
+        });
+        const sheetsWithPrintRuns = sheets.filter(sheet => sheet.hasPrintRuns());
+        if (sheetsWithPrintRuns.length) {
+          const preParams: PartialLaserSVGParams = {printsAsImages: true};
+          const saveAllPreButton = document.createElement("button");
+          buttons.push(saveAllPreButton);
+          saveAllPreButton.textContent = `(pre)`;
+          const saveAllPreFileName = getFileName(preParams);
+          saveAllPreButton.title = `${JSON.stringify(saveAllPreFileName)}\n` +
+            `With pre-rendered print runs where applicable\n${sheetsList}`;
+          saveAllPreButton.style.fontWeight = "bold";
+          saveAllPreButton.addEventListener("click", () => {
+            saveAll(saveAllPreFileName, preParams);
+          });
+        }
+        buttonsRow.addItems(buttons);
+      }
       for (const sheet of sheets)
         div.append(await getSheetPreview(sheet));
       return div;

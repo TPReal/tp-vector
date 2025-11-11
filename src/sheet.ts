@@ -12,6 +12,7 @@ import {Point, pointDebugString} from './point.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
+import {ButtonsRow} from './ui.ts';
 import {OrArray, assert, flatten, flattenFilter, roundReasonably} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, viewBoxFromPartial, viewBoxMarginFromPartial, viewBoxToString} from './view_box.ts';
 
@@ -567,18 +568,14 @@ Continue summing up distances?`)) {
     return await this.getRawSVG({medium: "laser", printsAsImages, runsSelector});
   }
 
-  private getSVGName({
-    runsSelector: {runs, reversingFrame},
-    printsAsImages,
-  }: {
-    runsSelector: RunsSelector,
-    printsAsImages: boolean,
-  }) {
+  /** Returns the file name for the laser SVG file with the given params (without extension). */
+  getFileName({runsSelector, printsAsImages = false}: PartialLaserSVGParams = {}) {
+    const {runs, reversingFrame} = this.runsSelectorFromPartial({medium: "laser", runsSelector});
     const fileName = [
       this.options.fileName,
       runs === "all" ? undefined :
         `(${[...runs, reversingFrame && this.options.reversingFrame.id].filter(Boolean).join(",")})`,
-      printsAsImages && "prerendered",
+      printsAsImages && this.hasPrintRuns(runs) && "prerendered",
     ].filter(Boolean).join(" ");
     const suffix = this.options.includeSizeInName ?
       getNameSizeSuffix(this.viewBox, this.options.millimetersPerUnit) : undefined;
@@ -592,10 +589,7 @@ Continue summing up distances?`)) {
   async saveLaserSVG(params: PartialLaserSVGParams = {}) {
     const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
     const svg = await this.getLaserSVG({printsAsImages, runsSelector});
-    const name = this.getSVGName({
-      runsSelector: this.runsSelectorFromPartial({medium: "laser", runsSelector}),
-      printsAsImages,
-    });
+    const name = this.getFileName(params);
     if (format === "SVG")
       saveSVG({name, svg});
     else if (format === "PNG")
@@ -640,15 +634,15 @@ Continue summing up distances?`)) {
     label?: string,
     hintLines?: string[],
   } = {}) {
-    const {format, printsAsImages, runsSelector} = this.laserSVGParamsFromPartial(params);
+    const {format, runsSelector} = this.laserSVGParamsFromPartial(params);
     return createSaveButton({
       label: label || this.getSaveButtonLabel({format, runsSelector}),
       hint: [
-        this.getSVGName({runsSelector, printsAsImages}),
+        JSON.stringify(this.getFileName(params)),
         ...hintLines,
       ].join("\n"),
       save: () => {
-        this.saveLaserSVG({format, printsAsImages, runsSelector});
+        this.saveLaserSVG(params);
       },
     });
   }
@@ -703,6 +697,13 @@ Continue summing up distances?`)) {
       return runsOnSide("front");
   }
 
+  hasPrintRuns(runs: RunsSelector["runs"] = "all") {
+    for (const run of this.runsOrAll(runs))
+      if (this.getRunOptions(run).type === "print")
+        return true;
+    return false;
+  }
+
   /**
    * Returns a `<div>` element with buttons for saving the laser SVG files, one per each
    * runs selector, or a complete set of buttons if `"all"` is specified (the default).
@@ -721,29 +722,8 @@ Continue summing up distances?`)) {
   } = {}) {
     const container = document.createElement("div");
     container.textContent = `Files for the laser software:`;
-    const buttonsContainer = document.createElement("div");
-    container.append(buttonsContainer);
-    buttonsContainer.style.display = "flex";
-    buttonsContainer.style.flexWrap = "wrap";
-    buttonsContainer.style.gap = "0.2em";
-    function addItems(items: OrArray<HTMLElement>) {
-      const span = document.createElement("span");
-      let first = true;
-      for (const item of flatten(items)) {
-        if (first)
-          first = false;
-        else
-          item.style.marginLeft = "-1px";
-        item.style.minHeight = "2.2em";
-        span.append(item);
-      }
-      buttonsContainer.append(span);
-    }
-    function addSep() {
-      const sep = document.createElement("hr");
-      sep.style.margin = "2px";
-      buttonsContainer.append(sep);
-    }
+    const buttonsRow = ButtonsRow.create();
+    container.append(buttonsRow.elem);
     if (runsSelectors === "all") {
       const naturalOrder = this.getRunsInNaturalOrder();
       runsSelectors = [{runs: "all"}];
@@ -752,7 +732,7 @@ Continue summing up distances?`)) {
     }
     for (const runsSelector of runsSelectors) {
       if (runsSelector === "separator")
-        addSep();
+        buttonsRow.addSeparator();
       else {
         const buttons = [];
         const fullRunsSelector = this.runsSelectorFromPartial({medium: "laser", runsSelector});
@@ -791,7 +771,7 @@ Continue summing up distances?`)) {
         if (fullRunsSelector.runs === "all")
           for (const button of buttons)
             button.style.fontWeight = "bold";
-        addItems(buttons);
+        buttonsRow.addItems(buttons);
       }
     }
     return container;

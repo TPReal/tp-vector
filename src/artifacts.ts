@@ -1,5 +1,5 @@
 import {toFileName} from './name.ts';
-import {saveDownload} from './saver.ts';
+import {saveBlobDownload} from './saver.ts';
 
 export interface PartialArtifactData {
   name: string;
@@ -33,12 +33,5 @@ export function artifactDataFromPartial({
 }
 
 export function saveArtifact({fileName, data}: ArtifactData) {
-  const url = URL.createObjectURL(data());
-  saveDownload({
-    name: fileName, url, cleanup: () => {
-      requestAnimationFrame(() => {
-        URL.revokeObjectURL(url);
-      });
-    }
-  });
+  saveBlobDownload({name: fileName, blob: data()});
 }

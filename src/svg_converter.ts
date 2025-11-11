@@ -1,18 +1,10 @@
 import {PNGAllowTransparency, getGlobalOptions} from './global_options.ts';
 import {assert} from './util.ts';
 
-export function getSVGObjectURL(svg: SVGSVGElement) {
-  const url = URL.createObjectURL(new Blob(
+export function getSVGBlob(svg: SVGSVGElement) {
+  return new Blob(
     [new XMLSerializer().serializeToString(svg)],
-    {type: "image/svg+xml;charset=utf-8"}));
-  return {
-    url,
-    cleanUpFunc: () => {
-      requestAnimationFrame(() => {
-        URL.revokeObjectURL(url);
-      });
-    },
-  };
+    {type: "image/svg+xml;charset=utf-8"});
 }
 
 export interface PartialPNGConversionParams {
@@ -40,7 +32,7 @@ export async function getPNGDataURI(
     pixelsPerUnit,
     allowTransparency,
   } = pngConversionParamsFromPartial(conversionParams);
-  const {url: svgURL, cleanUpFunc} = getSVGObjectURL(svg);
+  const svgURL = URL.createObjectURL(getSVGBlob(svg));
   const viewBox = svg.viewBox.baseVal;
   const w = viewBox.width * pixelsPerUnit;
   const h = viewBox.height * pixelsPerUnit;
@@ -81,7 +73,9 @@ export async function getPNGDataURI(
         }
         ctx.putImageData(imageData, 0, 0);
       }
-      cleanUpFunc();
+      requestAnimationFrame(() => {
+        URL.revokeObjectURL(svgURL);
+      });
       resolve(canvas.toDataURL());
     };
     img.src = svgURL;
