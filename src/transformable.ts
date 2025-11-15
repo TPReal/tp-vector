@@ -63,7 +63,7 @@ export interface TransformableTo<R> extends TransformsInterface<R> {
 export abstract class AbstractTransforms<R extends TransformsInterface<R>>
   implements TransformsInterface<R> {
 
-  protected abstract tfData(func: string, args: number[]): R;
+  protected abstract tfData(func: string, args: readonly number[]): R;
 
   translate(dx: number, dy = 0) {return this.tfData("translate", [dx, dy]);}
   translateX(dx: number) {return this.translate(dx);}
@@ -136,13 +136,13 @@ export abstract class AbstractTransforms<R extends TransformsInterface<R>>
   skewLeftUp(angleDeg: number, centerX = 0) {return this.skewY(angleDeg, centerX);}
   skewLeftDown(angleDeg: number, centerX = 0) {return this.skewY(-angleDeg, centerX);}
 
-  matrix(abcdef: [number, number, number, number, number, number]) {
+  matrix(abcdef: readonly [number, number, number, number, number, number]) {
     return this.tfData("matrix", abcdef);
   }
 
 }
 
-function tfDataToSVGTransform(func: string, args: number[]) {
+function tfDataToSVGTransform(func: string, args: readonly number[]) {
   const res = `${func}(${args.map(a => roundReasonably(a)).join(",")})`;
   if (args.some(a => !Number.isFinite(+a)))
     console.warn(`Infinite values in transform: ${res}`);
@@ -155,7 +155,7 @@ export abstract class AbstractTransformableTo<R extends TransformableTo<R>>
 
   abstract transform(tf: Transform): R;
 
-  protected tfData(func: string, args: number[]) {
+  protected tfData(func: string, args: readonly number[]) {
     return this.transform(Transform.fromSVGTransform(tfDataToSVGTransform(func, args)));
   }
 

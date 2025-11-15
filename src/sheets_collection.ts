@@ -1,8 +1,8 @@
 import {BasicSheetParams, mergeSheetParams, Sheet, SheetParams} from './sheet.ts';
 
-type SheetsCollectionCreateParams = [SheetsCollectionInput] | [BasicSheetParams | undefined, SheetsCollectionInput];
+type SheetsCollectionCreateParams = readonly [SheetsCollectionInput] | readonly [BasicSheetParams | undefined, SheetsCollectionInput];
 
-function getCreateParams(params: SheetsCollectionCreateParams): [BasicSheetParams | undefined, SheetsCollectionInput] {
+function getCreateParams(params: SheetsCollectionCreateParams): readonly [BasicSheetParams | undefined, SheetsCollectionInput] {
   return params.length === 1 ? [undefined, params[0]] : params;
 }
 
@@ -11,10 +11,10 @@ export interface SheetsCollectionInput {
 }
 
 export type SheetsCollection<T extends SheetsCollectionInput> = {
-  [name in keyof T]: T[name] extends [BasicSheetParams | undefined, SheetsCollectionInput] ? SheetsCollection<T[name][1]> :
+  readonly [name in keyof T]: T[name] extends [BasicSheetParams | undefined, SheetsCollectionInput] ? SheetsCollection<T[name][1]> :
   T[name] extends [SheetsCollectionInput] ? SheetsCollection<T[name][0]> :
   Sheet;
-} & Sheet[];
+} & readonly Sheet[];
 
 export function sheetsCollection<T extends SheetsCollectionInput>(basicParams: BasicSheetParams, input: T): SheetsCollection<T>;
 export function sheetsCollection<T extends SheetsCollectionInput>(input: T): SheetsCollection<T>;
@@ -44,7 +44,7 @@ export function sheetsCollection(...params: SheetsCollectionCreateParams) {
 }
 
 export function sheetsCollectionParam<P>(
-  paramValues: P[],
+  paramValues: readonly P[],
   func: (p: P) => SheetsCollectionInput[string],
   paramName?: string | ((p: P) => string),
 ): SheetsCollectionInput {

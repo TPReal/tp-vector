@@ -122,7 +122,7 @@ export interface StaticSection<Args extends unknown[] = []> {
 }
 
 async function getProjectSheets<Args extends unknown[]>(
-  project: Project<Args>, ...args: Args): Promise<Sheet[]> {
+  project: Project<Args>, ...args: Args): Promise<readonly Sheet[]> {
   const sheets = await unwrap(project.getSheets, ...args);
   return Array.isArray(sheets) ? sheets : [sheets];
 }
@@ -138,7 +138,7 @@ export class Viewer {
   static create({liveReload = true, globalOpts, globalOptsPresets}: {
     liveReload?: boolean,
     globalOpts?: GlobalOptionsInput,
-    globalOptsPresets?: Record<string, GlobalOptionsInput>,
+    globalOptsPresets?: Readonly<Record<string, GlobalOptionsInput>>,
   } = {}) {
     let globalOptsMap: Map<string, GlobalOptionsInput> | undefined;
     if (globalOpts || globalOptsPresets) {

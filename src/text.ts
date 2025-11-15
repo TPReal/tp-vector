@@ -4,11 +4,11 @@ import {attributesFromFontAttributes, Font, FontAttributes} from './fonts.ts';
 import {Defs, Piece} from './pieces.ts';
 
 interface PathForTextArgs {
-  path: Piece;
-  textPathAttributes?: Attributes;
-  textAttributes?: Attributes;
-  align?: "start" | "center" | "end";
-  id?: string;
+  readonly path: Piece;
+  readonly textPathAttributes?: Attributes;
+  readonly textAttributes?: Attributes;
+  readonly align?: "start" | "center" | "end";
+  readonly id?: string;
 }
 
 export class PathForText extends SimpleAttributesDefTool {

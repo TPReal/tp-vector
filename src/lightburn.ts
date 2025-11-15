@@ -118,7 +118,7 @@ class LightBurnHintImpl implements LightBurnHint {
 
 }
 
-function createLightBurnLayersConfig(hints: LightBurnHintImpl[]) {
+function createLightBurnLayersConfig(hints: readonly LightBurnHintImpl[]) {
   const data: Record<RunOptions["type"], Map<number, Map<string, unknown>>> =
     {cut: new Map(), print: new Map()};
   for (const {run: {type}, lbLayer, fields} of hints) {

@@ -271,14 +271,14 @@ export function getMargin({boundingBox, viewBox}: {
 }
 
 interface FitsInViewBoxArgs {
-  boundingBox: ViewBox;
-  viewBox: ViewBox;
-  minMargin?: PartialViewBoxMargin;
+  readonly boundingBox: ViewBox;
+  readonly viewBox: ViewBox;
+  readonly minMargin?: PartialViewBoxMargin;
 }
 
 const MARGIN_EPSILON_TO_SIZE_RATIO = 1e-9;
 
-const MARGIN_SIDES: (keyof ViewBoxMargin)[] = ["left", "right", "top", "bottom"];
+const MARGIN_SIDES: readonly (keyof ViewBoxMargin)[] = ["left", "right", "top", "bottom"];
 
 function getSidesFit({boundingBox, viewBox, minMargin = 0}: FitsInViewBoxArgs) {
   const epsilon = Math.max(viewBox.width, viewBox.height) * MARGIN_EPSILON_TO_SIZE_RATIO;

@@ -1,1 +1,1 @@
-deno check src/**/*.ts
+deno check "src/**/*.ts"

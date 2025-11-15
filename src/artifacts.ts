@@ -8,10 +8,10 @@ export interface PartialArtifactData {
   data: () => string | Uint8Array | Blob;
 }
 export interface ArtifactData {
-  name: string;
-  desc: string | undefined;
-  fileName: string;
-  data: () => Blob,
+  readonly name: string;
+  readonly desc: string | undefined;
+  readonly fileName: string;
+  readonly data: () => Blob,
 }
 export function artifactDataFromPartial({
   name,

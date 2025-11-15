@@ -8,8 +8,8 @@ import {createText} from '../text.ts';
 export const name = "printPosCorrection calibrator";
 
 export interface CorrectionParams {
-  max?: number;
-  step?: number;
+  readonly max?: number;
+  readonly step?: number;
 }
 
 /**

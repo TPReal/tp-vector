@@ -16,7 +16,7 @@ export type InlineParams = Readonly<Record<string, number & ValueSaver>>;
  * This example sets `p.side` to 5 on the first use, and `p.side2` to 10. The values
  * are then available for use.
  */
-export function createInlineParams(init: Record<string, number> = {}): InlineParams {
+export function createInlineParams(init: Readonly<Record<string, number>> = {}): InlineParams {
   const storage = {...init};
   function set(key: string, value: number) {
     if (Object.hasOwn(storage, key) && value !== storage[key])
@@ -185,7 +185,7 @@ function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(
         return merge(base, processed) as ReplaceAnys<P & R>;
       if (missCount >= lastMissCount) {
         const badKeys: string[][] = [];
-        function findBadKeys(keys: string[], val: NumParamsType) {
+        function findBadKeys(keys: readonly string[], val: NumParamsType) {
           for (const [key, value] of Object.entries(val)) {
             if (Number.isNaN(value))
               badKeys.push([...keys, key]);

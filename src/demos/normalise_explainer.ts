@@ -14,10 +14,10 @@ export const element = async () => {
   const target: PartialViewBox = {centered: true, side: 2};
   const tBase = {minX: -10, maxX: 10, minY: -10, maxY: 10};
   const normaliseArgs: {
-    args: NormaliseArgs | undefined,
-    target?: PartialViewBox,
-    holdX?: number,
-    holdY?: number,
+    readonly args: NormaliseArgs | undefined,
+    readonly target?: PartialViewBox,
+    readonly holdX?: number,
+    readonly holdY?: number,
   }[] = [
       {args: undefined},
       // StringArgs:

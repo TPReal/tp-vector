@@ -12,11 +12,11 @@ import {Turtle} from '../turtle.ts';
 export const name = "Kerf calibrator";
 
 export interface KerfParams {
-  min?: number;
-  max?: number;
-  step?: number;
+  readonly min?: number;
+  readonly max?: number;
+  readonly step?: number;
   /** Material thickness (important especially for slots). */
-  thickness: number;
+  readonly thickness: number;
 }
 
 /**

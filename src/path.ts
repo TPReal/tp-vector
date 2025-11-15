@@ -8,21 +8,21 @@ import {OrArrayRest, flatten, roundReasonably} from './util.ts';
  * If the control point is not specified, it is a reflection of the previous control point.
  */
 export interface NextQuadraticArgs {
-  point1?: Point;
-  target: Point;
+  readonly point1?: Point;
+  readonly target: Point;
 }
 /** Parameters of a quadratic Bézier curve. */
-export interface QuadraticArgs extends Required<Readonly<NextQuadraticArgs>> {}
+export interface QuadraticArgs extends Required<NextQuadraticArgs> {}
 
 /**
  * Parameters of a cubic Bézier curve drawn directly after another cubic curve.
  * If the first control point is not specified, it is a reflection of the previous control point.
  */
 export interface NextCubicArgs extends NextQuadraticArgs {
-  point2: Point;
+  readonly point2: Point;
 }
 /** Parameters of a cubic Bézier curve. */
-export interface CubicArgs extends Required<Readonly<NextCubicArgs>> {}
+export interface CubicArgs extends Required<NextCubicArgs> {}
 
 /**
  * Parameters of an arc.
@@ -77,7 +77,7 @@ export class Path extends SimpleLazyPiece {
     return createElement({tagName: "path", attributes: {d: this.asPathD()}});
   }
 
-  private append(elementSpecs: {
+  private append(elementSpecs: readonly {
     command: string,
     args?: string,
     relative?: boolean,
@@ -109,7 +109,7 @@ export class Path extends SimpleLazyPiece {
     return this.moveTo(target, {relative: true});
   }
 
-  private appendLineTo(targets: Point[], relative = false) {
+  private appendLineTo(targets: readonly Point[], relative = false) {
     if (relative)
       targets = targets.filter(target => !isZeroPoint(target));
     return this.append(targets.map(target => ({
@@ -151,7 +151,7 @@ export class Path extends SimpleLazyPiece {
   }
 
   protected appendQuadratic({args, relative = false}: {
-    args: NextQuadraticArgs[],
+    args: readonly NextQuadraticArgs[],
     relative?: boolean,
   }): LastQuadraticPath {
     return this.append(args.map(({point1, target}) =>
@@ -179,7 +179,7 @@ export class Path extends SimpleLazyPiece {
   }
 
   protected appendCubic({args, relative = false}: {
-    args: NextCubicArgs[],
+    args: readonly NextCubicArgs[],
     relative?: boolean,
   }): LastCubicPath {
     return this.append(args.map(({point1, point2, target}) =>
@@ -207,7 +207,7 @@ export class Path extends SimpleLazyPiece {
   }
 
   private appendArc({args, relative = false}: {
-    args: PartialArcArgs[],
+    args: readonly PartialArcArgs[],
     relative?: boolean,
   }) {
     return this.append(args.map(arcArgs => {

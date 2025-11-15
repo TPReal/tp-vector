@@ -28,16 +28,19 @@ const NAMESPACES = new Map([
  * @see https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
  */
 const HYPHENATED_ATTRIBUTES = ["accent-height", "alignment-baseline", "arabic-form", "baseline-shift", "cap-height", "clip-path", "clip-rule", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "dominant-baseline", "enable-background", "fill-opacity", "fill-rule", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-name", "glyph-orientation-horizontal", "glyph-orientation-vertical", "horiz-adv-x", "horiz-origin-x", "image-rendering", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "overline-position", "overline-thickness", "panose-1", "paint-order", "pointer-events", "rendering-intent", "shape-rendering", "stop-color", "stop-opacity", "strikethrough-position", "strikethrough-thickness", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-rendering", "transform-origin", "underline-position", "underline-thickness", "unicode-bidi", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "vector-effect", "vert-adv-y", "vert-origin-x", "vert-origin-y", "word-spacing", "writing-mode", "x-height"];
-const HYPHENATED_ATTRIBUTES_MAP = new Map<string, string>();
+const HYPHENATED_ATTRIBUTES_MAP: ReadonlyMap<string, string> = (() => {
+  const result = new Map<string, string>();
 
-function toCamelCase(hyphenated: string) {
-  return hyphenated.split("-").map((p, i) =>
-    i ? p[0].toUpperCase() + p.slice(1) : p,
-  ).join("");
-}
+  function toCamelCase(hyphenated: string) {
+    return hyphenated.split("-").map((p, i) =>
+      i ? p[0].toUpperCase() + p.slice(1) : p,
+    ).join("");
+  }
 
-for (const attr of HYPHENATED_ATTRIBUTES)
-  HYPHENATED_ATTRIBUTES_MAP.set(toCamelCase(attr), attr);
+  for (const attr of HYPHENATED_ATTRIBUTES)
+    result.set(toCamelCase(attr), attr);
+  return result;
+})();
 
 export const COMMON_ATTRIBUTES: Attributes = {vectorEffect: "inherit"};
 
@@ -145,7 +148,7 @@ export function cloneElement<E extends SVGElement>(element: E): E {
   return element.cloneNode(true) as E;
 }
 
-export function uniqueElements<E extends SVGElement>(elements: E[]) {
+export function uniqueElements<E extends SVGElement>(elements: readonly E[]) {
   function getKey(e: E) {
     return JSON.stringify([
       e.tagName,
@@ -185,7 +188,7 @@ const ELEMENTS_BOUNDING_BOX_PARAMS = {
    */
   maxMeasures: 3,
   minSizeCoeff: 0.1,
-};
+} as const;
 
 /**
  * Cached measured bounding box of the last measured element, used to heuristically speed up
@@ -200,7 +203,7 @@ let svgForGetBoundingBox: SVGSVGElement | undefined;
  * on these elements (but not on their parent elements), which is different from `getBBox()`.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getBBox
  */
-export function getElementsBoundingBox(elements: SVGElement[]) {
+export function getElementsBoundingBox(elements: readonly SVGElement[]) {
   let viewBox = elementsBoundingBoxInitialViewBox;
   let svg = svgForGetBoundingBox;
   if (svg) {

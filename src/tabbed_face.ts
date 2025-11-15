@@ -83,9 +83,9 @@ function lazyMappedObject<K extends string, V, U>(
 }
 
 interface TabsDict<P extends string = never> {
-  tt: Readonly<Record<P, ExpandedTabsFuncParams>>;
-  fit: Readonly<Record<P, ExpandedTabsFuncParams>>;
-  pat: Readonly<Record<P, TabsPattern>>;
+  readonly tt: Readonly<Record<P, ExpandedTabsFuncParams>>;
+  readonly fit: Readonly<Record<P, ExpandedTabsFuncParams>>;
+  readonly pat: Readonly<Record<P, TabsPattern>>;
 }
 
 function bInv(b: boolean | "auto" | undefined) {
@@ -151,7 +151,7 @@ const ROTATION_DEG = {
   down: 180,
   right: 90,
   left: -90,
-};
+} as const;
 
 /** Rotation of a face, representing the starting direction of the Turtle that draws it. */
 export type StartAngleDeg = number | keyof typeof ROTATION_DEG;
@@ -225,8 +225,8 @@ function modeFromPartial({
 }
 
 interface CreateArgs {
-  startDir?: StartAngleDeg;
-  mode?: PartialTabbedFaceMode;
+  readonly startDir?: StartAngleDeg;
+  readonly mode?: PartialTabbedFaceMode;
 }
 
 /**

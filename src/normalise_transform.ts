@@ -7,41 +7,41 @@ type StringArgs = OriginAlignmentString | "default";
 
 /** Parameters for normalising an object in the target, with the given fitting and alignment. */
 interface BoxArgs {
-  target: PartialViewBox;
-  fitting?: Fitting;
-  align?: PartialBoxAlignment;
+  readonly target: PartialViewBox;
+  readonly fitting?: Fitting;
+  readonly align?: PartialBoxAlignment;
 }
 
 type DefiniteAxisBoxSpec = {
-  [A in Axis]: DefiniteDimSpec & {align?: AxisBoxAlignment[A]}
+  readonly [A in Axis]: DefiniteDimSpec & {readonly align?: AxisBoxAlignment[A]}
 };
 type LowerAxisBoxSpec = {
-  [A in Axis]: Pick<Required<IncompleteDimSpec>, "min"> & {align?: LowerAxisBoxVal[A]}
+  readonly [A in Axis]: Pick<Required<IncompleteDimSpec>, "min"> & {readonly align?: LowerAxisBoxVal[A]}
 };
 type UpperAxisBoxSpec = {
-  [A in Axis]: Pick<Required<IncompleteDimSpec>, "max"> & {align?: UpperAxisBoxVal[A]}
+  readonly [A in Axis]: Pick<Required<IncompleteDimSpec>, "max"> & {readonly align?: UpperAxisBoxVal[A]}
 };
 type AxisBoxSpec = DefiniteAxisBoxSpec | LowerAxisBoxSpec | UpperAxisBoxSpec;
 
 type AxisScaleHoldSpec = {
-  [A in Axis]: {
-    hold: AxisBoxAlignment[A],
-    scale: number,
+  readonly [A in Axis]: {
+    readonly hold: AxisBoxAlignment[A],
+    readonly scale: number,
   }
 };
 type AxisLenHoldSpec = {
-  [A in Axis]: {
-    hold: AxisBoxAlignment[A],
-    len?: number,
+  readonly [A in Axis]: {
+    readonly hold: AxisBoxAlignment[A],
+    readonly len?: number,
   }
 };
 type AxisHoldAllSpec = {
-  [A in Axis]: "hold"
+  readonly [A in Axis]: "hold"
 };
 type AxisHoldSpec = AxisScaleHoldSpec | AxisLenHoldSpec | AxisHoldAllSpec;
 
 type AxisIgnoreSpec = {
-  [A in Axis]?: undefined
+  readonly [A in Axis]?: undefined
 };
 
 type AxisAlignmentSpec =
@@ -53,9 +53,9 @@ type AxisAlignmentSpec =
  * lead to proportions change, even if fitting is not specified.
  */
 interface XYArgs {
-  x?: AxisAlignmentSpec[Axis.X];
-  y?: AxisAlignmentSpec[Axis.Y];
-  fitting?: Fitting;
+  readonly x?: AxisAlignmentSpec[Axis.X];
+  readonly y?: AxisAlignmentSpec[Axis.Y];
+  readonly fitting?: Fitting;
 }
 
 export type NormaliseArgs = StringArgs | BoxArgs | XYArgs;

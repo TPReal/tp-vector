@@ -12,10 +12,10 @@ export type Fitting = "fit" | "fill" | "stretch";
 const ORIGIN_ALIGNMENT_VALUES = {
   [Axis.X]: {rightOfOrigin: -1, center: 0, leftOfOrigin: 1},
   [Axis.Y]: {belowOrigin: -1, center: 0, aboveOrigin: 1},
-} satisfies Record<Axis, Record<string, AlignmentNumber>>;
+} satisfies Readonly<Record<Axis, Readonly<Record<string, AlignmentNumber>>>>;
 
 export type AxisOriginAlignment = {
-  [A in Axis]: keyof typeof ORIGIN_ALIGNMENT_VALUES[A]
+  readonly [A in Axis]: keyof typeof ORIGIN_ALIGNMENT_VALUES[A]
 };
 export type OriginAlignment = {
   readonly [A in Axis as Lowercase<A>]?: AxisOriginAlignment[A]
@@ -52,10 +52,10 @@ export function requiredOriginAlignmentFromPartial(alignment: PartialOriginAlign
 const BOX_ALIGNMENT_VALUES = {
   [Axis.X]: {left: -1, center: 0, right: 1},
   [Axis.Y]: {top: -1, center: 0, bottom: 1},
-} satisfies Record<Axis, Record<string, AlignmentNumber>>;
+} satisfies Readonly<Record<Axis, Readonly<Record<string, AlignmentNumber>>>>;
 
 export type AxisBoxAlignment = {
-  [A in Axis]: keyof typeof BOX_ALIGNMENT_VALUES[A]
+  readonly [A in Axis]: keyof typeof BOX_ALIGNMENT_VALUES[A]
 };
 export type BoxAlignment = {
   readonly [A in Axis as Lowercase<A>]?: AxisBoxAlignment[A]
@@ -88,14 +88,14 @@ const DEFAULT_ORIGIN_ALIGNMENT: RequiredOriginAlignment = {x: "rightOfOrigin", y
 const DEFAULT_BOX_ALIGNMENT: RequiredBoxAlignment = {x: "left", y: "top"};
 
 type KeysWithValue<Obj extends {}, V> = {
-  [k in keyof Obj]: Obj[k] extends V ? k : never
+  readonly [k in keyof Obj]: Obj[k] extends V ? k : never
 }[keyof Obj];
 
 export type LowerAxisBoxVal = {
-  [A in Axis]: KeysWithValue<typeof BOX_ALIGNMENT_VALUES[A], -1>
+  readonly [A in Axis]: KeysWithValue<typeof BOX_ALIGNMENT_VALUES[A], -1>
 };
 export type UpperAxisBoxVal = {
-  [A in Axis]: KeysWithValue<typeof BOX_ALIGNMENT_VALUES[A], 1>
+  readonly [A in Axis]: KeysWithValue<typeof BOX_ALIGNMENT_VALUES[A], 1>
 };
 
 export type AlignmentNumber = -1 | 0 | 1;

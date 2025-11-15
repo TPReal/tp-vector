@@ -45,7 +45,7 @@ function simplifyTf<
   S extends SVGElement & Record<A, SVGAnimatedTransformList>,
 >(
   element: SVGElement,
-  subclass: {prototype: S, new(): S},
+  subclass: {readonly prototype: S, new(): S},
   attribute: A,
 ) {
   if (element instanceof subclass) {

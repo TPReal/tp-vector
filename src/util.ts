@@ -1,7 +1,7 @@
 import {Point, isPoint} from './point.ts';
 
-export type OrArray<T> = T | T[];
-export type OrArrayRest<T> = OrArray<T>[];
+export type OrArray<T> = T | readonly T[];
+export type OrArrayRest<T> = readonly OrArray<T>[];
 
 export function flatten<T>(items: OrArrayRest<T>): T[];
 export function flatten<T>(items: OrArray<T>): T[];

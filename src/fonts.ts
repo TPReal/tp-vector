@@ -14,7 +14,7 @@ export const FONT_WEIGHT_VALUES = {
   thin: 100,
   regular: 400,
   bold: 700,
-};
+} as const;
 
 export type FontWeight = number | keyof typeof FONT_WEIGHT_VALUES;
 

@@ -123,7 +123,7 @@ function applyImageScalingAttributes(image: SVGImageElement, scaling: ImageScali
   }
 }
 
-const MIN_MID_MAX = new Map<AlignmentNumber, string>([
+const MIN_MID_MAX: ReadonlyMap<AlignmentNumber, string> = new Map([
   [-1, "Min"],
   [0, "Mid"],
   [1, "Max"],

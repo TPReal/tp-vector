@@ -6,7 +6,7 @@ import {toFileName} from './name.ts';
 
 /** The context for which an SVG is generated. */
 export type Medium = "preview" | "laser";
-export const MEDIA: Medium[] = ["preview", "laser"];
+export const MEDIA: readonly Medium[] = ["preview", "laser"];
 
 export type PartialMediaStyleAttributes = Partial<Record<Medium, Attributes>>;
 /** Global attributes applied to SVG created for the given medium. */
@@ -30,7 +30,7 @@ export type Side = "front" | "back";
 export interface PartialCommonRunOptions {
   id?: string;
   /** The layers which belong to this run. A layer can belong to multiple runs. */
-  layers?: OptionalLayerName[];
+  layers?: readonly OptionalLayerName[];
   styleAttributes?: PartialMediaStyleAttributes;
   /**
    * Side of the material on which the run should be executed. Note that for `"back"`, the contents
@@ -350,8 +350,8 @@ export interface PartialLaserRunsOptions {
   handles?: RunHandlesOptions;
 }
 export interface LaserRunsOptions {
-  colorCodes?: ColorsDistributor;
-  handles?: RunHandlesOptions;
+  readonly colorCodes?: ColorsDistributor;
+  readonly handles?: RunHandlesOptions;
 }
 export function laserRunsOptionsFromPartial({
   colorCodes = getGlobalOptions().laserRunsOptions?.colorCodes?.(),

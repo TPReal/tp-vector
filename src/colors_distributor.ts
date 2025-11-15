@@ -49,7 +49,7 @@ export class MapColorsDistributor implements ColorsDistributor {
 
 }
 
-export type InitialColorsAssignment = [id: Id, index: number][];
+export type InitialColorsAssignment = readonly [id: Id, index: number][];
 
 /**
  * A ColorsDistributor assigning colors from a given pool, possibly with some predefined colors.
@@ -61,7 +61,7 @@ export class CyclicColorsDistributor implements ColorsDistributor {
   private readonly colors = new Map<Id, Color>();
 
   protected constructor(
-    private readonly pool: Color[],
+    private readonly pool: readonly Color[],
     initial: InitialColorsAssignment,
     private nextIndex: number,
   ) {
@@ -74,7 +74,7 @@ export class CyclicColorsDistributor implements ColorsDistributor {
     initial = [],
     nextIndex = 0,
   }: {
-    pool: Color[],
+    pool: readonly Color[],
     initial?: InitialColorsAssignment,
     nextIndex?: number,
   }) {

@@ -8,7 +8,7 @@ import {PartialViewBox, viewBoxFromPartial} from '../view_box.ts';
 
 export function getSheet() {
 
-  const sizePairs: [number, number][] = [
+  const sizePairs: readonly (readonly [number, number])[] = [
     [2, 3], [3, 2],
     [0, 3], [3, 0],
     [0, 0],

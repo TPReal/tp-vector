@@ -40,15 +40,15 @@ function createSaveButton({label, hint, save}: {
 }
 
 interface PartialRunsSelectorInterface {
-  runs?: string[] | "all";
+  runs?: readonly string[] | "all";
   cornersMarker?: boolean | "auto";
   reversingFrame?: boolean | "auto";
 }
-export type PartialRunsSelector = PartialRunsSelectorInterface | string[];
+export type PartialRunsSelector = PartialRunsSelectorInterface | readonly string[];
 export interface RunsSelector {
-  runs: string[] | "all";
-  cornersMarker: boolean;
-  reversingFrame: boolean;
+  readonly runs: readonly string[] | "all";
+  readonly cornersMarker: boolean;
+  readonly reversingFrame: boolean;
 }
 
 export type SaveFormat = "SVG" | "PNG";
@@ -59,26 +59,26 @@ export interface PartialLaserSVGParams {
   runsSelector?: PartialRunsSelector;
 }
 export interface LaserSVGParams {
-  format: SaveFormat;
-  printsAsImages: boolean;
-  runsSelector: RunsSelector;
+  readonly format: SaveFormat;
+  readonly printsAsImages: boolean;
+  readonly runsSelector: RunsSelector;
 }
 
 export type ButtonSaveFormat = SaveFormat | "both";
 
-const DEFAULT_RUNS: PartialRunOptions[] = [{type: "print"}, {type: "cut"}];
+const DEFAULT_RUNS: readonly Readonly<PartialRunOptions>[] = [{type: "print"}, {type: "cut"}];
 
 export interface BasicSheetParams {
-  options?: PartialSheetOptions;
-  margin?: PartialViewBoxMargin;
-  viewBox?: PartialViewBox | "auto";
-  runs?: PartialRunOptions[];
-  preserveRunsOrder?: boolean;
-  artifacts?: (sheet: Sheet) => PartialArtifactData[];
+  readonly options?: PartialSheetOptions;
+  readonly margin?: PartialViewBoxMargin;
+  readonly viewBox?: PartialViewBox | "auto";
+  readonly runs?: PartialRunOptions[];
+  readonly preserveRunsOrder?: boolean;
+  readonly artifacts?: (sheet: Sheet) => PartialArtifactData[];
 }
 
 export interface SheetParams extends BasicSheetParams {
-  pieces: OrArray<BasicPiece | undefined>;
+  readonly pieces: OrArray<BasicPiece | undefined>;
 }
 
 export function mergeSheetParams<S extends BasicSheetParams | undefined>(basic: OrArray<BasicSheetParams | undefined>, params: S):
@@ -632,7 +632,7 @@ Continue summing up distances?`)) {
   getLaserSVGSaveButton({params = {}, label, hintLines = []}: {
     params?: PartialLaserSVGParams,
     label?: string,
-    hintLines?: string[],
+    hintLines?: readonly string[],
   } = {}) {
     const {format, runsSelector} = this.laserSVGParamsFromPartial(params);
     return createSaveButton({
@@ -675,7 +675,7 @@ Continue summing up distances?`)) {
       return this.getRunsInSpecifiedOrder();
     const allOptions = [...this.runOptions.values()];
     const hasReverseSide = allOptions.some(({id, side}) => !this.emptyRuns.has(id) && side === "back");
-    const toSingleRuns = (options: RunOptions[]): PartialRunsSelector[] => {
+    const toSingleRuns = (options: readonly RunOptions[]): PartialRunsSelector[] => {
       return options.filter(({id}) => !this.emptyRuns.has(id))
         .map(({id}) => ({
           runs: [id],
@@ -718,7 +718,7 @@ Continue summing up distances?`)) {
     format?: ButtonSaveFormat,
     printsFormat?: ButtonSaveFormat,
     includePrintsAsImages?: boolean,
-    runsSelectors?: (PartialRunsSelector | "separator")[] | "all",
+    runsSelectors?: readonly (PartialRunsSelector | "separator")[] | "all",
   } = {}) {
     const container = document.createElement("div");
     container.textContent = `Files for the laser software:`;
@@ -728,7 +728,7 @@ Continue summing up distances?`)) {
       const naturalOrder = this.getRunsInNaturalOrder();
       runsSelectors = [{runs: "all"}];
       if (naturalOrder.length > 1)
-        runsSelectors.push("separator", ...naturalOrder);
+        runsSelectors = [...runsSelectors, "separator", ...naturalOrder];
     }
     for (const runsSelector of runsSelectors) {
       if (runsSelector === "separator")

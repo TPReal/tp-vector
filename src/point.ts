@@ -7,7 +7,7 @@ export function isPoint(arg: Point | {} | null | undefined): arg is Point {
     typeof arg[0] === "number" && typeof arg[1] === "number";
 }
 
-export function pointsToString(points: Point[]) {
+export function pointsToString(points: readonly Point[]) {
   return points.map(([x, y]) =>
     `${roundReasonably(x)},${roundReasonably(y)}`
   ).join(" ");

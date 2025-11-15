@@ -7,9 +7,9 @@ import {PartialViewBox, PartialViewBoxMargin, viewBoxFromPartial, viewBoxMarginF
 export type Count = number | {from?: number, to: number, step?: number};
 
 interface CountData {
-  from: number;
-  step: number;
-  count: number;
+  readonly from: number;
+  readonly step: number;
+  readonly count: number;
 }
 
 function countDataFromCount(count: Count): CountData {
@@ -45,7 +45,7 @@ function* getMultiIndices(count: OrArray<Count>) {
  */
 export function layout({count, pieceFunc}: {
   count: OrArray<Count>,
-  pieceFunc: (...i: number[]) => BasicPiece | undefined,
+  pieceFunc: (...i: readonly number[]) => BasicPiece | undefined,
 }) {
   const parts = [];
   for (const mIndex of getMultiIndices(count)) {
@@ -79,7 +79,7 @@ export function repeat({
   return gather(parts);
 }
 
-function parseArgs<A extends {pieces: (Piece | undefined)[]}>(
+function parseArgs<A extends {pieces: readonly (Piece | undefined)[]}>(
   args: OrArrayRest<Piece | undefined> | [A]): Pick<A, "pieces"> & Partial<A> {
   function isArgsObj(args: OrArrayRest<Piece | undefined> | [A]): args is [A] {
     if (args.length !== 1)
@@ -105,12 +105,12 @@ export function column(...pieces: OrArrayRest<Piece | undefined>): Piece;
  * is left unchanged.
  */
 export function column(params: {
-  pieces: (Piece | undefined)[],
+  pieces: readonly (Piece | undefined)[],
   gap?: number,
   axis?: Axis,
 }): Piece;
 export function column(...args: OrArrayRest<Piece | undefined> | [{
-  pieces: (Piece | undefined)[],
+  pieces: readonly (Piece | undefined)[],
   gap?: number,
   axis?: Axis,
 }]) {
@@ -142,20 +142,20 @@ export function row(...pieces: OrArrayRest<Piece | undefined>): Piece;
  * The pieces are translated only along the X axis, their position on the Y axis is left unchanged.
  */
 export function row(params: {
-  pieces: (Piece | undefined)[],
+  pieces: readonly (Piece | undefined)[],
   gap?: number,
 }): Piece;
 export function row(...args: OrArrayRest<Piece | undefined> | [{
-  pieces: (Piece | undefined)[],
+  pieces: readonly (Piece | undefined)[],
   gap?: number,
 }]) {
   return column({...parseArgs(args), axis: Axis.X});
 }
 
-export type PackPiece = Piece | PackPiece[] | PackArgs;
+export type PackPiece = Piece | readonly PackPiece[] | PackArgs;
 
 export interface PackArgs {
-  pieces: PackPiece[],
+  pieces: readonly PackPiece[],
   axis?: Axis,
   normaliseItems?: NormaliseArgs | "none",
   gap?: number,
@@ -168,7 +168,7 @@ const DEFAULT_PACK_NORMALISE_ITEMS: NormaliseArgs = "default";
  * an array, is first packed in a column, similar to what the `column` function does - and so on,
  * recursively.
  */
-export function pack(...piecesRow: PackPiece[]): Piece;
+export function pack(...piecesRow: readonly PackPiece[]): Piece;
 /**
  * Packs the piece items in a row (or column, if the Y axis is specified), similar to
  * what the `row` (or `column`) function does. Each item that is an array, is first packed
@@ -178,8 +178,8 @@ export function pack(...piecesRow: PackPiece[]): Piece;
  * by default.
  */
 export function pack(args: PackArgs): Piece;
-export function pack(...params: PackPiece[] | [PackArgs]) {
-  function isPackArgs(params: PackPiece[] | [PackArgs]): params is [PackArgs] {
+export function pack(...params: readonly PackPiece[] | readonly [PackArgs]) {
+  function isPackArgs(params: readonly PackPiece[] | readonly [PackArgs]): params is readonly [PackArgs] {
     return params.length === 1 && !(params[0] instanceof Piece) && !Array.isArray(params[0]);
   }
   const {
@@ -191,7 +191,7 @@ export function pack(...params: PackPiece[] | [PackArgs]) {
   function norm(pc: Piece) {
     return normaliseItems === "none" ? pc : pc.normalise(normaliseItems);
   }
-  function subPack(pieces: PackPiece[], axis: Axis): Piece {
+  function subPack(pieces: readonly PackPiece[], axis: Axis): Piece {
     return column({
       pieces: pieces.map(o =>
         (o instanceof Piece ? o :
@@ -217,14 +217,14 @@ export function fitInBoxes({
   gap = 1,
   margin = gap,
 }: {
-  pieces: Piece[],
+  pieces: readonly Piece[],
   boxes: OrArray<PartialViewBox>,
   repeatBoxes?: boolean | "last" | number,
   gap?: number,
   margin?: PartialViewBoxMargin,
 }): {
-  boxedPieces: (Piece | undefined)[],
-  remainingPieces?: Piece[],
+  boxedPieces: readonly (Piece | undefined)[],
+  remainingPieces?: readonly Piece[],
 } {
   let rects = flatten(boxes).map(viewBoxFromPartial);
   const numRepeatBoxes = !repeatBoxes ? 0 :

@@ -244,8 +244,8 @@ export class Turtle extends DefaultPiece {
   ): Turtle;
   /** Executes the function in a loop, each time in a separate branch. */
   branches<Args extends unknown[], E>(
-    elements: E[],
-    func: TurtleFuncArg<[...args: Args, element: E, index: number, elements: E[]]>,
+    elements: readonly E[],
+    func: TurtleFuncArg<[...args: Args, element: E, index: number, elements: readonly E[]]>,
     ...args: Args
   ): Turtle;
   branches<Args extends unknown[], E, Iter extends Iterable<E>>(
@@ -268,8 +268,8 @@ export class Turtle extends DefaultPiece {
   ): Turtle;
   /** Executes the function in a loop, each time passing the result of the previous call. */
   repeat<Args extends unknown[], E>(
-    elements: E[],
-    func: TurtleFuncArg<[...args: Args, element: E, index: number, elements: E[]]>,
+    elements: readonly E[],
+    func: TurtleFuncArg<[...args: Args, element: E, index: number, elements: readonly E[]]>,
     ...args: Args
   ): Turtle;
   repeat<Args extends unknown[], E, Iter extends Iterable<E>>(...params: [
@@ -277,8 +277,8 @@ export class Turtle extends DefaultPiece {
     TurtleFuncArg<[...args: Args, index: number, count: number]>,
     ...Args,
   ] | [
-    E[],
-    TurtleFuncArg<[...args: Args, element: E, index: number, array: E[]]>,
+    readonly E[],
+    TurtleFuncArg<[...args: Args, element: E, index: number, array: readonly E[]]>,
     ...Args,
   ]) {
     function isCountParams(params: [
@@ -286,8 +286,8 @@ export class Turtle extends DefaultPiece {
       TurtleFuncArg<[...args: Args, index: number, count: number]>,
       ...Args,
     ] | [
-      E[],
-      TurtleFuncArg<[...args: Args, element: E, index: number, array: E[]]>,
+      readonly E[],
+      TurtleFuncArg<[...args: Args, element: E, index: number, array: readonly E[]]>,
       ...Args,
     ]): params is [
       number,

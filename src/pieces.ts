@@ -17,7 +17,7 @@ import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, multiplyMa
  */
 export interface Defs {
 
-  getDefs(): SVGElement[];
+  getDefs(): readonly SVGElement[];
 
 }
 
@@ -27,17 +27,17 @@ export interface Defs {
  */
 export interface BasicPiece extends Layerable<BasicPiece>, Partial<Defs> {
 
-  getElements(): SVGElement[];
+  getElements(): readonly SVGElement[];
 
   /**
    * If specified, returns the elements that should be used to calculate the bounding box of
    * this Piece. Otherwise, `getElements()` is used.
    */
-  getBoundingBoxElements?(): SVGElement[];
+  getBoundingBoxElements?(): readonly SVGElement[];
 
 }
 
-function hasMethods<T>(object: unknown, methods: (keyof T)[]) {
+function hasMethods<T>(object: unknown, methods: readonly (keyof T)[]) {
   return !!object && methods.every(m => typeof (object as T)[m] === "function");
 }
 
@@ -295,13 +295,13 @@ export class Piece
     return this.withTransformAndAttributes(this.parts.flatMap(part => part.getElements()));
   }
 
-  getBoundingBoxElements(): SVGElement[] {
+  getBoundingBoxElements(): readonly SVGElement[] {
     return this.withTransformAndAttributes(this.boundingBoxPiece ?
       this.boundingBoxPiece.getBoundingBoxElements() :
       this.parts.flatMap(part => part.getBoundingBoxElements?.() || part.getElements()));
   }
 
-  private withTransformAndAttributes(children: SVGElement[]): SVGElement[] {
+  private withTransformAndAttributes(children: readonly SVGElement[]): readonly SVGElement[] {
     if (!children.length)
       return [];
     const attributes = {

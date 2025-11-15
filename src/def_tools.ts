@@ -7,13 +7,13 @@ import {Transform} from './transform.ts';
 import {OrArray} from './util.ts';
 
 interface AttributesAndId {
-  attributes?: Attributes;
-  id?: string;
+  readonly attributes?: Attributes;
+  readonly id?: string;
 }
 
 type PiecesArg = OrArray<PiecePartArg | undefined>;
 type PiecesAttributesAndId<P extends string = "pieces"> = AttributesAndId & {
-  [key in P]: PiecesArg;
+  readonly [key in P]: PiecesArg;
 }
 type PartialPieceAttributesAndId<P extends string> =
   PiecesArg | PiecesAttributesAndId<P>;
@@ -202,7 +202,7 @@ export interface GradientStop extends GradientStopValue {
   readonly offset: number;
 }
 
-export type GradientStops = GradientStop[];
+export type GradientStops = readonly GradientStop[];
 
 export interface GradientStopFunc {
   (offset: number): GradientStopValue | undefined;
@@ -211,11 +211,11 @@ export interface GradientStopFunc {
 const DEFAULT_NUM_STOPS_FOR_FUNC = 11;
 
 export interface GradientStopsFuncWithRange {
-  startOffset?: number;
-  endOffset?: number;
-  numStops?: number;
-  offsetStep?: number;
-  func: GradientStopFunc;
+  readonly startOffset?: number;
+  readonly endOffset?: number;
+  readonly numStops?: number;
+  readonly offsetStep?: number;
+  readonly func: GradientStopFunc;
 }
 
 export type PartialGradientStops =

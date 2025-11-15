@@ -40,8 +40,8 @@ export function getExplainerObject(box: PartialViewBox) {
 }
 
 export interface ImageSpec {
-  label: string;
-  runIds: string[];
+  readonly label: string;
+  readonly runIds: readonly string[];
 }
 
 export async function getExplainerSection(
