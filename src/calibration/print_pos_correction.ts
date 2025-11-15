@@ -4,6 +4,8 @@ import {createNumParams} from '../params.ts';
 import {gather, Piece} from '../pieces.ts';
 import {Sheet} from '../sheet.ts';
 import {createText} from '../text.ts';
+// deno-lint-ignore no-unused-vars
+import {GlobalOptions} from '../global_options.ts';
 
 export const name = "printPosCorrection calibrator";
 
