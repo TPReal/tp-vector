@@ -217,6 +217,8 @@ export class Viewer {
       }
       for (const sheet of sheets)
         div.append(await getSheetPreview(sheet));
+      if (!sheets.length)
+        div.append(document.createTextNode(`No sheets.`));
       return div;
     } : content.element;
     return this.addSect({name: content.name, element});

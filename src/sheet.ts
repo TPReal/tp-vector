@@ -674,7 +674,7 @@ Continue summing up distances?`)) {
     if (this.preserveRunsOrder)
       return this.getRunsInSpecifiedOrder();
     const allOptions = [...this.runOptions.values()];
-    const hasReverseSide = allOptions.some(({side}) => side === "back");
+    const hasReverseSide = allOptions.some(({id, side}) => !this.emptyRuns.has(id) && side === "back");
     const toSingleRuns = (options: RunOptions[]): PartialRunsSelector[] => {
       return options.filter(({id}) => !this.emptyRuns.has(id))
         .map(({id}) => ({
