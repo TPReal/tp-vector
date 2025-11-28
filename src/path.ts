@@ -91,7 +91,7 @@ export class Path extends SimpleLazyPiece {
         commands.pop();
       lastCommand = command;
       const casedCommand = relative ? command.toLowerCase() : command;
-      commands.push(args ? `${casedCommand} ${args}` : casedCommand);
+      commands.push(args ? `${casedCommand}${args}` : casedCommand);
     }
     return new pathClass(commands, lastCommand);
   }
