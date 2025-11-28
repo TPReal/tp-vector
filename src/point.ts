@@ -20,3 +20,11 @@ export function pointDebugString(point: Point) {
 export function isZeroPoint([x, y]: Point) {
   return x === 0 && y === 0;
 }
+
+export function pointsDist([x1, y1]: Point, [x2, y2]: Point) {
+  return Math.hypot(x2 - x1, y2 - y1);
+}
+
+export function pointsMid([x1, y1]: Point, [x2, y2]: Point, p = 0.5): Point {
+  return [x1 * p + x2 * (1 - p), y1 * p + y2 * (1 - p)];
+}

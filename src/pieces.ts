@@ -400,6 +400,10 @@ export class Piece
     return this.mirrorX(center?.[0]).mirrorY(center?.[1]);
   }
 
+  mirrorCenter(center?: Point) {
+    return gather(this, this.flipXY(center));
+  }
+
   /** Normalises (i.e. scales and/or translates) the piece to match the specified params. */
   normalise(params: NormaliseArgs, {margin}: OptMargin = {}) {
     return this.transform(getNormaliseTransform(this.getBoundingBox(margin), params));
