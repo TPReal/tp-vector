@@ -116,6 +116,8 @@ type ReplaceAnys<P extends NumParamsType> = {
   [K in keyof P]: IsAny<P[K]> extends true ? number : P[K] extends NumParamsType ? ReplaceAnys<P[K]> : P[K];
 };
 
+const NumParameterProxy = class {};
+
 function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(
   base: P, params: NumParamsInput<R>): ReplaceAnys<P & R> {
   function toPrimitive(hint: string) {
@@ -171,7 +173,8 @@ function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(
         if (typeof val === "object" && !Array.isArray(val))
           return wrap(val);
         throw new Error(`Expected number or number params, got: ${val} (key: ${key})`);
-      }
+      },
+      getPrototypeOf: () => NumParameterProxy.prototype,
     };
     function wrap(target: NumParamsType) {
       return new Proxy(target, handler);
@@ -187,7 +190,7 @@ function mergeNumParams<P extends NumParamsType, R extends NumParamsType>(
         const badKeys: string[][] = [];
         function findBadKeys(keys: readonly string[], val: NumParamsType) {
           for (const [key, value] of Object.entries(val)) {
-            if (Number.isNaN(value))
+            if (Number.isNaN(value) || value instanceof NumParameterProxy)
               badKeys.push([...keys, key]);
             else if (value && typeof value === "object")
               findBadKeys([...keys, key], value);
