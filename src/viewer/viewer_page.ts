@@ -175,6 +175,8 @@ export function showViewer({
 
   function createSectionTitle(name: string) {
     const title = document.createElement("a");
+    title.style.color = "initial";
+    title.style.textDecoration = "initial";
     title.style.fontSize = "1.5em";
     title.style.cursor = "pointer";
     title.style.display = "flex";
@@ -184,8 +186,10 @@ export function showViewer({
     dot.style.fontWeight = "bold";
     dot.textContent = `•`;
     title.append(name);
-    title.addEventListener("click", () => {
+    title.href = `?${SECTION_KEY}=${name}`;
+    title.addEventListener("click", e => {
       showSection(name);
+      e.preventDefault();
     });
     return title;
   }
