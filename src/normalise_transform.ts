@@ -118,7 +118,7 @@ export function getNormaliseTransform(
     if (!inputs.length)
       inputs = anchors.filter(({nInput}) => nInput);
     if (inputs.length) {
-      const negotiatedScale = (
+      const negotiatedScale = fitting === "pan" ? 1 : (
         fitting === "fit" ? Math.min :
           fitting === "fill" ? Math.max :
             fitting satisfies never

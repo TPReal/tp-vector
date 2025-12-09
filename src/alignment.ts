@@ -6,8 +6,9 @@ import {Axis} from './axis.ts';
  *  - `"fill"`: scale proportionally so that the whole rectangle is covered (but parts of
  *    the object might go outside of it).
  *  - `"stretch"`: fit the object exactly to the rectangle, scaling X and Y axes separately.
+ *  - `"pan"`: move the object within the rectangle without scaling.
  */
-export type Fitting = "fit" | "fill" | "stretch";
+export type Fitting = "fit" | "fill" | "stretch" | "pan";
 
 const ORIGIN_ALIGNMENT_VALUES = {
   [Axis.X]: {rightOfOrigin: -1, center: 0, leftOfOrigin: 1},
