@@ -269,11 +269,13 @@ export class SlotsPattern {
     length: number,
     slotLengthsRatio?: number,
     slot1LengthFrac?: number,
+    slot1Length?: number,
   }): [SlotsPattern, SlotsPattern];
   static slidePair(...params: [number] | [number, number] | [{
     length: number,
     slotLengthsRatio?: number,
     slot1LengthFrac?: number,
+    slot1Length?: number,
   }]) {
     let len1, len2;
     if (params.length == 2)
@@ -287,8 +289,9 @@ export class SlotsPattern {
           length,
           slotLengthsRatio = 1,
           slot1LengthFrac = slotLengthsRatio / (slotLengthsRatio + 1),
+          slot1Length = slot1LengthFrac * length,
         } = arg;
-        len1 = slot1LengthFrac * length;
+        len1 = slot1Length;
         len2 = length - len1;
       }
     }
