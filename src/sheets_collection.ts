@@ -23,7 +23,7 @@ export function sheetsCollection(...params: SheetsCollectionCreateParams) {
   // deno-lint-ignore no-explicit-any
   const result: any = [];
   for (const [name, value] of Object.entries(input)) {
-    const nameParams: BasicSheetParams = {
+    const nameParams: BasicSheetParams | undefined = name.startsWith("_") ? undefined : {
       options: {
         name: [basicParams?.options?.name, name].filter(Boolean).join(" "),
         fileName: basicParams?.options?.fileName ? basicParams.options.fileName + " " + name : undefined,
