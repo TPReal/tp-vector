@@ -4,6 +4,7 @@ import {PartialLaserSVGParams, Sheet} from '../sheet.ts';
 import {ButtonsRow} from '../ui.ts';
 import {OrArray, assert} from '../util.ts';
 import {newJSZip} from '../zip.ts';
+import {getPreviewClickHandler} from './preview_click_handler.ts';
 import {OrFuncPromise, OrPromise, SectionDef, SectionItemDef, unwrap} from './types.ts';
 import {showViewer} from './viewer_page.ts';
 
@@ -33,6 +34,7 @@ export async function getSheetPreview(sheet: Sheet) {
   div.append(svgContainer);
   const svg = await sheet.getPreviewSVG();
   svgContainer.append(svg)
+  svg.addEventListener("dblclick", getPreviewClickHandler(sheet.viewBox));
   const unusedLayersWarning = sheet.getUnusedLayersWarning();
   if (unusedLayersWarning)
     div.append(unusedLayersWarning);

@@ -8,12 +8,11 @@ import * as layouts from './layouts.ts';
 import {getNameSizeSuffix, getSizeString, getSuffixedFileName} from './name.ts';
 import {Medium, PartialRunOptions, PartialSheetOptions, RunOptions, SheetOptions, Side, runOptionsFromPartial, sheetOptionsFromPartial} from './options.ts';
 import {BasicPiece, Defs, Piece, gather} from './pieces.ts';
-import {Point, pointDebugString} from './point.ts';
 import {getPNGDataURI} from './svg_converter.ts';
 import {saveSVG, saveSVGAsPNG} from './svg_saver.ts';
 import {createText} from './text.ts';
 import {ButtonsRow} from './ui.ts';
-import {OrArray, assert, flatten, flattenFilter, roundReasonably} from './util.ts';
+import {OrArray, assert, flatten, flattenFilter} from './util.ts';
 import {PartialViewBox, PartialViewBoxMargin, ViewBox, extendViewBox, viewBoxFromPartial, viewBoxMarginFromPartial, viewBoxToString} from './view_box.ts';
 
 const DEFAULT_SVG_BORDER_STYLE = "solid #00f4 1px";
@@ -495,11 +494,9 @@ export class Sheet {
    */
   async getPreviewSVG({
     runsSelector,
-    showPointOnDblClick = true,
     border = true,
   }: {
     runsSelector?: PartialRunsSelector,
-    showPointOnDblClick?: boolean,
     border?: SVGBorderStyle,
   } = {}) {
     const fullRunsSelector = this.runsSelectorFromPartial({medium: "preview", runsSelector});
@@ -510,43 +507,6 @@ export class Sheet {
       children: this.name ? `${this.name} (${this.getSizeString()})` : this.getSizeString(),
     });
     svg.insertAdjacentElement("afterbegin", titleElement);
-    let prevPoint: Point | undefined;
-    let totalDist = 0;
-    let totalDistNumPoints = 1;
-    if (showPointOnDblClick)
-      svg.addEventListener("dblclick", (event) => {
-        event.preventDefault();
-        document.getSelection()?.empty();
-        const elem = event.currentTarget as HTMLElement;
-        const point: Point = [
-          this.viewBox.minX + event.offsetX / elem.clientWidth * this.viewBox.width,
-          this.viewBox.minY + event.offsetY / elem.clientHeight * this.viewBox.height,
-        ];
-        console.log("Point:", point);
-        setTimeout(() => {
-          const pointStr = `Point: ${pointDebugString(point)}`;
-          if (prevPoint) {
-            const distToPrev = Math.hypot(point[0] - prevPoint[0], point[1] - prevPoint[1]);
-            totalDist += distToPrev;
-            totalDistNumPoints++;
-            prevPoint = point;
-            if (!confirm(`\
-${pointStr}
-Previous point: ${pointDebugString(prevPoint)}
-Distance from previous point: ${roundReasonably(distToPrev, {significantDigits: 4})}
-
-Total distance (${totalDistNumPoints} points): ${roundReasonably(totalDist, {significantDigits: 4})}
-Continue summing up distances?`)) {
-              totalDist = 0;
-              totalDistNumPoints = 1;
-              prevPoint = undefined;
-            }
-          } else {
-            prevPoint = point;
-            alert(pointStr);
-          }
-        });
-      });
     return svg;
   }
 
