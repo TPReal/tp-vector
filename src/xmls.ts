@@ -1,5 +1,4 @@
 import * as assets from './assets.ts';
-import {Path} from './path.ts';
 
 interface XPathParams {
   readonly contextNode?: Node;
@@ -40,22 +39,6 @@ export class ExternalXML {
 
   lookupNamespaceURI(prefix: string | null) {
     return prefix ? this.doc.documentElement.getAttribute(prefix === "xmlns" ? "xmlns" : `xmlns:${prefix}`) : null;
-  }
-
-  readonly inkscape = {
-
-    pathFromD: (label0: string, ...labelsRest: string[]) => {
-      const labels = [label0, ...labelsRest];
-      const gLabels = labels.slice(0, -1);
-      const pathLabel = labels.at(-1);
-      const xpath = `string(/svg:svg${gLabels.map(l => `//svg:g[@inkscape:label=${JSON.stringify(l)}]`).join("")
-        }//svg:path[@inkscape:label=${JSON.stringify(pathLabel)}]/@d)`;
-      const d = this.xpath(xpath).stringValue || undefined;
-      if (!d)
-        throw new Error(`Expected path ${JSON.stringify(pathLabel)} to exist, but not found (xpath: ${JSON.stringify(xpath)})`);
-      return Path.fromD(d);
-    },
-
   }
 
 }
