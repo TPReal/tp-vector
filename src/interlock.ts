@@ -74,7 +74,7 @@ export function slotsOptionsFromPartial({
   };
 }
 
-interface TabsArgs {
+export interface TabsArgs {
   pattern: TabsPattern;
   /**
    * Whether the edge starts and ends at the level of the tab (and not the base line).
@@ -93,7 +93,7 @@ interface TabsArgs {
   options: PartialTabsOptions;
 }
 
-interface SlotsArgs {
+export interface SlotsArgs {
   pattern: SlotsPattern;
   /** To which side of the base line should the slots go. */
   dir?: "right" | "left" | "center";

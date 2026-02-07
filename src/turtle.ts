@@ -51,6 +51,12 @@ function isStackKey(value: StackKey | {}): value is StackKey {
   return value === DEFAULT_STACK_KEY || typeof value === "string" || typeof value === "number";
 }
 
+type StackPopAllOrder = "fifo" | "lifo";
+
+interface StackPopAllPartialOptions {
+  order?: StackPopAllOrder;
+}
+
 export interface TurtleFunc<Args extends unknown[] = []>
   extends PieceFunc<Turtle, Turtle, Args> {}
 
@@ -204,13 +210,17 @@ export class Turtle extends DefaultPiece {
     return this.getStackSize(stackKey) === 0;
   }
 
+  dropStack(stackKey = DEFAULT_STACK_KEY) {
+    return this.append({stackKey, stack: []});
+  }
+
   /**
    * Loads the state saved in the specified stack, without popping it.
    * This does not modify the drawn path.
    */
   peek(stackKey = DEFAULT_STACK_KEY) {
     const stack = this.stacks.get(stackKey);
-    if (!stack || !stack.length)
+    if (!stack?.length)
       throw new Error(`Stack ${JSON.stringify(stackKey ?? "default")} is empty.`);
     return this.appendState(assert(stack.at(-1)));
   }
@@ -224,6 +234,23 @@ export class Turtle extends DefaultPiece {
       stackKey,
       stack: assert(this.stacks.get(stackKey)).slice(0, -1),
     });
+  }
+
+  /**
+   * Returns an array of length equal to the specified stack's length, where every element is this
+   * turtle with the corresponding state applied. The default order is FIFO.
+   */
+  peekAll(options?: StackPopAllPartialOptions): Turtle[];
+  peekAll(stackKey: StackKey, options?: StackPopAllPartialOptions): Turtle[];
+  peekAll(...params: [StackPopAllPartialOptions?] | [StackKey, StackPopAllPartialOptions?]) {
+    const [stackKey = DEFAULT_STACK_KEY, options]: [StackKey, StackPopAllPartialOptions?] =
+      isStackKey(params[0]) ? params as [StackKey, StackPopAllPartialOptions?] : [undefined, params[0]];
+    const stack = this.stacks.get(stackKey);
+    const result: Turtle[] = [];
+    if (stack)
+      for (const state of stack)
+        result.push(this.appendState(state));
+    return options?.order === "lifo" ? result.reverse() : result;
   }
 
   /**
