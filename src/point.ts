@@ -2,6 +2,8 @@ import {roundReasonably} from './util.ts';
 
 export type Point = readonly [number, number]
 
+export const ORIGIN: Point = [0, 0];
+
 export function isPoint(arg: Point | {} | null | undefined): arg is Point {
   return Array.isArray(arg) && arg.length === 2 &&
     typeof arg[0] === "number" && typeof arg[1] === "number";

@@ -2,6 +2,7 @@ import {PartialInterlockOptions, PartialTabsOptions, TabsOptions, TurtleTabsFunc
 import {TabsPattern} from './interlock_patterns.ts';
 import {SimpleLazyPiece} from './lazy_piece.ts';
 import {DefaultPiece, Piece, PieceFunc} from './pieces.ts';
+import {ORIGIN, Point} from './point.ts';
 import {LazyTurtleFunc, PartialCurveArgs, Turtle, TurtleFunc, TurtleFuncArg} from './turtle.ts';
 import {almostEqual, sinCos} from './util.ts';
 
@@ -225,6 +226,7 @@ function modeFromPartial({
 }
 
 interface CreateArgs {
+  readonly startPos?: Point;
   readonly startDir?: StartAngleDeg;
   readonly mode?: PartialTabbedFaceMode;
 }
@@ -296,6 +298,7 @@ export class TabbedFace<P extends string = never>
   readonly pat;
 
   protected constructor(
+    readonly startPos: Point,
     readonly startAngle: number,
     readonly mode: TabbedFaceMode,
     readonly options: TabsOptions,
@@ -313,10 +316,12 @@ export class TabbedFace<P extends string = never>
   static create(...params: Parameters<typeof SimpleLazyPiece.create>): never;
   static create(...params: unknown[]) {
     const [options, {
+      startPos = ORIGIN,
       startDir,
       mode,
     } = {} satisfies CreateArgs] = params as [PartialTabsOptions, CreateArgs?];
     return new TabbedFace(
+      startPos,
       startAngleDeg(startDir),
       modeFromPartial(mode),
       tabsOptionsFromPartial(options),
@@ -330,6 +335,7 @@ export class TabbedFace<P extends string = never>
     mode?: PartialTabbedFaceMode,
   }) {
     return new TabbedFace(
+      this.startPos,
       this.startAngle,
       {...this.mode, ...mode},
       {...this.options, ...options},
@@ -695,12 +701,12 @@ export class TabbedFace<P extends string = never>
       if (lastHopSegm)
         getPointLevel(lastHopSegm.end, segment.start);
     }
-    return new TabbedFace(this.startAngle, this.mode, this.options,
+    return new TabbedFace(this.startPos, this.startAngle, this.mode, this.options,
       [...this.segments, segment], this.tabsDict);
   }
 
   private appendNamedTabs(name: string, tabsParams: ExpandedTabsFuncParams) {
-    return new TabbedFace(this.startAngle, this.mode, this.options,
+    return new TabbedFace(this.startPos, this.startAngle, this.mode, this.options,
       this.segments, this.tabsDict.addTabs(name, tabsParams));
   }
 
@@ -734,6 +740,7 @@ export class TabbedFace<P extends string = never>
         getFunc: () => IDENTITY_FUNC,
       };
       closed = new TabbedFace(
+        this.startPos,
         this.startAngle,
         this.mode,
         this.options,
@@ -744,7 +751,7 @@ export class TabbedFace<P extends string = never>
       closed = this;
     const turtle = closed.asTurtle();
     if (!allowOpen)
-      checkFaceClosed(this.startAngle, turtle, posTolerance);
+      checkFaceClosed(this.startPos, this.startAngle, turtle, posTolerance);
     const path = closePath ? turtle.closePath() : turtle.asPath();
     return ClosedFace.create(turtle, path, this.tabsDict);
   }
@@ -792,7 +799,7 @@ export class TabbedFace<P extends string = never>
    */
   asTurtle() {
     const {func, startLevel, endLevel} = this.joinFunctions();
-    let t = Turtle.create().setAngle(this.startAngle ?? 0);
+    let t = Turtle.create(this.startPos).setAngle(this.startAngle ?? 0);
     if (startLevel === Level.TAB)
       t = t.withPenUp(this.strafeToTab());
     t = t.andThen(func);
@@ -822,19 +829,20 @@ export class TabbedFaceCreator {
 }
 
 function checkFaceClosed(
-  startDir: number,
+  [startX, startY]: Point,
+  startAngleDeg: number,
   {pos: [x, y], angleDeg}: Turtle,
   posTolerance: number,
 ) {
-  const norm = (v: number, tolerance?: number) => almostEqual(v, 0, {tolerance}) ? 0 : v;
+  const norm = (v: number, expV: number, tolerance?: number) => almostEqual(v, expV, {tolerance}) ? expV : v;
   const angleToRange = (a: number) => (a % 360 + 360 + 180) % 360 - 180;
-  startDir = angleToRange(startDir);
-  x = norm(x, posTolerance);
-  y = norm(y, posTolerance);
-  angleDeg = norm(angleToRange(angleDeg));
-  if (x !== 0 || y !== 0 || norm(angleToRange(angleDeg - startDir)) !== 0)
+  startAngleDeg = angleToRange(startAngleDeg);
+  x = norm(x, startX, posTolerance);
+  y = norm(y, startY, posTolerance);
+  angleDeg = norm(angleToRange(angleDeg), startAngleDeg);
+  if (x !== startX || y !== startY || angleDeg !== startAngleDeg)
     throw new Error(`The face shape is not closed properly: ` +
-      `angleDeg=${angleDeg} (expected: ${startDir}), pos=[${x}, ${y}] (expected: [0, 0]` +
+      `angleDeg=${angleDeg} (expected: ${startAngleDeg}), pos=[${x}, ${y}] (expected: [${startX}, ${startY}]` +
       `${posTolerance ? ` with tolerance ${posTolerance}` : ``})`);
 }
 

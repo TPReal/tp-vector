@@ -1,6 +1,6 @@
 import {createElement} from './elements.ts';
 import {SimpleLazyPiece} from './lazy_piece.ts';
-import {Point, isZeroPoint, pointsToString} from './point.ts';
+import {ORIGIN, Point, isZeroPoint, pointsToString} from './point.ts';
 import {OrArrayRest, flatten, roundReasonably} from './util.ts';
 
 /**
@@ -61,7 +61,7 @@ export class Path extends SimpleLazyPiece {
   static create(point?: Point): Path;
   static create(...params: Parameters<typeof SimpleLazyPiece.create>): never;
   static create(...params: unknown[]) {
-    const [start = [0, 0]] = params as [Point?];
+    const [start = ORIGIN] = params as [Point?];
     return new Path([], undefined).moveTo(start);
   }
 

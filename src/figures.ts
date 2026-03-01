@@ -1,12 +1,12 @@
 import {getGlobalOptions} from './global_options.ts';
 import {Path} from './path.ts';
 import {Piece} from './pieces.ts';
-import {Point, pointsToString} from './point.ts';
+import {ORIGIN, Point, pointsToString} from './point.ts';
 import {OrArrayRest, flattenPoints} from './util.ts';
 import {PartialViewBox, viewBoxFromPartial} from './view_box.ts';
 
 export function circle({
-  center = [0, 0],
+  center = ORIGIN,
   radius = 1,
 }: {
   center?: Point,
@@ -19,7 +19,7 @@ export function circle({
 }
 
 export function ellipse({
-  center = [0, 0],
+  center = ORIGIN,
   radiusX = 1,
   radiusY = 1,
 }: {
@@ -75,7 +75,7 @@ export function rectangle({
 export function line(originTo: Point): Piece;
 export function line(from: Point, to: Point): Piece;
 export function line(...params: [Point] | [Point, Point]) {
-  const [from, to] = params.length == 1 ? [[0, 0], params[0]] : params;
+  const [from, to] = params.length == 1 ? [ORIGIN, params[0]] : params;
   const line = Piece.createElement({
     tagName: "line",
     attributes: {x1: from[0], y1: from[1], x2: to[0], y2: to[1]},
