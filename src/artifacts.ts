@@ -5,7 +5,9 @@ export interface PartialArtifactData {
   name: string;
   desc?: string;
   fileName?: string;
-  data: () => string | Uint8Array | Blob;
+  // Note: a SharedArrayBuffer-backed Uint8Array is not accepted (a Blob cannot be created
+  // from it).
+  data: () => string | Uint8Array<ArrayBuffer> | Blob;
 }
 export interface ArtifactData {
   readonly name: string;

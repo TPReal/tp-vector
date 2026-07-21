@@ -94,10 +94,13 @@ Take a look at the code entry point, which is
 making changes. Changes in the code are immediately caught by the Viewer, and
 the browser is refreshed to show the result.
 
-_Note:_ The Viewer process does not perform type-checking. For TypeScript
-type-checking you need to either rely on your IDE, or run the checker manually,
-using [_cmds/type-check_](../cmds/type-check), or the _Type-check_ task in VS
-Code.
+_Note:_ The Viewer process does not perform type-checking or linting. For
+TypeScript type-checking you need to either rely on your IDE, or run the checker
+manually, using [_cmds/type-check_](../cmds/type-check), or the _Type-check_
+task in VS Code. Similarly, the linter is available as
+[_cmds/lint_](../cmds/lint), or the _Lint_ task in VS Code. See the
+[commands documentation](../cmds/README.md) for the full list of the available
+commands.
 
 ## Custom projects
 

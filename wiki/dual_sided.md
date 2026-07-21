@@ -86,6 +86,24 @@ There can be multiple runs working on the back, when there are elements to print
 with different laser settings. There can even be a backside cut run, for
 elements that should be scored (i.e. cut, but not all the way through).
 
+## Previewing in the Viewer
+
+The preview of a dual-sided Sheet shows all the runs at once, with the backside
+elements mirrored, as if the material was transparent — which makes the
+overlapping front and back prints hard to read. To inspect the sides separately,
+use the view buttons next to the runs checkboxes:
+
+- _All_ shows all the runs.
+- _Cut_ shows only the cut runs.
+- _Front_ shows the front side, i.e. all the runs with `side: "front"`.
+- _Back_ shows the back side: the backside runs, plus the front cuts, which are
+  assumed to go all the way through the material (backside cuts are assumed to
+  be etches, visible only from the back).
+
+The _Back_ button also selects the _Un-mirror_ checkbox, which flips the whole
+preview, showing the sheet as physically seen from the back (the checkbox can
+also be toggled manually).
+
 ## The laser SVG file
 
 The laser SVG file contains the un-flipped backside runs. For example, the SVG

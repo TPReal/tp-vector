@@ -229,6 +229,11 @@ export class Sheet {
     return [...this.runOptions.keys()];
   }
 
+  /** Returns the options of all the runs defined in this Sheet, in the specified order. */
+  getRunsOptions(): readonly RunOptions[] {
+    return [...this.runOptions.values()];
+  }
+
   getNonEmptyRunIds() {
     return this.getRunIds().filter(id => !this.emptyRuns.has(id));
   }

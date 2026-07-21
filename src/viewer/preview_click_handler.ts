@@ -39,14 +39,17 @@ export function getPreviewClickHandler(viewBox: ViewBox) {
     setTimeout(() => {
       const pointStr = `Point: ${pointDebugString(point)}`;
       if (prevPoint) {
-        const distToPrev = Math.hypot(point[0] - prevPoint[0], point[1] - prevPoint[1]);
+        const dFromPrev: Point = [point[0] - prevPoint[0], point[1] - prevPoint[1]];
+        const distToPrev = Math.hypot(...dFromPrev);
         totalDist += distToPrev;
         totalDistNumPoints++;
         prevPoint = point;
         if (!confirm(`\
 ${pointStr}
 Previous point: ${pointDebugString(prevPoint)}
-Distance from previous point: ${roundReasonably(distToPrev, {significantDigits: 4})}
+From previous point:
+    Vector: ${pointDebugString(dFromPrev)}
+    Distance: ${roundReasonably(distToPrev, {significantDigits: 4})}
 
 Total distance (${totalDistNumPoints} points): ${roundReasonably(totalDist, {significantDigits: 4})}
 Continue collecting points and summing up distances?`)) {

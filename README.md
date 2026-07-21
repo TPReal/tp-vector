@@ -334,6 +334,9 @@ const pieces = gather(
 
 </details>
 
+See the [Clipping, masking and gradients](wiki/def_tools.md) document for more
+information.
+
 ### [Layout](src/layouts.ts)
 
 ![Layout](wiki/feature_layouts.png)

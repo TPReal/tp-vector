@@ -1,4 +1,5 @@
 import {GlobalOptionsInput} from '../global_options.ts';
+import {RunOptions} from '../options.ts';
 import {saveBlobDownload} from '../saver.ts';
 import {PartialLaserSVGParams, Sheet} from '../sheet.ts';
 import {ButtonsRow} from '../ui.ts';
@@ -38,7 +39,7 @@ export async function getSheetPreview(sheet: Sheet) {
   const unusedLayersWarning = sheet.getUnusedLayersWarning();
   if (unusedLayersWarning)
     div.append(unusedLayersWarning);
-  div.append(getSVGRunsControllerCheckboxes(svg));
+  div.append(getSVGRunsControllerCheckboxes(svg, sheet));
   div.append(sheet.getSaveLaserSVGButtons());
   const artifactButtons = sheet.getSaveArtifactsButtons();
   if (artifactButtons)
@@ -46,11 +47,42 @@ export async function getSheetPreview(sheet: Sheet) {
   return div;
 }
 
+type SheetViewType = "all" | "cut" | "front" | "back";
+
+const SHEET_VIEWS: readonly {view: SheetViewType, label: string, hint: string, dualSidedOnly?: boolean, withPrintsOnly?: boolean}[] = [
+  {view: "all", label: `All`, hint: `Show all runs`},
+  {view: "cut", label: `Cut`, hint: `Show only the cut runs`, withPrintsOnly: true},
+  {view: "front", label: `Front`, hint: `Show the front side`, dualSidedOnly: true},
+  {view: "back", label: `Back`, hint: `Show the back side (with the front cuts, which go all the way through)`, dualSidedOnly: true},
+];
+
+// TODO: Consider a way for a run to declare whether it goes all the way through,
+// e.g. an etch cut run on the front.
+/**
+ * Determines whether a run is visible in the given view, assuming that the front cuts go all
+ * the way through (and are thus visible from both sides), while the back cuts are just etches
+ * (visible only from the back).
+ */
+function isRunInView(view: SheetViewType, {type, side}: RunOptions) {
+  if (view === "all")
+    return true;
+  if (view === "cut")
+    return type === "cut";
+  if (view === "front")
+    return side === "front";
+  if (view === "back")
+    return side === "back" || type === "cut";
+  return view satisfies never;
+}
+
 /**
  * Returns a `<div>` with checkboxes controlling visibility of particular runs in the
  * `<svg>` element.
+ * If the Sheet is specified, the controller also contains buttons selecting predefined views
+ * (see {@link SheetViewType}), and for a dual-sided Sheet, an _Un-mirror_ checkbox flipping
+ * the whole preview, to look at the sheet from the back.
  */
-export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
+export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement, sheet?: Sheet) {
   const runsController = document.createElement("div");
   runsController.style.display = "flex";
   runsController.style.gap = ".5em";
@@ -59,8 +91,10 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
   const blinkTimers: number[] = [];
   runsController.append(`Show runs:`);
   const runCheckboxes: HTMLInputElement[] = [];
+  const runIds: string[] = [];
   for (const g of svg.querySelectorAll(":scope > g[id]")) {
     const id = assert(g.getAttribute("id"));
+    runIds.push(id);
     const span = document.createElement("span");
     runsController.append(span);
     span.title = `Right-click to blink`;
@@ -101,6 +135,47 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement) {
             }, 120);
           }, i * 240));
       });
+  }
+  if (sheet) {
+    const runsOptions = new Map(sheet.getRunsOptions().map(runOptions => [runOptions.id, runOptions]));
+    const isDualSided = runIds.some(id => runsOptions.get(id)?.side === "back");
+    const hasPrints = runIds.some(id => runsOptions.get(id)?.type === "print");
+    let unMirrorCheckbox: HTMLInputElement | undefined;
+    function applyView(view: SheetViewType) {
+      for (let i = 0; i < runIds.length; i++) {
+        const runOptions = runsOptions.get(runIds[i]);
+        const visible = runOptions ? isRunInView(view, runOptions) : view === "all";
+        if (runCheckboxes[i].checked !== visible)
+          runCheckboxes[i].click();
+      }
+      if (unMirrorCheckbox && unMirrorCheckbox.checked !== (view === "back"))
+        unMirrorCheckbox.click();
+    }
+    const buttonsRow = ButtonsRow.create().addItems(SHEET_VIEWS
+      .filter(({dualSidedOnly, withPrintsOnly}) => (isDualSided || !dualSidedOnly) && (hasPrints || !withPrintsOnly))
+      .map(({view, label, hint}) => {
+        const button = document.createElement("button");
+        button.textContent = label;
+        button.title = hint;
+        button.addEventListener("click", () => {
+          applyView(view);
+        });
+        return button;
+      }));
+    runsController.append(buttonsRow.elem);
+    if (isDualSided) {
+      const label = document.createElement("label");
+      runsController.append(label);
+      label.style.userSelect = "none";
+      label.title = `Flip the whole preview, to look at the sheet from the back`;
+      unMirrorCheckbox = document.createElement("input");
+      label.append(unMirrorCheckbox);
+      unMirrorCheckbox.type = "checkbox";
+      label.append(`Un-mirror`);
+      unMirrorCheckbox.addEventListener("change", () => {
+        svg.style.transform = unMirrorCheckbox?.checked ? "scale(-1, 1)" : "";
+      });
+    }
   }
   return runsController;
 }
