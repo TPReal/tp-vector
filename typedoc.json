@@ -1,7 +1,6 @@
 {
   // Type-checking is done separately.
   "skipErrorChecking": true,
-  "entryPoints": ["src"],
   "out": "docs",
   "excludeNotDocumented": true,
   "excludeNotDocumentedKinds": [

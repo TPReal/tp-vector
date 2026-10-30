@@ -1,2 +1,3 @@
 # Generate the documentation in the docs directory.
-typedoc --name TPVector --entryPointStrategy Expand
+# Only the tracked files are documented, which keeps custom projects out of it.
+typedoc --name TPVector --entryPointStrategy Expand $(git ls-files 'src/*.ts')
