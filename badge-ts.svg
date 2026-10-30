@@ -1,19 +1,28 @@
-<svg width="117.9" height="20" viewBox="0 0 1179 200" xmlns="http://www.w3.org/2000/svg">
-  <linearGradient id="a" x2="0" y2="100%">
-    <stop offset="0" stop-opacity=".1" stop-color="#EEE"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="124" height="20" role="img"
+     font-family="Verdana,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">
+  <title>Lines of code</title>
+  <linearGradient id="shine" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
   </linearGradient>
-  <mask id="m"><rect width="1179" height="200" rx="30" fill="#FFF"/></mask>
-  <g mask="url(#m)">
-    <rect width="689" height="200" fill="#555"/>
-    <rect width="490" height="200" fill="#3178c6" x="689"/>
-    <rect width="1179" height="200" fill="url(#a)"/>
+  <clipPath id="round"><rect width="100%" height="100%" rx="3"/></clipPath>
+  <g clip-path="url(#round)">
+    <svg width="69" height="100%">
+      <rect width="100%" height="100%" fill="#555"/>
+      <rect width="100%" height="100%" fill="url(#shine)"/>
+      <text x="50%" y="15" fill="#010101" fill-opacity=".3">TypeScript</text>
+      <text x="50%" y="14" fill="#fff">TypeScript</text>
+    </svg>
+    <!-- The count box is wide enough for six digits. -->
+    <svg x="69" width="55" height="100%">
+      <rect width="100%" height="100%" fill="#3178c6"/>
+      <rect width="100%" height="100%" fill="url(#shine)"/>
+      <text x="50%" y="15" fill="#010101" fill-opacity=".3">
+        <!-- LINE_COUNT_HERE -->12&#8201;424
+      </text>
+      <text x="50%" y="14" fill="#fff">
+        <!-- LINE_COUNT_HERE -->12&#8201;424
+      </text>
+    </svg>
   </g>
-  <g fill="#fff" text-anchor="start" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110">
-    <text x="60" y="148" textLength="589" fill="#000" opacity="0.25">TypeScript</text>
-    <text x="50" y="138" textLength="589">TypeScript</text>
-    <text x="744" y="148" textLength="390" fill="#000" opacity="0.25">12,497</text>
-    <text x="734" y="138" textLength="390">12,497</text>
-  </g>
-  
 </svg>
