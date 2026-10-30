@@ -1,4 +1,5 @@
-# This workflow generates badges to display in the README file.
+# This workflow updates the code line count badge displayed in the README file.
+# The badge lives on the badges branch; this workflow only rewrites the count in it.
 
 name: Badges
 
@@ -9,23 +10,20 @@ on:
 
 jobs:
   badges:
-    name: Generate badges
+    name: Update badges
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeathSy/GHA-LoC-Badge@1.0.3
-        with:
-          directory: ./src/
-          patterns: "**/*.ts"
-          badge: ./badges/badge-ts.svg
-          badge_label: TypeScript
-          badge_color: 3178c6
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          publish_dir: ./badges
-          publish_branch: badges
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
     permissions:
       contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          ref: badges
+          path: badges
+      - run: node .github/scripts/update-badges.mjs badges
+      - name: Commit the badges
+        working-directory: badges
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || { git commit -am "Update the code line count badge."; git push; }
