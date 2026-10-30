@@ -103,9 +103,11 @@ export const DEFAULT_PRINT_STYLE_ATTRIBUTES = getDefaultPrintStyleAttributes();
 
 export interface PartialCutOptions extends PartialCommonRunOptions {
   type: "cut";
+  cutsThrough?: boolean;
 }
 export interface CutOptions extends CommonRunOptions {
   readonly type: "cut";
+  readonly cutsThrough: boolean;
 }
 /**
  * Creates CutOptions. If layers are not specified, layer equal to the id is used. If id is
@@ -118,6 +120,7 @@ export function cutOptionsFromPartial(
     layers = id === "cut" ? ["cut", NO_LAYER] : [id],
     styleAttributes,
     side = "front",
+    cutsThrough = side === "front",
     includeCornersMarker = false,
     posCorrectionMillimeters,
     hint,
@@ -135,6 +138,7 @@ export function cutOptionsFromPartial(
       }),
     }),
     side,
+    cutsThrough,
     includeCornersMarker,
     posCorrectionMillimeters,
     hint: hint === undefined ? undefined : String(hint),

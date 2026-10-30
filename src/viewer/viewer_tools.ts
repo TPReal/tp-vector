@@ -47,31 +47,27 @@ export async function getSheetPreview(sheet: Sheet) {
   return div;
 }
 
-type SheetViewType = "all" | "cut" | "front" | "back";
+type SheetViewType = "all" | "cutThrough" | "front" | "back";
 
 const SHEET_VIEWS: readonly {view: SheetViewType, label: string, hint: string, dualSidedOnly?: boolean, withPrintsOnly?: boolean}[] = [
   {view: "all", label: `All`, hint: `Show all runs`},
-  {view: "cut", label: `Cut`, hint: `Show only the cut runs`, withPrintsOnly: true},
+  {view: "cutThrough", label: `Cuts`, hint: `Show only the cuts that go through`, withPrintsOnly: true},
   {view: "front", label: `Front`, hint: `Show the front side`, dualSidedOnly: true},
-  {view: "back", label: `Back`, hint: `Show the back side (with the front cuts, which go all the way through)`, dualSidedOnly: true},
+  {view: "back", label: `Back`, hint: `Show the back side`, dualSidedOnly: true},
 ];
 
-// TODO: Consider a way for a run to declare whether it goes all the way through,
-// e.g. an etch cut run on the front.
 /**
- * Determines whether a run is visible in the given view, assuming that the front cuts go all
- * the way through (and are thus visible from both sides), while the back cuts are just etches
- * (visible only from the back).
+ * Determines whether a run is visible in the given view. Cuts that go through are visible from both sides.
  */
-function isRunInView(view: SheetViewType, {type, side}: RunOptions) {
+function isRunInView(view: SheetViewType, run: RunOptions) {
   if (view === "all")
     return true;
-  if (view === "cut")
-    return type === "cut";
+  if (view === "cutThrough")
+    return run.type === "cut" && run.cutsThrough;
   if (view === "front")
-    return side === "front";
+    return run.side === "front" || (run.type === "cut" && run.cutsThrough);
   if (view === "back")
-    return side === "back" || type === "cut";
+    return run.side === "back" || (run.type === "cut" && run.cutsThrough);
   return view satisfies never;
 }
 

@@ -630,10 +630,10 @@ export class Sheet {
    * If preserveRunsOrder was specified, the natural order is the same as the specified order.
    * Otherwise returns all the runs defined in this Sheet in their natural order. The order is:
    *  - prints on the back side,
-   *  - cuts on the back side (for scoring, as the main cut needs to be done on the front side),
+   *  - cuts on the back side (marks, not cuts through),
    *  - the reversing frame - if there were any runs on the back,
    *  - prints on the front,
-   *  - cuts on the front.
+   *  - cuts on the front (cuts through, which is the default).
    */
   getRunsInNaturalOrder(): PartialRunsSelector[] {
     if (this.preserveRunsOrder)
