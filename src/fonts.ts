@@ -297,7 +297,7 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
     } catch (e) {
       throw new Error(`Failed to fetch: ${url}\n${e}`, {cause: e});
     }
-    if (blob.type === "text/css" && mat.groups?.import)
+    if (blob.type.startsWith("text/css") && mat.groups?.import)
       // If it was an import of another style, just process and paste that style.
       return {mat, text: await changeToDataURIs(await blob.text()) + "\n"};
     const dataURI = await dataURIConv.fromBlob(blob);
