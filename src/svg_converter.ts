@@ -45,7 +45,8 @@ export async function getPNGDataURI(
     ctx.fillRect(0, 0, w, h);
   }
   const img = new Image();
-  return await new Promise<string>(resolve => {
+  return await new Promise<string>((resolve, reject) => {
+    img.onerror = () => reject(new Error(`Failed to load the SVG as an image.`));
     img.onload = () => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       if (allowTransparency === "ifWhite" || allowTransparency === "iffWhite") {

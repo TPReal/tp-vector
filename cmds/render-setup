@@ -1,0 +1,10 @@
+# Download the headless browser used by cmds/render into the git-ignored .tools directory.
+set -e
+version=$(curl -fsS https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE)
+base=https://storage.googleapis.com/chrome-for-testing-public
+mkdir -p .tools
+curl -fsSL -o .tools/chrome-headless-shell.zip \
+  "$base/$version/linux64/chrome-headless-shell-linux64.zip"
+unzip -q -o .tools/chrome-headless-shell.zip -d .tools
+rm .tools/chrome-headless-shell.zip
+echo "Installed chrome-headless-shell $version"

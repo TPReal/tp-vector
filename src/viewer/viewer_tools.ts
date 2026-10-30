@@ -5,9 +5,10 @@ import {PartialLaserSVGParams, Sheet} from '../sheet.ts';
 import {ButtonsRow} from '../ui.ts';
 import {OrArray, assert} from '../util.ts';
 import {newJSZip} from '../zip.ts';
+import {installHeadlessAPI, isHeadless} from './headless.ts';
 import {getPreviewClickHandler} from './preview_click_handler.ts';
 import {OrFuncPromise, OrPromise, SectionDef, SectionItemDef, unwrap} from './types.ts';
-import {showViewer} from './viewer_page.ts';
+import {applyGlobalOptionsPreset, showViewer} from './viewer_page.ts';
 
 /**
  * Returns a `<div>` containing a preview of the Sheet, including checkboxes to control runs
@@ -84,7 +85,7 @@ export function getSVGRunsControllerCheckboxes(svg: SVGSVGElement, sheet?: Sheet
   runsController.style.gap = ".5em";
   runsController.style.flexWrap = "wrap";
   runsController.style.alignItems = "center";
-  const blinkTimers: number[] = [];
+  const blinkTimers: ReturnType<typeof setTimeout>[] = [];
   runsController.append(`Show runs:`);
   const runCheckboxes: HTMLInputElement[] = [];
   const runIds: string[] = [];
@@ -294,7 +295,11 @@ export class Viewer {
         div.append(document.createTextNode(`No sheets.`));
       return div;
     } : content.element;
-    return this.addSect({name: content.name, element});
+    return this.addSect({
+      name: content.name,
+      element,
+      getSheets: isProject(content) ? () => getProjectSheets(content, ...args) : undefined,
+    });
   }
 
   addAll(other: Viewer) {
@@ -310,6 +315,11 @@ export class Viewer {
     tableOfContents?: boolean,
     section?: string,
   } = {}) {
+    if (isHeadless()) {
+      applyGlobalOptionsPreset(this.globalOptsMap);
+      installHeadlessAPI(this.sectionItems, [...this.globalOptsMap?.keys() ?? []]);
+      return parent ?? document.body;
+    }
     if (this.liveReload)
       installLiveReload();
     return showViewer({

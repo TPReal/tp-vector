@@ -23,6 +23,20 @@ const GLOBAL_OPTIONS_PRESET_KEY = "global_options_preset";
 const WIDTH_KEY = "width";
 const SECTION_KEY = "section";
 
+/** Applies the preset selected in the URL, or the default one. Returns the name of the preset. */
+export function applyGlobalOptionsPreset(
+  globalOptsMap: ReadonlyMap<string, globalOptions.GlobalOptionsInput> | undefined) {
+  if (!globalOptsMap)
+    return undefined;
+  globalOptions.reset();
+  let preset = new URLSearchParams(location.search).get(GLOBAL_OPTIONS_PRESET_KEY) ?? undefined;
+  if (preset === undefined || !globalOptsMap.has(preset))
+    preset = globalOptsMap.has("") ? "" : [...globalOptsMap.keys()].at(0);
+  if (preset !== undefined)
+    globalOptions.modify(assert(globalOptsMap.get(preset)));
+  return preset;
+}
+
 export function showViewer({
   globalOptsMap,
   sectionItems,
@@ -41,16 +55,7 @@ export function showViewer({
   const mobile = isMobile();
   const symbols = SYMBOLS[mobile ? "mobile" : "desktop"];
 
-  let globalOptsPreset: string | undefined;
-  if (globalOptsMap) {
-    globalOptions.reset();
-    globalOptsPreset =
-      new URLSearchParams(location.search).get(GLOBAL_OPTIONS_PRESET_KEY) ?? undefined;
-    if (globalOptsPreset === undefined || !globalOptsMap.has(globalOptsPreset))
-      globalOptsPreset = globalOptsMap.has("") ? "" : [...globalOptsMap.keys()].at(0);
-    if (globalOptsPreset !== undefined)
-      globalOptions.modify(assert(globalOptsMap.get(globalOptsPreset)));
-  }
+  const globalOptsPreset = applyGlobalOptionsPreset(globalOptsMap);
 
   const main = document.createElement("div");
   parent.append(main);

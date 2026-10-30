@@ -1,0 +1,2 @@
+# Render sections of the Viewer to files, without starting the Viewer. See --help.
+DENO_NO_UPDATE_CHECK=1 exec deno run --allow-all --no-lock src/headless/render.ts "$@"

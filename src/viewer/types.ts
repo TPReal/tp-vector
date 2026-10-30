@@ -1,3 +1,5 @@
+import type {Sheet} from '../sheet.ts';
+
 export type OrPromise<T> = T | Promise<T>;
 export type OrFuncPromise<T, Args extends unknown[] = []> =
   OrPromise<T> | ((...args: Args) => OrPromise<T>);
@@ -11,6 +13,8 @@ export async function unwrap<T, Args extends unknown[]>(
 export interface SectionDef {
   readonly name: string;
   readonly element: OrFuncPromise<HTMLElement>;
+  /** Returns the Sheet's of this section, if it is based on a Project. */
+  readonly getSheets?: () => Promise<readonly Sheet[]>;
 }
 
 export type SectionItemDef = SectionDef | "separator";
