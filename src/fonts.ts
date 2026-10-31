@@ -316,11 +316,31 @@ async function changeToDataURIs(styleContent: string): Promise<string> {
   return result;
 }
 
+const activatedStyles = new Map<string, Promise<unknown>>();
+
+/**
+ * Loads the fonts declared by the style, and keeps them available in the document.
+ *
+ * Text is measured synchronously, so a font needs to be ready before that happens, and a style
+ * that is only attached for the measurement has no chance of loading it. The copy of the style
+ * added to the document stays there, as it keeps the loaded font alive for all the later copies.
+ *
+ * A font that fails to load is left for the browser to replace with the next one in the stack.
+ */
+function activateStyle(styleContent: string) {
+  let activation = activatedStyles.get(styleContent);
+  if (!activation) {
+    const knownFaces = new Set(document.fonts);
+    document.head.append(createElement({tagName: "style", children: styleContent}));
+    activation = Promise.allSettled(
+      [...document.fonts].filter(face => !knownFaces.has(face)).map(face => face.load()));
+    activatedStyles.set(styleContent, activation);
+  }
+  return activation;
+}
+
 async function loadStyle(styleContent: string) {
-  // TODO: Find a reliable way of waiting for the font to load. Right now a page reload is
-  // sometimes necessary, because text elements are measured before the font is loaded.
-  return createElement({
-    tagName: "style",
-    children: await changeToDataURIs(styleContent),
-  });
+  const content = await changeToDataURIs(styleContent);
+  await activateStyle(content);
+  return createElement({tagName: "style", children: content});
 }
