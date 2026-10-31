@@ -206,7 +206,7 @@ export function pack(...params: readonly PackPiece[] | readonly [PackArgs]) {
 }
 
 /**
- * Packs the specified pieces roughly into a collection of boxes. The pieces are not reordered or
+ * Fits the specified pieces roughly into a collection of boxes. The pieces are not reordered or
  * or rotated, they are collected into rows and placed, row by row, into the boxes, switching
  * to the next box when the next row doesn't fit.
  */
@@ -288,4 +288,31 @@ export function fitInBoxes({
   if (piecesIndex < pieces.length)
     return {boxedPieces, remainingPieces: pieces.slice(piecesIndex)};
   return {boxedPieces};
+}
+
+/**
+ * Fits the specified pieces roughly into a box. The pieces are not reordered or
+ * or rotated, they are collected into rows and placed, row by row, into the box.
+ * Raises an error if they do not fit.
+ */
+export function fitInBox({
+  pieces,
+  box,
+  gap = 1,
+  margin = gap,
+}: {
+  pieces: readonly Piece[],
+  box: PartialViewBox,
+  gap?: number,
+  margin?: PartialViewBoxMargin,
+}): Piece {
+  const {boxedPieces, remainingPieces} = fitInBoxes({
+    pieces,
+    boxes: [box],
+    gap,
+    margin,
+  });
+  if (remainingPieces)
+    throw new Error(`Pieces do not fit in the box.`);
+  return boxedPieces[0]!;
 }
