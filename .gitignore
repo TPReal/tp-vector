@@ -9,5 +9,5 @@ cmds/projects-viewer
 .idea
 
 # Output of cmds/render, and the browser it uses.
-.render
+.render*
 .tools

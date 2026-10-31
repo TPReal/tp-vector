@@ -25,10 +25,15 @@ Options:
   --preset <name>     Use this global options preset of the Viewer.
   --entry <file>      The Viewer entry point (default: the one used by cmds/viewer).
   --out <dir>         The output directory (default: .render).
+  --baseline <dir>    Compare to the render in this directory, instead of the previous one in
+                      the output directory, and finish with a summary of the changed sheets.
 
 Each sheet produces <out>/<section slug>/<sheet index>.{png,svg,json}, and the PNG name includes
-also --runs, --crop and --grid. If the PNG already exists, the new one is compared to it, and
-differences are shown in a .diff.png file.
+also --runs, --crop and --grid. If the sheet was already rendered, the PNG and the JSON report are
+compared to the earlier ones. Differences in the PNG are shown in a .diff.png file in the output
+directory, and the JSON report also catches the changes too small to be visible.
+
+Math.random is seeded at the start of each section, so that the renders can be compared.
 
 The TP_VECTOR_CHROME environment variable overrides the path of the browser.`;
 
@@ -38,6 +43,35 @@ const DEFAULT_ENTRY = "src/viewer/viewer.ts";
 const PROJECTS_VIEWER = "cmds/projects-viewer";
 const API = "globalThis.tpVectorHeadless";
 const SIGNALS = ["SIGINT", "SIGTERM"] as const;
+const SEED_RANDOM = "tpVectorSeedRandom";
+const RANDOM_SEED = 1;
+
+/**
+ * Replaces `Math.random` with the mulberry32 generator. It needs to run before the bundle, because
+ * the modules can use it while they are loading.
+ */
+const SEEDED_RANDOM_SCRIPT = `{
+  let state = ${RANDOM_SEED};
+  globalThis.${SEED_RANDOM} = seed => {
+    state = seed;
+  };
+  Math.random = () => {
+    state = state + 0x6D2B79F5 | 0;
+    let t = Math.imul(state ^ state >>> 15, 1 | state);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 2 ** 32;
+  };
+}`;
+
+type Report = Omit<SheetReport, "png" | "laserSVG">;
+
+/** The sheets found when comparing to the baseline, as `<section slug>/<sheet index>`. */
+interface Comparison {
+  unchanged: number;
+  readonly changed: string[];
+  readonly added: string[];
+  readonly removed: string[];
+}
 
 function readTextIfExists(path: string) {
   try {
@@ -79,7 +113,8 @@ async function bundle(entry: string) {
     if (!success)
       throw new Error(`Failed to bundle ${entry}`);
     await Deno.writeTextFile(`${dir}/index.html`,
-      `<!doctype html><meta charset="utf-8"><body><script src="bundle.js"></script>`);
+      `<!doctype html><meta charset="utf-8"><body>` +
+      `<script>${SEEDED_RANDOM_SCRIPT}</script><script src="bundle.js"></script>`);
     return dir;
   } catch (e) {
     await Deno.remove(dir, {recursive: true});
@@ -182,22 +217,73 @@ function describeDiff({sizeChanged, changedPixels, totalPixels}: DiffReport, pat
   return `diff: ${changedPixels} pixels changed (${percent}%), see ${path}`;
 }
 
-async function compareToPrevious(chrome: Chrome, pngPath: string, png: string) {
-  const previous = await readIfExists(pngPath);
-  if (!previous)
-    return;
-  const diffPath = pngPath.replace(/\.png$/, ".diff.png");
-  await Deno.remove(diffPath).catch(() => {});
-  const diff = await chrome.evaluate<DiffReport>(
-    `${API}.diffPNGs(${JSON.stringify(bytesToDataURI(previous))}, ${JSON.stringify(png)})`);
-  if (diff.dataURI)
-    await Deno.writeFile(diffPath, dataURIToBytes(diff.dataURI));
-  return describeDiff(diff, diffPath);
+function getReportParts({runs, ...rest}: Report): Record<string, unknown> {
+  return {...rest, ...Object.fromEntries(runs.map(run => [`run ${run.id}`, run]))};
 }
 
-async function renderSection(
-  chrome: Chrome, section: string, request: RenderRequest, out: string, pngSuffix: string) {
-  const dir = `${out}/${slug(section)}`;
+function getReportChanges(baseline: Report, report: Report) {
+  const [before, after] = [getReportParts(baseline), getReportParts(report)];
+  return [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter(key => JSON.stringify(before[key]) !== JSON.stringify(after[key]));
+}
+
+async function compareToBaseline(chrome: Chrome, {
+  baselinePNGPath,
+  baselineReportPath,
+  diffPath,
+  png,
+  report,
+}: {
+  baselinePNGPath: string,
+  baselineReportPath: string,
+  diffPath: string,
+  png: string,
+  report: Report,
+}) {
+  await Deno.remove(diffPath).catch(() => {});
+  const baselinePNG = await readIfExists(baselinePNGPath);
+  if (!baselinePNG)
+    return undefined;
+  const diff = await chrome.evaluate<DiffReport>(
+    `${API}.diffPNGs(${JSON.stringify(bytesToDataURI(baselinePNG))}, ${JSON.stringify(png)})`);
+  if (diff.dataURI)
+    await Deno.writeFile(diffPath, dataURIToBytes(diff.dataURI));
+  const baselineReport = readTextIfExists(baselineReportPath);
+  const reportChanges =
+    baselineReport === undefined ? [] : getReportChanges(JSON.parse(baselineReport), report);
+  return {
+    changed: diff.sizeChanged || !!diff.changedPixels || !!reportChanges.length,
+    description: [
+      describeDiff(diff, diffPath),
+      ...reportChanges.length ? [`report changed: ${reportChanges.join(", ")}`] : [],
+    ],
+  };
+}
+
+function printComparison({unchanged, changed, added, removed}: Comparison, baseline: string) {
+  console.log(`Compared to ${baseline}: ${unchanged} unchanged, ${changed.length} changed, ` +
+    `${added.length} new, ${removed.length} removed.`);
+  for (const [label, sheets] of [["changed", changed], ["new", added], ["removed", removed]] as const)
+    if (sheets.length)
+      console.log(`${label}: ${sheets.join(" ")}`);
+}
+
+async function renderSection(chrome: Chrome, section: string, {
+  request,
+  out,
+  baseline,
+  pngSuffix,
+  comparison,
+}: {
+  request: RenderRequest,
+  out: string,
+  baseline: string,
+  pngSuffix: string,
+  comparison: Comparison,
+}) {
+  const sectionSlug = slug(section);
+  const dir = `${out}/${sectionSlug}`;
+  await chrome.evaluate(`${SEED_RANDOM}(${RANDOM_SEED})`);
   const sheetsCount = await chrome.evaluate<number>(`${API}.loadSection(${JSON.stringify(section)})`);
   await Deno.mkdir(dir, {recursive: true});
   const runIds = new Set<string>();
@@ -205,7 +291,20 @@ async function renderSection(
     const {png, laserSVG, ...report} = await chrome.evaluate<SheetReport>(
       `${API}.renderSheet(${index}, ${JSON.stringify(request)})`);
     const pngPath = `${dir}/${index}${pngSuffix}.png`;
-    const diff = await compareToPrevious(chrome, pngPath, png.dataURI);
+    const sheetId = `${sectionSlug}/${index}`;
+    const result = await compareToBaseline(chrome, {
+      baselinePNGPath: `${baseline}/${sheetId}${pngSuffix}.png`,
+      baselineReportPath: `${baseline}/${sheetId}.json`,
+      diffPath: pngPath.replace(/\.png$/, ".diff.png"),
+      png: png.dataURI,
+      report,
+    });
+    if (!result)
+      comparison.added.push(sheetId);
+    else if (result.changed)
+      comparison.changed.push(sheetId);
+    else
+      comparison.unchanged++;
     await Deno.writeFile(pngPath, dataURIToBytes(png.dataURI));
     await Deno.writeTextFile(`${dir}/${index}.svg`, laserSVG);
     await Deno.writeTextFile(`${dir}/${index}.json`, JSON.stringify(report, undefined, 1));
@@ -220,11 +319,13 @@ async function renderSection(
     }
     for (const warning of getWarnings({png, laserSVG, ...report}))
       console.log(`  warning: ${warning}`);
-    if (diff)
-      console.log(`  ${diff}`);
+    for (const line of result?.description ?? [])
+      console.log(`  ${line}`);
   }
   if (!sheetsCount)
     console.log(`No sheets.`);
+  for (let i = sheetsCount; await readIfExists(`${baseline}/${sectionSlug}/${i}${pngSuffix}.png`); i++)
+    comparison.removed.push(`${sectionSlug}/${i}`);
   for (const run of request.runs ?? [])
     if (!runIds.has(run))
       console.log(`warning: no sheet has run ${JSON.stringify(run)}`);
@@ -245,6 +346,7 @@ async function main() {
       preset: {type: "string"},
       entry: {type: "string"},
       out: {type: "string", default: ".render"},
+      baseline: {type: "string"},
     },
   });
   if (values.help || (!values.list && !values.all && !positionals.length)) {
@@ -269,6 +371,8 @@ async function main() {
     ...values.crop ? [`.crop-${values.crop.replaceAll(",", "_")}`] : [],
     ...values.grid ? [`.grid-${values.grid}`] : [],
   ].join("");
+  if (values.baseline !== undefined && !(await Deno.stat(values.baseline).catch(() => undefined)))
+    throw new Error(`Baseline not found: ${values.baseline}`);
   const executable = Deno.env.get("TP_VECTOR_CHROME") ?? CHROME_PATH;
   if (!(await Deno.stat(executable).catch(() => undefined)))
     throw new Error(`Browser not found: ${executable}. Run cmds/render-setup first.`);
@@ -286,6 +390,7 @@ async function main() {
   const onSignal = () => cleanUp().finally(() => Deno.exit(1));
   for (const signal of SIGNALS)
     Deno.addSignalListener(signal, onSignal);
+  const comparison: Comparison = {unchanged: 0, changed: [], added: [], removed: []};
   let failures = 0;
   try {
     const chrome = await launching;
@@ -312,7 +417,13 @@ async function main() {
     for (const section of selected) {
       console.log(`# ${section}`);
       try {
-        await renderSection(chrome, section, request, values.out, pngSuffix);
+        await renderSection(chrome, section, {
+          request,
+          out: values.out,
+          baseline: values.baseline ?? values.out,
+          pngSuffix,
+          comparison,
+        });
       } catch (e) {
         if (!chrome.connected)
           throw e;
@@ -321,6 +432,15 @@ async function main() {
       }
       for (const log of chrome.takeLogs())
         console.log(`  console: ${log}`);
+    }
+    if (values.baseline !== undefined) {
+      if (values.all) {
+        const rendered = new Set(selected.map(slug));
+        for await (const {name, isDirectory} of Deno.readDir(values.baseline))
+          if (isDirectory && !rendered.has(name))
+            comparison.removed.push(`${name}/`);
+      }
+      printComparison(comparison, values.baseline);
     }
   } finally {
     await cleanUp();

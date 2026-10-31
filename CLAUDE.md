@@ -14,8 +14,9 @@ needs `cmds/render-setup` once, or after a `Browser not found` error:
    as tabs, slots and kerf. The sheet-sized PNG does not show these reliably.
 3. For a measurement, use the JSON report. Its `loops` are in sheet units, with absolute positions,
    unlike the nested transforms and relative paths of the SVG.
-4. Rendering again writes a _.diff.png_ showing what changed since the previous render. Use
-   `cmds/render --all` before and after changing library code, to catch side effects.
+4. Rendering again writes a _.diff.png_ showing what changed since the previous render. To catch
+   side effects of changing library code, run `cmds/render --all --out .render-before` first, and
+   `cmds/render --all --baseline .render-before` afterwards, which ends with the changed sheets.
 
 A clean run is not proof that the output is right. Look at the image, and read the warnings.
 Sections are named by `cmds/render --list`, and the Viewer's global options apply; `--preset`

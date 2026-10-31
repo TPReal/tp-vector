@@ -53,8 +53,21 @@ Each sheet produces these files in the git-ignored _.render_ directory:
   each run. The command also prints warnings, e.g. about near-miss gaps in
   cuts, double cuts, and fonts which were not embedded.
 
-When a PNG already exists, the new one is compared to it, and the differences
-are shown in a _.diff.png_ file. See `cmds/render --help` for all the options.
+When a sheet was already rendered, the new PNG and JSON report are compared to
+the earlier ones. The differences in the PNG are shown in a _.diff.png_ file, and
+the report also catches changes too small to be visible. `Math.random` is seeded
+at the start of each section, so randomised projects are repeatable.
+
+To check the effects of a change, compare to a saved render, which finishes with
+a summary of the changed sheets:
+
+```sh
+cmds/render --all --out .render-before
+# Make the change.
+cmds/render --all --baseline .render-before
+```
+
+See `cmds/render --help` for all the options.
 
 ## Generating the documentation
 
